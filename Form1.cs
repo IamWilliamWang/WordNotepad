@@ -1,35 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using MSWord = Microsoft.Office.Interop.Word;
 
 namespace 日志书写器
 {
     public partial class Form1 : Form
     {
-        private readonly float documentFontSize = 12F;
-        private readonly String documentFont = "黑体";
+        private float documentFontSize { get { return 12F; } }
+        private String documentFont { get { return "黑体"; } }
+        private bool hasSaved { get; set; }
+
         public Form1()
         {
             InitializeComponent();
+            // 将实际字体替代在设计器中显示的字体
+            this.textBoxMain.Font = new System.Drawing.Font(documentFont, documentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
         }
-        public void CreateWord(string docFileName, string strContent, bool visible=false)
+
+        public void CreateWord(string docFileName, string strContent, bool visible = false)
         {
             if (!docFileName.Contains(":")) //没有使用完整路径
                 docFileName = Directory.GetCurrentDirectory() + "\\" + docFileName;
             object docFileNameObj = (object)docFileName;
 
-            MSWord.Application wordApp;//Word应用程序变量
-            MSWord.Document wordDoc;//Word文档变量
-            wordApp = new MSWord.ApplicationClass();//初始化
+            Microsoft.Office.Interop.Word.Application wordApp;//Word应用程序变量
+            Microsoft.Office.Interop.Word.Document wordDoc;//Word文档变量
+            wordApp = new Microsoft.Office.Interop.Word.Application();//初始化
             wordApp.Visible = visible;
             if (File.Exists(docFileName))
                 File.Delete(docFileName);
@@ -40,9 +37,9 @@ namespace 日志书写器
             //wdFormatDocument为Word2003文档的保存格式(文档后缀.doc) / wdFormatDocumentDefault为Word2007的保存格式(文档后缀.docx)
             object format;
             if (docFileName.EndsWith("docx"))
-                format = MSWord.WdSaveFormat.wdFormatDocumentDefault;
+                format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault;
             else
-                format = MSWord.WdSaveFormat.wdFormatDocument;
+                format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocument;
             //开始写字
             wordDoc.Paragraphs.Last.Range.Font.Size = documentFontSize;
             wordDoc.Paragraphs.Last.Range.Font.Name = documentFont;
@@ -55,18 +52,45 @@ namespace 日志书写器
             wordApp.Quit(ref Nothing, ref Nothing, ref Nothing);
         }
 
-        // 关闭的时候执行保存操作
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (this.textBoxMain.Text == "")
-                return;
+        private bool need2Save() => this.textBoxMain.Text != "" && !this.hasSaved;
 
+        private void button保存_Click(object sender, EventArgs e)
+        {
             string filename = "";
+            if (this.textBoxPath.Text != "")
+                filename += this.textBoxPath.Text + "\\";
             filename += String.Format("{0:0000}", DateTime.Now.Year);
             filename += String.Format("{0:00}", DateTime.Now.Month);
             filename += String.Format("{0:00}", DateTime.Now.Day);
             filename += "王劲翔.docx";
-            this.CreateWord(filename, this.textBoxMain.Text);
+            this.CreateWord(filename, this.textBoxMain.Text, true);
+            this.hasSaved = true;
         }
+
+        // 关闭的时候检查保存
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if(need2Save())
+                this.button保存_Click(null, null);
+        }
+
+        private void textBoxPath_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+        }
+
+        private void textBoxPath_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
+                this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
+            }
+        }
+
+
     }
 }
