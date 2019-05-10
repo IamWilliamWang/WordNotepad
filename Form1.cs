@@ -15,17 +15,13 @@ namespace 日志书写器
 {
     public partial class Form1 : Form
     {
+        private readonly float documentFontSize = 12F;
+        private readonly String documentFont = "黑体";
         public Form1()
         {
             InitializeComponent();
         }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            CreateWord("template.docx", "新文本");
-            Application.Exit();
-        }
-        void CreateWord(string docFileName, string strContent, bool visible=false)
+        public void CreateWord(string docFileName, string strContent, bool visible=false)
         {
             if (!docFileName.Contains(":")) //没有使用完整路径
                 docFileName = Directory.GetCurrentDirectory() + "\\" + docFileName;
@@ -47,6 +43,9 @@ namespace 日志书写器
                 format = MSWord.WdSaveFormat.wdFormatDocumentDefault;
             else
                 format = MSWord.WdSaveFormat.wdFormatDocument;
+            //开始写字
+            wordDoc.Paragraphs.Last.Range.Font.Size = documentFontSize;
+            wordDoc.Paragraphs.Last.Range.Font.Name = documentFont;
             wordDoc.Paragraphs.Last.Range.Text = strContent;
             //将wordDoc 文档对象的内容保存为DOC 文档,并保存到path指定的路径
             wordDoc.SaveAs(ref docFileNameObj, ref format, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing, ref Nothing);
@@ -54,6 +53,20 @@ namespace 日志书写器
             wordDoc.Close(ref Nothing, ref Nothing, ref Nothing);
             //关闭wordApp组件对象
             wordApp.Quit(ref Nothing, ref Nothing, ref Nothing);
+        }
+
+        // 关闭的时候执行保存操作
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.textBoxMain.Text == "")
+                return;
+
+            string filename = "";
+            filename += String.Format("{0:0000}", DateTime.Now.Year);
+            filename += String.Format("{0:00}", DateTime.Now.Month);
+            filename += String.Format("{0:00}", DateTime.Now.Day);
+            filename += "王劲翔.docx";
+            this.CreateWord(filename, this.textBoxMain.Text);
         }
     }
 }
