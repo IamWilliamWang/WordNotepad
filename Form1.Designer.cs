@@ -33,7 +33,7 @@
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
-            this.textBoxFontSize = new System.Windows.Forms.TextBox();
+            this.comboBoxFontSize = new System.Windows.Forms.ComboBox();
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
@@ -58,7 +58,7 @@
             this.labelPath.Location = new System.Drawing.Point(186, 19);
             this.labelPath.Name = "labelPath";
             this.labelPath.Size = new System.Drawing.Size(53, 12);
-            this.labelPath.TabIndex = 1;
+            this.labelPath.TabIndex = 7;
             this.labelPath.Text = "保存路径";
             // 
             // textBoxPath
@@ -69,7 +69,7 @@
             this.textBoxPath.Location = new System.Drawing.Point(245, 14);
             this.textBoxPath.Name = "textBoxPath";
             this.textBoxPath.Size = new System.Drawing.Size(251, 21);
-            this.textBoxPath.TabIndex = 2;
+            this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
             // 
@@ -79,7 +79,7 @@
             this.button保存.Location = new System.Drawing.Point(502, 14);
             this.button保存.Name = "button保存";
             this.button保存.Size = new System.Drawing.Size(75, 23);
-            this.button保存.TabIndex = 3;
+            this.button保存.TabIndex = 4;
             this.button保存.Text = "保存文件";
             this.button保存.UseVisualStyleBackColor = true;
             this.button保存.Click += new System.EventHandler(this.button保存_Click);
@@ -88,7 +88,7 @@
             // 
             this.groupBoxSetting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxSetting.Controls.Add(this.textBoxFontSize);
+            this.groupBoxSetting.Controls.Add(this.comboBoxFontSize);
             this.groupBoxSetting.Controls.Add(this.textBoxFont);
             this.groupBoxSetting.Controls.Add(this.labelFontSize);
             this.groupBoxSetting.Controls.Add(this.labelFont);
@@ -98,18 +98,32 @@
             this.groupBoxSetting.Location = new System.Drawing.Point(13, 7);
             this.groupBoxSetting.Name = "groupBoxSetting";
             this.groupBoxSetting.Size = new System.Drawing.Size(583, 46);
-            this.groupBoxSetting.TabIndex = 4;
+            this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
             // 
-            // textBoxFontSize
+            // comboBoxFontSize
             // 
-            this.textBoxFontSize.Font = new System.Drawing.Font("黑体", 10F);
-            this.textBoxFontSize.Location = new System.Drawing.Point(135, 14);
-            this.textBoxFontSize.Name = "textBoxFontSize";
-            this.textBoxFontSize.Size = new System.Drawing.Size(45, 23);
-            this.textBoxFontSize.TabIndex = 7;
-            this.textBoxFontSize.Text = "12";
-            this.textBoxFontSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.comboBoxFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxFontSize.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.comboBoxFontSize.Font = new System.Drawing.Font("宋体", 10F);
+            this.comboBoxFontSize.FormattingEnabled = true;
+            this.comboBoxFontSize.Items.AddRange(new object[] {
+            "六号",
+            "小五",
+            "五号",
+            "小四",
+            "四号",
+            "小三",
+            "三号",
+            "小二",
+            "二号",
+            "小一",
+            "一号"});
+            this.comboBoxFontSize.Location = new System.Drawing.Point(125, 15);
+            this.comboBoxFontSize.Name = "comboBoxFontSize";
+            this.comboBoxFontSize.Size = new System.Drawing.Size(55, 21);
+            this.comboBoxFontSize.TabIndex = 2;
+            this.comboBoxFontSize.SelectedIndexChanged += new System.EventHandler(this.comboBoxFontSize_SelectedIndexChanged);
             // 
             // textBoxFont
             // 
@@ -117,17 +131,17 @@
             this.textBoxFont.Location = new System.Drawing.Point(41, 14);
             this.textBoxFont.Name = "textBoxFont";
             this.textBoxFont.Size = new System.Drawing.Size(43, 23);
-            this.textBoxFont.TabIndex = 6;
+            this.textBoxFont.TabIndex = 1;
             this.textBoxFont.Text = "黑体";
             this.textBoxFont.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // labelFontSize
             // 
             this.labelFontSize.AutoSize = true;
-            this.labelFontSize.Location = new System.Drawing.Point(100, 19);
+            this.labelFontSize.Location = new System.Drawing.Point(90, 19);
             this.labelFontSize.Name = "labelFontSize";
             this.labelFontSize.Size = new System.Drawing.Size(29, 12);
-            this.labelFontSize.TabIndex = 5;
+            this.labelFontSize.TabIndex = 6;
             this.labelFontSize.Text = "字号";
             // 
             // labelFont
@@ -136,7 +150,7 @@
             this.labelFont.Location = new System.Drawing.Point(6, 19);
             this.labelFont.Name = "labelFont";
             this.labelFont.Size = new System.Drawing.Size(29, 12);
-            this.labelFont.TabIndex = 4;
+            this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
             // Form1
@@ -163,10 +177,10 @@
         private System.Windows.Forms.TextBox textBoxPath;
         private System.Windows.Forms.Button button保存;
         private System.Windows.Forms.GroupBox groupBoxSetting;
-        private System.Windows.Forms.TextBox textBoxFontSize;
         private System.Windows.Forms.TextBox textBoxFont;
         private System.Windows.Forms.Label labelFontSize;
         private System.Windows.Forms.Label labelFont;
+        private System.Windows.Forms.ComboBox comboBoxFontSize;
     }
 }
 
