@@ -70,8 +70,11 @@ namespace 日志书写器
         // 关闭的时候检查保存
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(need2Save())
-                this.button保存_Click(null, null);
+            if (need2Save())
+            {
+                if (MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                    this.button保存_Click(null, null);
+            }
         }
 
         private void textBoxPath_DragEnter(object sender, DragEventArgs e)
