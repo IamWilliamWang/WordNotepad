@@ -32,6 +32,12 @@
             this.labelPath = new System.Windows.Forms.Label();
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
+            this.groupBoxSetting = new System.Windows.Forms.GroupBox();
+            this.textBoxFontSize = new System.Windows.Forms.TextBox();
+            this.textBoxFont = new System.Windows.Forms.TextBox();
+            this.labelFontSize = new System.Windows.Forms.Label();
+            this.labelFont = new System.Windows.Forms.Label();
+            this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxMain
@@ -40,29 +46,29 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxMain.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.textBoxMain.Location = new System.Drawing.Point(13, 36);
+            this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Multiline = true;
             this.textBoxMain.Name = "textBoxMain";
-            this.textBoxMain.Size = new System.Drawing.Size(583, 368);
+            this.textBoxMain.Size = new System.Drawing.Size(583, 345);
             this.textBoxMain.TabIndex = 0;
             // 
             // labelPath
             // 
             this.labelPath.AutoSize = true;
-            this.labelPath.Location = new System.Drawing.Point(13, 12);
+            this.labelPath.Location = new System.Drawing.Point(186, 19);
             this.labelPath.Name = "labelPath";
-            this.labelPath.Size = new System.Drawing.Size(65, 12);
+            this.labelPath.Size = new System.Drawing.Size(53, 12);
             this.labelPath.TabIndex = 1;
-            this.labelPath.Text = "保存路径：";
+            this.labelPath.Text = "保存路径";
             // 
             // textBoxPath
             // 
             this.textBoxPath.AllowDrop = true;
             this.textBoxPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPath.Location = new System.Drawing.Point(84, 7);
+            this.textBoxPath.Location = new System.Drawing.Point(245, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(431, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(251, 21);
             this.textBoxPath.TabIndex = 2;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
@@ -70,7 +76,7 @@
             // button保存
             // 
             this.button保存.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button保存.Location = new System.Drawing.Point(521, 7);
+            this.button保存.Location = new System.Drawing.Point(502, 14);
             this.button保存.Name = "button保存";
             this.button保存.Size = new System.Drawing.Size(75, 23);
             this.button保存.TabIndex = 3;
@@ -78,18 +84,73 @@
             this.button保存.UseVisualStyleBackColor = true;
             this.button保存.Click += new System.EventHandler(this.button保存_Click);
             // 
+            // groupBoxSetting
+            // 
+            this.groupBoxSetting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSetting.Controls.Add(this.textBoxFontSize);
+            this.groupBoxSetting.Controls.Add(this.textBoxFont);
+            this.groupBoxSetting.Controls.Add(this.labelFontSize);
+            this.groupBoxSetting.Controls.Add(this.labelFont);
+            this.groupBoxSetting.Controls.Add(this.labelPath);
+            this.groupBoxSetting.Controls.Add(this.button保存);
+            this.groupBoxSetting.Controls.Add(this.textBoxPath);
+            this.groupBoxSetting.Location = new System.Drawing.Point(13, 7);
+            this.groupBoxSetting.Name = "groupBoxSetting";
+            this.groupBoxSetting.Size = new System.Drawing.Size(583, 46);
+            this.groupBoxSetting.TabIndex = 4;
+            this.groupBoxSetting.TabStop = false;
+            // 
+            // textBoxFontSize
+            // 
+            this.textBoxFontSize.Font = new System.Drawing.Font("黑体", 10F);
+            this.textBoxFontSize.Location = new System.Drawing.Point(135, 14);
+            this.textBoxFontSize.Name = "textBoxFontSize";
+            this.textBoxFontSize.Size = new System.Drawing.Size(45, 23);
+            this.textBoxFontSize.TabIndex = 7;
+            this.textBoxFontSize.Text = "12";
+            this.textBoxFontSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // textBoxFont
+            // 
+            this.textBoxFont.Font = new System.Drawing.Font("黑体", 10F);
+            this.textBoxFont.Location = new System.Drawing.Point(41, 14);
+            this.textBoxFont.Name = "textBoxFont";
+            this.textBoxFont.Size = new System.Drawing.Size(43, 23);
+            this.textBoxFont.TabIndex = 6;
+            this.textBoxFont.Text = "黑体";
+            this.textBoxFont.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // labelFontSize
+            // 
+            this.labelFontSize.AutoSize = true;
+            this.labelFontSize.Location = new System.Drawing.Point(100, 19);
+            this.labelFontSize.Name = "labelFontSize";
+            this.labelFontSize.Size = new System.Drawing.Size(29, 12);
+            this.labelFontSize.TabIndex = 5;
+            this.labelFontSize.Text = "字号";
+            // 
+            // labelFont
+            // 
+            this.labelFont.AutoSize = true;
+            this.labelFont.Location = new System.Drawing.Point(6, 19);
+            this.labelFont.Name = "labelFont";
+            this.labelFont.Size = new System.Drawing.Size(29, 12);
+            this.labelFont.TabIndex = 4;
+            this.labelFont.Text = "字体";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(608, 416);
-            this.Controls.Add(this.button保存);
-            this.Controls.Add(this.textBoxPath);
-            this.Controls.Add(this.labelPath);
+            this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
             this.Name = "Form1";
             this.Text = "日志书写器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.groupBoxSetting.ResumeLayout(false);
+            this.groupBoxSetting.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -101,6 +162,11 @@
         private System.Windows.Forms.Label labelPath;
         private System.Windows.Forms.TextBox textBoxPath;
         private System.Windows.Forms.Button button保存;
+        private System.Windows.Forms.GroupBox groupBoxSetting;
+        private System.Windows.Forms.TextBox textBoxFontSize;
+        private System.Windows.Forms.TextBox textBoxFont;
+        private System.Windows.Forms.Label labelFontSize;
+        private System.Windows.Forms.Label labelFont;
     }
 }
 
