@@ -20,7 +20,7 @@ namespace 日志书写器
 
         private bool need2Save() => this.textBoxMain.Text != "" && !this.hasSaved;
 
-        private void button保存_Click(object sender, EventArgs e)
+        private void saveDocx()
         {
             string filename = "";
             if (this.textBoxPath.Text != "")
@@ -42,13 +42,19 @@ namespace 日志书写器
             this.hasSaved = true;
         }
 
+        private void button保存_Click(object sender, EventArgs e)
+        {
+            saveDocx();
+            MessageBox.Show("保存Word文档成功！");
+        }
+
         // 关闭的时候检查保存
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (need2Save())
             {
                 if (MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
-                    this.button保存_Click(null, null);
+                    this.saveDocx();
             }
         }
 
