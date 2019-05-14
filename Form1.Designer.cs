@@ -33,11 +33,11 @@
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
+            this.checkBoxMailbox = new System.Windows.Forms.CheckBox();
             this.comboBoxFontSize = new System.Windows.Forms.ComboBox();
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
-            this.checkBoxMailbox = new System.Windows.Forms.CheckBox();
             this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -103,6 +103,19 @@
             this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
             // 
+            // checkBoxMailbox
+            // 
+            this.checkBoxMailbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxMailbox.AutoSize = true;
+            this.checkBoxMailbox.Checked = true;
+            this.checkBoxMailbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxMailbox.Location = new System.Drawing.Point(540, 18);
+            this.checkBoxMailbox.Name = "checkBoxMailbox";
+            this.checkBoxMailbox.Size = new System.Drawing.Size(72, 16);
+            this.checkBoxMailbox.TabIndex = 9;
+            this.checkBoxMailbox.Text = "打开邮箱";
+            this.checkBoxMailbox.UseVisualStyleBackColor = true;
+            // 
             // comboBoxFontSize
             // 
             this.comboBoxFontSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -154,16 +167,6 @@
             this.labelFont.Size = new System.Drawing.Size(29, 12);
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
-            // 
-            // checkBoxMailbox
-            // 
-            this.checkBoxMailbox.AutoSize = true;
-            this.checkBoxMailbox.Location = new System.Drawing.Point(540, 18);
-            this.checkBoxMailbox.Name = "checkBoxMailbox";
-            this.checkBoxMailbox.Size = new System.Drawing.Size(72, 16);
-            this.checkBoxMailbox.TabIndex = 9;
-            this.checkBoxMailbox.Text = "打开邮箱";
-            this.checkBoxMailbox.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
