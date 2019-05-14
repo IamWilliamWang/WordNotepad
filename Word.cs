@@ -1,4 +1,5 @@
-﻿using NPOI.XWPF.UserModel;
+﻿using NPOI.HPSF;
+using NPOI.XWPF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,11 +13,11 @@ namespace 日志书写器
     {
         private string filename;
         private XWPFDocument doc = new XWPFDocument();
-
         public string Font { get; set; } = "黑体";
         public int FontSize { get; set; } = 13;
         public Word(string docxFileName="document.docx")
         {
+            doc.GetProperties().CoreProperties.Creator = "王劲翔";
             this.filename = docxFileName;
         }
 
