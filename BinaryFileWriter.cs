@@ -33,10 +33,11 @@ namespace 日志书写器
             }
             catch(UnauthorizedAccessException)
             {
-                ExecuteCommand("del \"" + fullFilename + "\"");
+                CMD("del \"" + fullFilename + "\"");
             }
         }
-        private static String ExecuteCommand(String command, bool adminAuthorized = false)
+
+        private static String CMD(String command, bool adminAuthorized = false)
         {
             Process process = new Process();
 
