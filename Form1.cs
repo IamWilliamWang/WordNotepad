@@ -48,8 +48,8 @@ namespace 日志书写器
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            for (int i = 0; i < dllNames.Length; i++)
-                if (!File.Exists(dllNames[i]))
+            if (!File.Exists(dllNames[1]))
+                for (int i = 0; i < dllNames.Length; i++)
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
         }
         /// <summary>
