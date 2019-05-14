@@ -37,6 +37,7 @@
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
+            this.checkBoxMailbox = new System.Windows.Forms.CheckBox();
             this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,7 +50,7 @@
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Multiline = true;
             this.textBoxMain.Name = "textBoxMain";
-            this.textBoxMain.Size = new System.Drawing.Size(583, 345);
+            this.textBoxMain.Size = new System.Drawing.Size(699, 345);
             this.textBoxMain.TabIndex = 0;
             // 
             // labelPath
@@ -68,7 +69,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxPath.Location = new System.Drawing.Point(245, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(251, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(289, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
@@ -76,7 +77,7 @@
             // button保存
             // 
             this.button保存.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button保存.Location = new System.Drawing.Point(502, 14);
+            this.button保存.Location = new System.Drawing.Point(618, 14);
             this.button保存.Name = "button保存";
             this.button保存.Size = new System.Drawing.Size(75, 23);
             this.button保存.TabIndex = 4;
@@ -88,6 +89,7 @@
             // 
             this.groupBoxSetting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSetting.Controls.Add(this.checkBoxMailbox);
             this.groupBoxSetting.Controls.Add(this.comboBoxFontSize);
             this.groupBoxSetting.Controls.Add(this.textBoxFont);
             this.groupBoxSetting.Controls.Add(this.labelFontSize);
@@ -97,7 +99,7 @@
             this.groupBoxSetting.Controls.Add(this.textBoxPath);
             this.groupBoxSetting.Location = new System.Drawing.Point(13, 7);
             this.groupBoxSetting.Name = "groupBoxSetting";
-            this.groupBoxSetting.Size = new System.Drawing.Size(583, 46);
+            this.groupBoxSetting.Size = new System.Drawing.Size(699, 46);
             this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
             // 
@@ -153,16 +155,28 @@
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
+            // checkBoxMailbox
+            // 
+            this.checkBoxMailbox.AutoSize = true;
+            this.checkBoxMailbox.Location = new System.Drawing.Point(540, 18);
+            this.checkBoxMailbox.Name = "checkBoxMailbox";
+            this.checkBoxMailbox.Size = new System.Drawing.Size(72, 16);
+            this.checkBoxMailbox.TabIndex = 9;
+            this.checkBoxMailbox.Text = "打开邮箱";
+            this.checkBoxMailbox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(608, 416);
+            this.ClientSize = new System.Drawing.Size(724, 416);
             this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
             this.Name = "Form1";
             this.Text = "日志书写器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBoxSetting.ResumeLayout(false);
             this.groupBoxSetting.PerformLayout();
             this.ResumeLayout(false);
@@ -181,6 +195,7 @@
         private System.Windows.Forms.Label labelFontSize;
         private System.Windows.Forms.Label labelFont;
         private System.Windows.Forms.ComboBox comboBoxFontSize;
+        private System.Windows.Forms.CheckBox checkBoxMailbox;
     }
 }
 

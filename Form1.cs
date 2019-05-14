@@ -108,5 +108,42 @@ namespace 日志书写器
         {
             this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
         }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (this.checkBoxMailbox.Checked)
+                System.Diagnostics.Process.Start("https://mail.qq.com/");
+        }
+
+        private FileInfo WriteDll(int dllIndex, string[] dllNameList)
+        {
+            switch (dllIndex)
+            {
+                case 0:
+                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.ICSharpCode_SharpZipLib, dllNameList[dllIndex]);
+                case 1:
+                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI, dllNameList[dllIndex]);
+                case 2:
+                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OOXML, dllNameList[dllIndex]);
+                case 3:
+                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OpenXml4Net, dllNameList[dllIndex]);
+                case 4:
+                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OpenXmlFormats, dllNameList[dllIndex]);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
+            for(int i = 0; i < dllNames.Length; i++)
+            {
+                if(!File.Exists(dllNames[i]))
+                {
+                    WriteDll(i, dllNames).Attributes = FileAttributes.Hidden;
+                }
+            }
+        }
     }
 }
