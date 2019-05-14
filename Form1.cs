@@ -78,6 +78,11 @@ namespace 日志书写器
         #endregion
 
         #region 按钮点击操作
+        /// <summary>
+        /// 转换字号string为实际大小
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         private float GetFontSizeFromText(string text)
         {
             if (text == "六号")
