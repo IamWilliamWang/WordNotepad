@@ -20,6 +20,15 @@ namespace 日志书写器
             this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             // 选定默认字体
             this.comboBoxFontSize.SelectedIndex = 3;
+            if (File.Exists(GetDefaultDocumentFileName()))
+                try
+                {
+                    this.textBoxMain.Lines = new Word(GetDefaultDocumentFileName()).ReadWordLines();
+                }
+                catch(IOException)
+                {
+                    MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
         }
 
         /// <summary>
@@ -109,11 +118,7 @@ namespace 日志书写器
                 return 26f;
             return 10.5f;
         }
-
-        /// <summary>
-        /// 保存docx文档
-        /// </summary>
-        private void SaveDocx()
+        private string GetDefaultDocumentFileName()
         {
             string filename = "";
             if (this.textBoxPath.Text != "")
@@ -122,7 +127,15 @@ namespace 日志书写器
             filename += String.Format("{0:00}", DateTime.Now.Month);
             filename += String.Format("{0:00}", DateTime.Now.Day);
             filename += "王劲翔.docx";
-            Word word = new Word(filename);
+            return filename;
+        }
+
+        /// <summary>
+        /// 保存docx文档
+        /// </summary>
+        private void SaveDocx()
+        {
+            Word word = new Word(GetDefaultDocumentFileName());
             if (this.textBoxFont.Text != this.DocumentFont)
                 word.Font = this.textBoxFont.Text;
             else
@@ -132,7 +145,7 @@ namespace 日志书写器
                 word.FontSize = (int)nowFontSize;
             else
                 word.FontSize = (int)this.DocumentFontSize;
-            word.WriteDocx(this.textBoxMain.Text);
+            word.WriteDocx(this.textBoxMain.Lines);
             this.hasSaved = true;
         }
 

@@ -13,21 +13,26 @@ namespace 日志书写器
     {
         private string filename;
         private readonly string authorName = "王劲翔";
-        private XWPFDocument doc = new XWPFDocument();
+        private XWPFDocument docWrite = new XWPFDocument();
         public string Font { get; set; } = "黑体";
         public int FontSize { get; set; } = 13;
         public Word(string docxFileName="document.docx")
         {
-            doc.GetProperties().CoreProperties.Creator = authorName;
+            docWrite.GetProperties().CoreProperties.Creator = authorName;
             this.filename = docxFileName;
         }
 
         public void WriteDocx(string content)
         {
             string[] contentLines = content.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); //提取每一行的内容
+            WriteDocx(contentLines);
+        }
+
+        public void WriteDocx(string[] contentLines)
+        {
             foreach (string line in contentLines)
             {
-                XWPFParagraph paragraph = doc.CreateParagraph(); //每一行对应word中的一段
+                XWPFParagraph paragraph = docWrite.CreateParagraph(); //每一行对应word中的一段
                 paragraph.Alignment = ParagraphAlignment.BOTH;
                 XWPFRun run = paragraph.CreateRun(); //给这一段插入一行文字内容
                 run.SetText(line);
@@ -35,7 +40,37 @@ namespace 日志书写器
                 run.FontSize = FontSize;
             }
             using (FileStream outStream = new FileStream(filename, FileMode.Create))
-                doc.Write(outStream);
+                docWrite.Write(outStream);
+        }
+
+        public String ReadWord()
+        {
+            StringBuilder textReaded = new StringBuilder();
+            using (FileStream docxStream = File.OpenRead(this.filename))
+            {
+                XWPFDocument docRead = new XWPFDocument(docxStream);
+                foreach (XWPFParagraph paragraph in docRead.Paragraphs)
+                {
+                    string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
+                    textReaded.AppendLine(paragraphText);
+                }
+            }
+            return textReaded.ToString();
+        }
+
+        public String[] ReadWordLines()
+        {
+            List<String> lines = new List<string>();
+            using (FileStream docxStream = File.OpenRead(this.filename))
+            {
+                XWPFDocument docRead = new XWPFDocument(docxStream);
+                foreach (XWPFParagraph paragraph in docRead.Paragraphs)
+                {
+                    string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
+                    lines.Add(paragraphText);
+                }
+            }
+            return lines.ToArray();
         }
     }
 }
