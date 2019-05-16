@@ -9,7 +9,7 @@ namespace 日志书写器
     {
         private float DocumentFontSize { get { return 12F; } } //文档字号
         private String DocumentFont { get { return "黑体"; } } //文档字体
-        private bool hasSaved { get; set; } //已被保存过
+        private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
 
         #region 启动与关闭操作
@@ -57,15 +57,16 @@ namespace 日志书写器
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.Text += " v" + Program.Version(1);
             if (!File.Exists(dllNames[1]))
                 for (int i = 0; i < dllNames.Length; i++)
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
         }
         /// <summary>
-        /// 需要进行保存操作
+        /// 检查是否需要进行保存操作
         /// </summary>
         /// <returns></returns>
-        private bool needSave() => this.textBoxMain.Text != "" && !this.hasSaved;
+        private bool needSave() => this.textBoxMain.Text.Length != this.SavedCharLength;
 
         /// <summary>
         /// 关闭的时候检查保存
@@ -146,7 +147,7 @@ namespace 日志书写器
             else
                 word.FontSize = (int)this.DocumentFontSize;
             word.WriteDocx(this.textBoxMain.Lines);
-            this.hasSaved = true;
+            this.SavedCharLength = this.textBoxMain.Text.Length;
         }
 
         private void button保存_Click(object sender, EventArgs e)

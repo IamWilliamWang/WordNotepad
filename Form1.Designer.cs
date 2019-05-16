@@ -50,7 +50,7 @@
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Multiline = true;
             this.textBoxMain.Name = "textBoxMain";
-            this.textBoxMain.Size = new System.Drawing.Size(699, 345);
+            this.textBoxMain.Size = new System.Drawing.Size(821, 574);
             this.textBoxMain.TabIndex = 0;
             // 
             // labelPath
@@ -69,7 +69,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxPath.Location = new System.Drawing.Point(245, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(289, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(375, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
@@ -77,11 +77,11 @@
             // button保存
             // 
             this.button保存.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button保存.Location = new System.Drawing.Point(618, 14);
+            this.button保存.Location = new System.Drawing.Point(740, 14);
             this.button保存.Name = "button保存";
             this.button保存.Size = new System.Drawing.Size(75, 23);
             this.button保存.TabIndex = 4;
-            this.button保存.Text = "保存文件";
+            this.button保存.Text = "保存文档";
             this.button保存.UseVisualStyleBackColor = true;
             this.button保存.Click += new System.EventHandler(this.button保存_Click);
             // 
@@ -99,7 +99,7 @@
             this.groupBoxSetting.Controls.Add(this.textBoxPath);
             this.groupBoxSetting.Location = new System.Drawing.Point(13, 7);
             this.groupBoxSetting.Name = "groupBoxSetting";
-            this.groupBoxSetting.Size = new System.Drawing.Size(699, 46);
+            this.groupBoxSetting.Size = new System.Drawing.Size(821, 46);
             this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
             // 
@@ -109,11 +109,11 @@
             this.checkBoxMailbox.AutoSize = true;
             this.checkBoxMailbox.Checked = true;
             this.checkBoxMailbox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMailbox.Location = new System.Drawing.Point(540, 18);
+            this.checkBoxMailbox.Location = new System.Drawing.Point(626, 18);
             this.checkBoxMailbox.Name = "checkBoxMailbox";
-            this.checkBoxMailbox.Size = new System.Drawing.Size(72, 16);
+            this.checkBoxMailbox.Size = new System.Drawing.Size(108, 16);
             this.checkBoxMailbox.TabIndex = 9;
-            this.checkBoxMailbox.Text = "打开邮箱";
+            this.checkBoxMailbox.Text = "退出后打开邮箱";
             this.checkBoxMailbox.UseVisualStyleBackColor = true;
             // 
             // comboBoxFontSize
@@ -172,7 +172,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(724, 416);
+            this.ClientSize = new System.Drawing.Size(846, 645);
             this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
             this.Name = "Form1";
