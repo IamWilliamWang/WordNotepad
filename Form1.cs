@@ -25,7 +25,7 @@ namespace 日志书写器
                 {
                     Word wordRead = new Word(GetDefaultDocumentFileName());
                     this.textBoxMain.Lines = wordRead.ReadWordLines();
-                    this.SavedCharLength = wordRead.ReadWord().Length;
+                    this.SavedCharLength = wordRead.ReadWord().Replace("\r","").Replace("\n","").Length;
                 }
                 catch(IOException)
                 {
@@ -63,12 +63,13 @@ namespace 日志书写器
             if (!File.Exists(dllNames[1]))
                 for (int i = 0; i < dllNames.Length; i++)
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
+            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0); //光标点在文本最后
         }
         /// <summary>
         /// 检查是否需要进行保存操作
         /// </summary>
         /// <returns></returns>
-        private bool needSave() => this.textBoxMain.Text.Length != this.SavedCharLength;
+        private bool needSave() => this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length != this.SavedCharLength;
 
         /// <summary>
         /// 关闭的时候检查保存
