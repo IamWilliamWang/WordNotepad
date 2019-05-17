@@ -167,12 +167,30 @@ namespace 日志书写器
                 e.Effect = DragDropEffects.Move;
         }
 
+        private string FileOrDirectory(string filename)
+        {
+            int lastRightSlashIndex = filename.LastIndexOf('\\');
+            string shortFilename;
+            if (lastRightSlashIndex == -1)
+                shortFilename = filename;
+            else
+                shortFilename = filename.Substring(lastRightSlashIndex + 1);
+            if (shortFilename.Contains("."))
+                return "File";
+            else
+                return "Directory";
+        }
+
         private void textBoxPath_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                var file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
-                this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
+                string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
+                string type = FileOrDirectory(file);
+                if (type == "File")
+                    this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
+                else
+                    this.textBoxPath.Text = file;
             }
         }
 
