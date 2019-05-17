@@ -23,7 +23,9 @@ namespace 日志书写器
             if (File.Exists(GetDefaultDocumentFileName()))
                 try
                 {
-                    this.textBoxMain.Lines = new Word(GetDefaultDocumentFileName()).ReadWordLines();
+                    Word wordRead = new Word(GetDefaultDocumentFileName());
+                    this.textBoxMain.Lines = wordRead.ReadWordLines();
+                    this.SavedCharLength = wordRead.ReadWord().Length;
                 }
                 catch(IOException)
                 {
