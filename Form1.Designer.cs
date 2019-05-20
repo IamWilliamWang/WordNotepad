@@ -28,17 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.textBoxMain = new System.Windows.Forms.TextBox();
             this.labelPath = new System.Windows.Forms.Label();
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
+            this.buttonTopMost = new System.Windows.Forms.Button();
             this.checkBoxMailbox = new System.Windows.Forms.CheckBox();
             this.comboBoxFontSize = new System.Windows.Forms.ComboBox();
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
-            this.buttonTopMost = new System.Windows.Forms.Button();
             this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -105,6 +106,16 @@
             this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
             // 
+            // buttonTopMost
+            // 
+            this.buttonTopMost.Location = new System.Drawing.Point(665, 14);
+            this.buttonTopMost.Name = "buttonTopMost";
+            this.buttonTopMost.Size = new System.Drawing.Size(72, 23);
+            this.buttonTopMost.TabIndex = 10;
+            this.buttonTopMost.Text = "窗口置顶";
+            this.buttonTopMost.UseVisualStyleBackColor = true;
+            this.buttonTopMost.Click += new System.EventHandler(this.buttonTopMost_Click);
+            // 
             // checkBoxMailbox
             // 
             this.checkBoxMailbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -170,16 +181,6 @@
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
-            // buttonTopMost
-            // 
-            this.buttonTopMost.Location = new System.Drawing.Point(665, 14);
-            this.buttonTopMost.Name = "buttonTopMost";
-            this.buttonTopMost.Size = new System.Drawing.Size(72, 23);
-            this.buttonTopMost.TabIndex = 10;
-            this.buttonTopMost.Text = "窗口置顶";
-            this.buttonTopMost.UseVisualStyleBackColor = true;
-            this.buttonTopMost.Click += new System.EventHandler(this.buttonTopMost_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -187,6 +188,7 @@
             this.ClientSize = new System.Drawing.Size(846, 645);
             this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "日志书写器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
