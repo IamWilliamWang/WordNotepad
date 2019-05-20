@@ -241,5 +241,11 @@ namespace 日志书写器
             }
         }
         #endregion
+
+        private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.S && e.Control)
+                SaveDocx();
+        }
     }
 }

@@ -54,6 +54,7 @@
             this.textBoxMain.Name = "textBoxMain";
             this.textBoxMain.Size = new System.Drawing.Size(821, 574);
             this.textBoxMain.TabIndex = 0;
+            this.textBoxMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxMain_KeyDown);
             // 
             // labelPath
             // 
@@ -182,7 +183,7 @@
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
-            // Form1
+            // FormEdit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -190,7 +191,7 @@
             this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
+            this.Name = "FormEdit";
             this.Text = "日志书写器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
