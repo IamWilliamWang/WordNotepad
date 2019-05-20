@@ -36,7 +36,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>logo.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
@@ -131,9 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\NPOI.OpenXmlFormats.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="logo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

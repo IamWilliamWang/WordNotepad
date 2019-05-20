@@ -11,6 +11,7 @@ namespace 日志书写器
         private String DocumentFont { get { return "黑体"; } } //文档字体
         private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
+        private bool FullScreen { get; set; } = false;
 
         #region 启动与关闭操作
         public Form1()
@@ -175,7 +176,7 @@ namespace 日志书写器
         }
         #endregion
         
-        #region 拖拽与选择选项操作
+        #region groupbox内其他操作
         private void textBoxPath_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -213,8 +214,31 @@ namespace 日志书写器
         {
             this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
         }
+
         #endregion
 
-        
+        #region 双击操作
+        private void Form1_DoubleClick(object sender, EventArgs e)
+        {
+            if (!FullScreen)
+            {
+                this.groupBoxSetting.Visible = false;
+                this.textBoxMain.Location = new System.Drawing.Point(13, 7);
+                int height = this.textBoxMain.Size.Height;
+                int width = textBoxMain.Size.Width;
+                this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
+                FullScreen = true;
+            }
+            else
+            {
+                this.groupBoxSetting.Visible = true;
+                this.textBoxMain.Location = new System.Drawing.Point(12, 59);
+                int height = this.textBoxMain.Size.Height;
+                int width = textBoxMain.Size.Width;
+                this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
+                FullScreen = false;
+            }
+        }
+        #endregion
     }
 }

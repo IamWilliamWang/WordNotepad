@@ -108,6 +108,7 @@
             // 
             // buttonTopMost
             // 
+            this.buttonTopMost.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonTopMost.Location = new System.Drawing.Point(665, 14);
             this.buttonTopMost.Name = "buttonTopMost";
             this.buttonTopMost.Size = new System.Drawing.Size(72, 23);
@@ -194,6 +195,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.DoubleClick += new System.EventHandler(this.Form1_DoubleClick);
             this.groupBoxSetting.ResumeLayout(false);
             this.groupBoxSetting.PerformLayout();
             this.ResumeLayout(false);
