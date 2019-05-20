@@ -38,6 +38,7 @@
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
+            this.buttonTopMost = new System.Windows.Forms.Button();
             this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -69,7 +70,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxPath.Location = new System.Drawing.Point(245, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(375, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(336, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
@@ -77,9 +78,9 @@
             // button保存
             // 
             this.button保存.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button保存.Location = new System.Drawing.Point(740, 14);
+            this.button保存.Location = new System.Drawing.Point(743, 14);
             this.button保存.Name = "button保存";
-            this.button保存.Size = new System.Drawing.Size(75, 23);
+            this.button保存.Size = new System.Drawing.Size(72, 23);
             this.button保存.TabIndex = 4;
             this.button保存.Text = "保存文档";
             this.button保存.UseVisualStyleBackColor = true;
@@ -89,6 +90,7 @@
             // 
             this.groupBoxSetting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSetting.Controls.Add(this.buttonTopMost);
             this.groupBoxSetting.Controls.Add(this.checkBoxMailbox);
             this.groupBoxSetting.Controls.Add(this.comboBoxFontSize);
             this.groupBoxSetting.Controls.Add(this.textBoxFont);
@@ -109,11 +111,11 @@
             this.checkBoxMailbox.AutoSize = true;
             this.checkBoxMailbox.Checked = true;
             this.checkBoxMailbox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMailbox.Location = new System.Drawing.Point(626, 18);
+            this.checkBoxMailbox.Location = new System.Drawing.Point(587, 11);
             this.checkBoxMailbox.Name = "checkBoxMailbox";
-            this.checkBoxMailbox.Size = new System.Drawing.Size(108, 16);
+            this.checkBoxMailbox.Size = new System.Drawing.Size(72, 28);
             this.checkBoxMailbox.TabIndex = 9;
-            this.checkBoxMailbox.Text = "退出后打开邮箱";
+            this.checkBoxMailbox.Text = " 退出后\n打开邮箱";
             this.checkBoxMailbox.UseVisualStyleBackColor = true;
             // 
             // comboBoxFontSize
@@ -168,6 +170,16 @@
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
+            // buttonTopMost
+            // 
+            this.buttonTopMost.Location = new System.Drawing.Point(665, 14);
+            this.buttonTopMost.Name = "buttonTopMost";
+            this.buttonTopMost.Size = new System.Drawing.Size(72, 23);
+            this.buttonTopMost.TabIndex = 10;
+            this.buttonTopMost.Text = "窗口置顶";
+            this.buttonTopMost.UseVisualStyleBackColor = true;
+            this.buttonTopMost.Click += new System.EventHandler(this.buttonTopMost_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -199,6 +211,7 @@
         private System.Windows.Forms.Label labelFont;
         private System.Windows.Forms.ComboBox comboBoxFontSize;
         private System.Windows.Forms.CheckBox checkBoxMailbox;
+        private System.Windows.Forms.Button buttonTopMost;
     }
 }
 

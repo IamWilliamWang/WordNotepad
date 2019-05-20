@@ -91,6 +91,21 @@ namespace 日志书写器
         #endregion
 
         #region 按钮点击操作
+        private void buttonTopMost_Click(object sender, EventArgs e)
+        {
+            Button topMostButton = (Button)sender;
+            if (topMostButton.Text == "窗口置顶")
+            {
+                this.TopMost = true;
+                topMostButton.Text = "取消置顶";
+            }
+            else
+            {
+                this.TopMost = false;
+                topMostButton.Text = "窗口置顶";
+            }
+        }
+
         /// <summary>
         /// 转换字号string为实际大小
         /// </summary>
@@ -199,5 +214,7 @@ namespace 日志书写器
             this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
         }
         #endregion
+
+        
     }
 }
