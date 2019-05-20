@@ -167,7 +167,7 @@ namespace 日志书写器
             else
                 word.FontSize = (int)this.DocumentFontSize;
             word.WriteDocx(this.textBoxMain.Lines);
-            this.SavedCharLength = this.textBoxMain.Text.Length;
+            this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
         }
 
         private void button保存_Click(object sender, EventArgs e)
