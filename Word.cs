@@ -12,13 +12,12 @@ namespace 日志书写器
     class Word
     {
         private string filename;
-        private readonly string authorName = "王劲翔";
         private XWPFDocument docWrite = new XWPFDocument();
         public string Font { get; set; } = "黑体";
         public int FontSize { get; set; } = 13;
         public Word(string docxFileName="document.docx")
         {
-            docWrite.GetProperties().CoreProperties.Creator = authorName;
+            docWrite.GetProperties().CoreProperties.Creator = FormEdit.AuthorName;
             this.filename = docxFileName;
         }
 

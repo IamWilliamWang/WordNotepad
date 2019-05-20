@@ -5,8 +5,9 @@ using System.Windows.Forms;
 
 namespace 日志书写器
 {
-    public partial class Form1 : Form
+    public partial class FormEdit : Form
     {
+        public static String AuthorName { get; } = "王劲翔";
         private float DocumentFontSize { get { return 12F; } } //文档字号
         private String DocumentFont { get { return "黑体"; } } //文档字体
         private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
@@ -14,7 +15,7 @@ namespace 日志书写器
         private bool FullScreen { get; set; } = false;
 
         #region 启动与关闭操作
-        public Form1()
+        public FormEdit()
         {
             InitializeComponent();
             // 将实际字体替代在设计器中显示的字体
@@ -146,7 +147,7 @@ namespace 日志书写器
             filename += String.Format("{0:0000}", DateTime.Now.Year);
             filename += String.Format("{0:00}", DateTime.Now.Month);
             filename += String.Format("{0:00}", DateTime.Now.Day);
-            filename += "王劲翔.docx";
+            filename += AuthorName + ".docx";
             return filename;
         }
 
