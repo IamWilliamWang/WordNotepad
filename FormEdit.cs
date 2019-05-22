@@ -228,6 +228,7 @@ namespace 日志书写器
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
                 this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
+                this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
                 FullScreen = true;
             }
             else
@@ -237,6 +238,7 @@ namespace 日志书写器
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
                 this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
+                this.FormBorderStyle = FormBorderStyle.Sizable;
                 FullScreen = false;
             }
         }
