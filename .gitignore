@@ -1,5 +1,10 @@
+# VS数据库
 .vs/
+# 生成文件
 obj/
-*.doc*
-*.dll
 *.pdb
+# 动态库
+*.dll
+# 数据文件
+*.doc*
+*.autosave

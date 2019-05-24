@@ -49,7 +49,12 @@ namespace 日志书写器
         {
             autoSaveTimer = new Timer();
             autoSaveTimer.Interval = 30000;
-            autoSaveTimer.Tick += (sender, e) => this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx",".autosave"));
+            autoSaveTimer.Tick += (sender, e) =>
+            {
+                this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx", ".autosave"), false);
+                if (File.Exists(GetDefaultDocumentFileName()))
+                    this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
+            };
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -67,7 +72,8 @@ namespace 日志书写器
                     {
                         Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
                         this.textBoxMain.Lines = wordRead.ReadWordLines();
-                        //this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
+                        if(File.Exists(GetDefaultDocumentFileName()))
+                            this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
                         File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
                     }
                     catch (IOException)
@@ -192,7 +198,7 @@ namespace 日志书写器
         /// <summary>
         /// 保存docx文档
         /// </summary>
-        private void SaveDocx(string docxName)
+        private void SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
             Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
@@ -205,7 +211,8 @@ namespace 日志书写器
             else
                 word.FontSize = (int)this.DocumentFontSize;
             word.WriteDocx(this.textBoxMain.Lines);
-            this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
+            if(changeSavedCharLength)
+                this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
         }
 
         private void button保存_Click(object sender, EventArgs e)
@@ -304,9 +311,11 @@ namespace 日志书写器
 
         private void FormEdit_Resize(object sender, EventArgs e)
         {
-            if (this.textBoxMain.Lines.Length > ShowedTextLines)
+            // 当总行数大于显示，显示ScrollBar
+            if (this.textBoxMain.ScrollBars == ScrollBars.None && this.textBoxMain.Lines.Length > ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.Vertical;
-            else
+            // 当总行数小于显示，隐藏ScrollBar
+            if (this.textBoxMain.ScrollBars == ScrollBars.Vertical && this.textBoxMain.Lines.Length < ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.None;
         }
     }
