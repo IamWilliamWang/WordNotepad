@@ -13,26 +13,12 @@ namespace 日志书写器
         private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         private bool FullScreen { get; set; } = false;
+        private Timer autoSaveTimer;
 
         #region 启动与关闭操作
         public FormEdit()
         {
             InitializeComponent();
-            // 将实际字体替代在设计器中显示的字体
-            this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            // 选定默认字体
-            this.comboBoxFontSize.SelectedIndex = 3;
-            if (File.Exists(GetDefaultDocumentFileName()))
-                try
-                {
-                    Word wordRead = new Word(GetDefaultDocumentFileName());
-                    this.textBoxMain.Lines = wordRead.ReadWordLines();
-                    this.SavedCharLength = wordRead.ReadWord().Replace("\r","").Replace("\n","").Length;
-                }
-                catch(IOException)
-                {
-                    MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
         }
 
         /// <summary>
@@ -59,14 +45,59 @@ namespace 日志书写器
             }
         }
 
+        private void CreateAutoSaveTimer()
+        {
+            autoSaveTimer = new Timer();
+            autoSaveTimer.Interval = 30000;
+            autoSaveTimer.Tick += (sender, e) => this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx",".autosave"));
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text += " v" + Program.Version(1);
+            // 将实际字体替代在设计器中显示的字体
+            this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            // 选定默认字体
+            this.comboBoxFontSize.SelectedIndex = 3;
+            if (File.Exists(GetDefaultDocumentFileName().Replace(".docx", ".autosave")))
+            {
+                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                {
+                    try
+                    {
+                        Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+                        this.textBoxMain.Lines = wordRead.ReadWordLines();
+                        //this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
+                        File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+                    }
+                    catch (IOException)
+                    {
+                        MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    
+                }
+            }
+            else if (File.Exists(GetDefaultDocumentFileName()))
+            {
+                try
+                {
+                    Word wordRead = new Word(GetDefaultDocumentFileName());
+                    this.textBoxMain.Lines = wordRead.ReadWordLines();
+                    this.SavedCharLength = wordRead.Length;
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
             if (!File.Exists(dllNames[1]))
                 for (int i = 0; i < dllNames.Length; i++)
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
             this.textBoxMain.Select(this.textBoxMain.Text.Length, 0); //光标点在文本最后
+            CreateAutoSaveTimer();
+            autoSaveTimer.Start();
         }
+
         /// <summary>
         /// 检查是否需要进行保存操作
         /// </summary>
@@ -87,6 +118,7 @@ namespace 日志书写器
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
             if (this.checkBoxMailbox.Checked)
                 System.Diagnostics.Process.Start("https://mail.qq.com/");
         }
@@ -150,13 +182,19 @@ namespace 日志书写器
             filename += AuthorName + ".docx";
             return filename;
         }
-
         /// <summary>
         /// 保存docx文档
         /// </summary>
         private void SaveDocx()
         {
-            Word word = new Word(GetDefaultDocumentFileName());
+            SaveDocx(GetDefaultDocumentFileName());
+        }
+        /// <summary>
+        /// 保存docx文档
+        /// </summary>
+        private void SaveDocx(string docxName)
+        {
+            Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
                 word.Font = this.textBoxFont.Text;
             else
@@ -248,6 +286,28 @@ namespace 日志书写器
         {
             if (e.KeyCode == Keys.S && e.Control)
                 SaveDocx();
+            if (e.KeyCode == Keys.A && e.Control)
+                this.textBoxMain.SelectAll();
+        }
+
+        /// <summary>
+        /// 显示在屏幕上有多少行字
+        /// </summary>
+        private int ShowedTextLines
+        {
+            get
+            {
+                double 每行文字实际高度 = 16.65 / GetFontSizeFromText("小四") * GetFontSizeFromText(this.comboBoxFontSize.Text);
+                return (int)(this.textBoxMain.ClientSize.Height / 每行文字实际高度);
+            }
+        }
+
+        private void FormEdit_Resize(object sender, EventArgs e)
+        {
+            if (this.textBoxMain.Lines.Length > ShowedTextLines)
+                this.textBoxMain.ScrollBars = ScrollBars.Vertical;
+            else
+                this.textBoxMain.ScrollBars = ScrollBars.None;
         }
     }
 }

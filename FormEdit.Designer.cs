@@ -54,6 +54,7 @@
             this.textBoxMain.Name = "textBoxMain";
             this.textBoxMain.Size = new System.Drawing.Size(821, 574);
             this.textBoxMain.TabIndex = 0;
+            this.textBoxMain.DoubleClick += new System.EventHandler(this.Form1_DoubleClick);
             this.textBoxMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxMain_KeyDown);
             // 
             // labelPath
@@ -197,6 +198,7 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.DoubleClick += new System.EventHandler(this.Form1_DoubleClick);
+            this.Resize += new System.EventHandler(this.FormEdit_Resize);
             this.groupBoxSetting.ResumeLayout(false);
             this.groupBoxSetting.PerformLayout();
             this.ResumeLayout(false);
