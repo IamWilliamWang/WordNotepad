@@ -217,7 +217,8 @@ namespace 日志书写器
 
         private void button保存_Click(object sender, EventArgs e)
         {
-            SaveDocx();
+            this.SaveDocx();
+            File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
             MessageBox.Show("保存Word文档成功！");
         }
         #endregion
@@ -264,7 +265,7 @@ namespace 日志书写器
         #endregion
 
         #region 双击操作
-        private void Form1_DoubleClick(object sender, EventArgs e)
+        private void Form_DoubleClick(object sender, EventArgs e)
         {
             if (!FullScreen)
             {
@@ -292,7 +293,10 @@ namespace 日志书写器
         private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.S && e.Control)
-                SaveDocx();
+            {
+                this.SaveDocx();
+                File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+            }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
         }
@@ -317,6 +321,9 @@ namespace 日志书写器
             // 当总行数小于显示，隐藏ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.Vertical && this.textBoxMain.Lines.Length < ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.None;
+            // 如果上方空间太挤，自动打开全屏模式
+            if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
+                this.Form_DoubleClick(sender, e);
         }
     }
 }
