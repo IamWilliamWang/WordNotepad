@@ -135,7 +135,7 @@ namespace 日志书写器
             CreateAutoSaveTimer();
             autoSaveTimer.Start();
             // 晚上时间开启暗黑模式
-            if (DateTime.Now.Hour >= 1 || DateTime.Now.Hour <= 8)
+            if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
                 DarkModeOn();
         }
 
