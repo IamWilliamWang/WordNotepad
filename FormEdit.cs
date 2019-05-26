@@ -363,7 +363,7 @@ namespace 日志书写器
             }
         }
 
-        private void FormEdit_Resize(object sender, EventArgs e)
+        private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
             // 当总行数大于显示，显示ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.None && this.textBoxMain.Lines.Length > ShowedTextLines) // 提高执行效率
@@ -371,6 +371,10 @@ namespace 日志书写器
             // 当总行数小于显示，隐藏ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.Vertical && this.textBoxMain.Lines.Length < ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.None;
+        }
+
+        private void FormEdit_Resize(object sender, EventArgs e)
+        {
             // 如果上方空间太挤，自动打开全屏模式
             if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
                 this.Form_DoubleClick(sender, e);

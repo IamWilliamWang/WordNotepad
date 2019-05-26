@@ -54,6 +54,7 @@
             this.textBoxMain.Name = "textBoxMain";
             this.textBoxMain.Size = new System.Drawing.Size(821, 574);
             this.textBoxMain.TabIndex = 0;
+            this.textBoxMain.TextChanged += new System.EventHandler(this.textBoxMain_TextChanged);
             this.textBoxMain.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
             this.textBoxMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxMain_KeyDown);
             // 
