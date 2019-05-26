@@ -55,8 +55,8 @@ namespace 日志书写器
             autoSaveTimer.Tick += (sender, e) =>
             {
                 this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx", ".autosave"), false);
-                if (File.Exists(GetDefaultDocumentFileName()))
-                    this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
+                //if (File.Exists(GetDefaultDocumentFileName()))
+                //    this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
             };
         }
 
@@ -106,7 +106,8 @@ namespace 日志书写器
                     }
                     catch (IOException)
                     {
-                        MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Environment.Exit(0);
                     }
                     
                 }
@@ -317,24 +318,31 @@ namespace 日志书写器
         #region 双击操作
         private void Form_DoubleClick(object sender, EventArgs e)
         {
+            bool existScrollBars = this.textBoxMain.ScrollBars == ScrollBars.Vertical;
             if (!FullScreen)
             {
+                this.textBoxMain.ScrollBars = ScrollBars.None; //先取消ScrollBar，防止全屏时界面错乱
                 this.groupBoxSetting.Visible = false;
                 this.textBoxMain.Location = new System.Drawing.Point(13, 7);
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
                 this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
                 this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+                if (existScrollBars)
+                    this.textBoxMain.ScrollBars = ScrollBars.Vertical; // 恢复ScrollBar
                 FullScreen = true;
             }
             else
             {
+                this.textBoxMain.ScrollBars = ScrollBars.None; //先取消ScrollBar，防止全屏时界面错乱
                 this.groupBoxSetting.Visible = true;
                 this.textBoxMain.Location = new System.Drawing.Point(12, 59);
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
                 this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
                 this.FormBorderStyle = FormBorderStyle.Sizable;
+                if (existScrollBars)
+                    this.textBoxMain.ScrollBars = ScrollBars.Vertical; // 恢复ScrollBar
                 FullScreen = false;
             }
         }
@@ -349,6 +357,8 @@ namespace 日志书写器
             }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
+            if (e.KeyCode == Keys.Tab && e.Shift) 
+                this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "\t");
         }
 
         /// <summary>
@@ -365,11 +375,12 @@ namespace 日志书写器
 
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
+            int lineCount = this.textBoxMain.GetLineFromCharIndex(this.textBoxMain.Text.Length) + 1;
             // 当总行数大于显示，显示ScrollBar
-            if (this.textBoxMain.ScrollBars == ScrollBars.None && this.textBoxMain.Lines.Length > ShowedTextLines) // 提高执行效率
+            if (this.textBoxMain.ScrollBars == ScrollBars.None && lineCount > ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.Vertical;
             // 当总行数小于显示，隐藏ScrollBar
-            if (this.textBoxMain.ScrollBars == ScrollBars.Vertical && this.textBoxMain.Lines.Length < ShowedTextLines) // 提高执行效率
+            if (this.textBoxMain.ScrollBars == ScrollBars.Vertical && lineCount < ShowedTextLines) // 提高执行效率
                 this.textBoxMain.ScrollBars = ScrollBars.None;
         }
 
