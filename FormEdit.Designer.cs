@@ -196,7 +196,7 @@
             this.Text = "日志书写器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
-            this.Load += new System.EventHandler(this.Form1_Load);
+            this.Load += new System.EventHandler(this.FormEdit_Load);
             this.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
             this.Resize += new System.EventHandler(this.FormEdit_Resize);
             this.groupBoxSetting.ResumeLayout(false);

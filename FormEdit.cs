@@ -45,6 +45,9 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 创建并开启自动保存计时器
+        /// </summary>
         private void CreateAutoSaveTimer()
         {
             autoSaveTimer = new Timer();
@@ -57,13 +60,38 @@ namespace 日志书写器
             };
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        /// <summary>
+        /// 打开暗黑模式
+        /// </summary>
+        private void DarkModeOn()
         {
+            this.textBoxMain.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxMain.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxPath.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxPath.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.button保存.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.UseVisualStyleBackColor = false;
+            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonTopMost.UseVisualStyleBackColor = false;
+            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
+            this.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.ForeColor = System.Drawing.SystemColors.Window;
+        }
+
+        private void FormEdit_Load(object sender, EventArgs e)
+        {
+            // 加版本号
             this.Text += " v" + Program.Version(1);
             // 将实际字体替代在设计器中显示的字体
             this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             // 选定默认字体
             this.comboBoxFontSize.SelectedIndex = 3;
+            // 有自动保存文件则恢复内容
             if (File.Exists(GetDefaultDocumentFileName().Replace(".docx", ".autosave")))
             {
                 if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
@@ -83,6 +111,7 @@ namespace 日志书写器
                     
                 }
             }
+            // 有保存的文件则直接加载内容
             else if (File.Exists(GetDefaultDocumentFileName()))
             {
                 try
@@ -96,19 +125,25 @@ namespace 日志书写器
                     MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+            // 如果没有dll文件就解压文件
             if (!File.Exists(dllNames[1]))
                 for (int i = 0; i < dllNames.Length; i++)
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
-            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0); //光标点在文本最后
+            // 光标点在文本最后
+            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
+            // 启动自动保存计时器
             CreateAutoSaveTimer();
             autoSaveTimer.Start();
+            // 晚上时间开启暗黑模式
+            if (DateTime.Now.Hour >= 1 || DateTime.Now.Hour <= 8)
+                DarkModeOn();
         }
 
         /// <summary>
         /// 检查是否需要进行保存操作
         /// </summary>
         /// <returns></returns>
-        private bool needSave() => this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length != this.SavedCharLength;
+        private bool NeedSave() => this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length != this.SavedCharLength;
 
         /// <summary>
         /// 关闭的时候检查保存
@@ -117,7 +152,7 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (needSave())
+            if (NeedSave())
                 if (MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                     this.SaveDocx();
         }
@@ -177,10 +212,15 @@ namespace 日志书写器
                 return 26f;
             return 10.5f;
         }
+
+        /// <summary>
+        /// 获得默认的文件名
+        /// </summary>
+        /// <returns></returns>
         private string GetDefaultDocumentFileName()
         {
             string filename = "";
-            if (this.textBoxPath.Text != "")
+            if (this.textBoxPath.Text != "" && this.textBoxPath.Text[textBoxPath.Text.Length - 1] != '\\')
                 filename += this.textBoxPath.Text + "\\";
             filename += String.Format("{0:0000}", DateTime.Now.Year);
             filename += String.Format("{0:00}", DateTime.Now.Month);
@@ -188,6 +228,7 @@ namespace 日志书写器
             filename += AuthorName + ".docx";
             return filename;
         }
+
         /// <summary>
         /// 保存docx文档
         /// </summary>
@@ -195,6 +236,7 @@ namespace 日志书写器
         {
             SaveDocx(GetDefaultDocumentFileName());
         }
+
         /// <summary>
         /// 保存docx文档
         /// </summary>
@@ -210,7 +252,15 @@ namespace 日志书写器
                 word.FontSize = (int)nowFontSize;
             else
                 word.FontSize = (int)this.DocumentFontSize;
-            word.WriteDocx(this.textBoxMain.Lines);
+            try
+            {
+                word.WriteDocx(this.textBoxMain.Lines);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                MessageBox.Show("保存目录不存在，请重新填写正确的保存目录！", "保存警告", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.textBoxPath.Text = "";
+            }
             if(changeSavedCharLength)
                 this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
         }
@@ -219,7 +269,7 @@ namespace 日志书写器
         {
             this.SaveDocx();
             File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
-            MessageBox.Show("保存Word文档成功！");
+            MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
         

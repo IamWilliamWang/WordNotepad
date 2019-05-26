@@ -39,8 +39,15 @@ namespace 日志书写器
                 run.FontFamily = Font;
                 run.FontSize = FontSize;
             }
-            using (FileStream outStream = new FileStream(filename, FileMode.Create))
-                docWrite.Write(outStream);
+            try
+            {
+                using (FileStream outStream = new FileStream(filename, FileMode.Create))
+                    docWrite.Write(outStream);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                throw;
+            }
         }
 
         public String ReadWord()
