@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormEdit));
             this.textBoxMain = new System.Windows.Forms.TextBox();
             this.labelPath = new System.Windows.Forms.Label();
@@ -40,7 +41,17 @@
             this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
+            this.contextMenuStripMain = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.剪切ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.复制ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.粘贴ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.插入tToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.全屏模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.暗黑模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.查找ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.删除ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxSetting.SuspendLayout();
+            this.contextMenuStripMain.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxMain
@@ -48,6 +59,7 @@
             this.textBoxMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxMain.ContextMenuStrip = this.contextMenuStripMain;
             this.textBoxMain.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Multiline = true;
@@ -185,6 +197,76 @@
             this.labelFont.TabIndex = 5;
             this.labelFont.Text = "字体";
             // 
+            // contextMenuStripMain
+            // 
+            this.contextMenuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.插入tToolStripMenuItem,
+            this.查找ToolStripMenuItem,
+            this.剪切ToolStripMenuItem,
+            this.复制ToolStripMenuItem,
+            this.粘贴ToolStripMenuItem,
+            this.删除ToolStripMenuItem,
+            this.全屏模式ToolStripMenuItem,
+            this.暗黑模式ToolStripMenuItem});
+            this.contextMenuStripMain.Name = "contextMenuStripMain";
+            this.contextMenuStripMain.Size = new System.Drawing.Size(181, 202);
+            // 
+            // 剪切ToolStripMenuItem
+            // 
+            this.剪切ToolStripMenuItem.Name = "剪切ToolStripMenuItem";
+            this.剪切ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.剪切ToolStripMenuItem.Text = "剪切";
+            this.剪切ToolStripMenuItem.Click += new System.EventHandler(this.剪切ToolStripMenuItem_Click);
+            // 
+            // 复制ToolStripMenuItem
+            // 
+            this.复制ToolStripMenuItem.Name = "复制ToolStripMenuItem";
+            this.复制ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.复制ToolStripMenuItem.Text = "复制";
+            this.复制ToolStripMenuItem.Click += new System.EventHandler(this.复制ToolStripMenuItem_Click);
+            // 
+            // 粘贴ToolStripMenuItem
+            // 
+            this.粘贴ToolStripMenuItem.Name = "粘贴ToolStripMenuItem";
+            this.粘贴ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.粘贴ToolStripMenuItem.Text = "粘贴";
+            this.粘贴ToolStripMenuItem.Click += new System.EventHandler(this.粘贴ToolStripMenuItem_Click);
+            // 
+            // 插入tToolStripMenuItem
+            // 
+            this.插入tToolStripMenuItem.Name = "插入tToolStripMenuItem";
+            this.插入tToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.插入tToolStripMenuItem.Text = "插入Tab";
+            this.插入tToolStripMenuItem.Click += new System.EventHandler(this.插入tToolStripMenuItem_Click);
+            // 
+            // 全屏模式ToolStripMenuItem
+            // 
+            this.全屏模式ToolStripMenuItem.Name = "全屏模式ToolStripMenuItem";
+            this.全屏模式ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.全屏模式ToolStripMenuItem.Text = "全屏模式";
+            this.全屏模式ToolStripMenuItem.Click += new System.EventHandler(this.全屏模式ToolStripMenuItem_Click);
+            // 
+            // 暗黑模式ToolStripMenuItem
+            // 
+            this.暗黑模式ToolStripMenuItem.Name = "暗黑模式ToolStripMenuItem";
+            this.暗黑模式ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
+            this.暗黑模式ToolStripMenuItem.Click += new System.EventHandler(this.暗黑模式ToolStripMenuItem_Click);
+            // 
+            // 查找ToolStripMenuItem
+            // 
+            this.查找ToolStripMenuItem.Name = "查找ToolStripMenuItem";
+            this.查找ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.查找ToolStripMenuItem.Text = "查找内容";
+            this.查找ToolStripMenuItem.Click += new System.EventHandler(this.查找ToolStripMenuItem_Click);
+            // 
+            // 删除ToolStripMenuItem
+            // 
+            this.删除ToolStripMenuItem.Name = "删除ToolStripMenuItem";
+            this.删除ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.删除ToolStripMenuItem.Text = "删除";
+            this.删除ToolStripMenuItem.Click += new System.EventHandler(this.删除ToolStripMenuItem_Click);
+            // 
             // FormEdit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -202,6 +284,7 @@
             this.Resize += new System.EventHandler(this.FormEdit_Resize);
             this.groupBoxSetting.ResumeLayout(false);
             this.groupBoxSetting.PerformLayout();
+            this.contextMenuStripMain.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -220,6 +303,15 @@
         private System.Windows.Forms.ComboBox comboBoxFontSize;
         private System.Windows.Forms.CheckBox checkBoxMailbox;
         private System.Windows.Forms.Button buttonTopMost;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripMain;
+        private System.Windows.Forms.ToolStripMenuItem 剪切ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 复制ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 粘贴ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 插入tToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 全屏模式ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 暗黑模式ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 查找ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 删除ToolStripMenuItem;
     }
 }
 

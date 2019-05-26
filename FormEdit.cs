@@ -14,6 +14,7 @@ namespace 日志书写器
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         private bool FullScreen { get; set; } = false;
         private Timer autoSaveTimer;
+        private string lastSearch = "";
 
         #region 启动与关闭操作
         public FormEdit()
@@ -107,7 +108,8 @@ namespace 日志书写器
                     catch (IOException)
                     {
                         MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Environment.Exit(0);
+                        this.checkBoxMailbox.Checked = false;
+                        Application.Exit();
                     }
                     
                 }
@@ -123,7 +125,9 @@ namespace 日志书写器
                 }
                 catch (IOException)
                 {
-                    MessageBox.Show("读取失败，日志文件被占用，请在保存前关闭Microsoft Word软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.checkBoxMailbox.Checked = false;
+                    Application.Exit();
                 }
             }
             // 如果没有dll文件就解压文件
@@ -316,35 +320,37 @@ namespace 日志书写器
         #endregion
 
         #region 双击操作
-        private void Form_DoubleClick(object sender, EventArgs e)
+        private void FullScreenModeOn(object sender)
         {
-            bool existScrollBars = this.textBoxMain.ScrollBars == ScrollBars.Vertical;
             if (!FullScreen)
             {
-                this.textBoxMain.ScrollBars = ScrollBars.None; //先取消ScrollBar，防止全屏时界面错乱
-                this.groupBoxSetting.Visible = false;
-                this.textBoxMain.Location = new System.Drawing.Point(13, 7);
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
+                if (height == 0 || width == 0)
+                    return;
+                this.groupBoxSetting.Visible = false;
+                this.textBoxMain.Location = new System.Drawing.Point(13, 7);
                 this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
                 this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-                if (existScrollBars)
-                    this.textBoxMain.ScrollBars = ScrollBars.Vertical; // 恢复ScrollBar
                 FullScreen = true;
             }
             else
             {
-                this.textBoxMain.ScrollBars = ScrollBars.None; //先取消ScrollBar，防止全屏时界面错乱
-                this.groupBoxSetting.Visible = true;
-                this.textBoxMain.Location = new System.Drawing.Point(12, 59);
                 int height = this.textBoxMain.Size.Height;
                 int width = textBoxMain.Size.Width;
+                if (height == 0 || width == 0)
+                    return;
+                this.groupBoxSetting.Visible = true;
+                this.textBoxMain.Location = new System.Drawing.Point(12, 59);
                 this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
                 this.FormBorderStyle = FormBorderStyle.Sizable;
-                if (existScrollBars)
-                    this.textBoxMain.ScrollBars = ScrollBars.Vertical; // 恢复ScrollBar
                 FullScreen = false;
             }
+        }
+
+        private void Form_DoubleClick(object sender, EventArgs e)
+        {
+            FullScreenModeOn(sender);
         }
         #endregion
 
@@ -357,8 +363,6 @@ namespace 日志书写器
             }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
-            if (e.KeyCode == Keys.Tab && e.Shift) 
-                this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "\t");
         }
 
         /// <summary>
@@ -388,7 +392,64 @@ namespace 日志书写器
         {
             // 如果上方空间太挤，自动打开全屏模式
             if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
-                this.Form_DoubleClick(sender, e);
+                this.FullScreenModeOn(sender);
+        }
+
+        private void 插入tToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
+        }
+
+        private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SendKeys.Send("^{x}");
+        }
+
+        private void 复制ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SendKeys.Send("^{c}");
+        }
+
+        private void 粘贴ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SendKeys.Send("^{v}");
+        }
+
+        private void 全屏模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FullScreenModeOn(sender);
+        }
+
+        private void 暗黑模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DarkModeOn();
+        }
+
+        private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: lastSearch);
+            if (search == "")
+                return;
+            int index = this.textBoxMain.Text.IndexOf(search, this.textBoxMain.SelectionStart);
+            if (index == -1)
+            {
+                if (DialogResult.Yes == MessageBox.Show("未找到。是否从头开始查找？", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                {
+                    index = textBoxMain.Text.IndexOf(search, 0);
+                    if (index == -1)
+                    {
+                        MessageBox.Show("仍然未找到");
+                        return;
+                    }
+                }
+            }
+            lastSearch = search;
+            this.textBoxMain.Select(index, search.Length);
+        }
+
+        private void 删除ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SendKeys.Send("{DEL}");
         }
     }
 }
