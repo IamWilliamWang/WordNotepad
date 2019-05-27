@@ -210,6 +210,19 @@ namespace 日志书写器
             // 晚上时间开启暗黑模式
             if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
                 DarkModeOn();
+            // 加右键菜单项
+            this.contextMenuStripMain.Items.Clear();
+            this.contextMenuStripMain.Items.Add(插入tToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(查找ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(全屏模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(暗黑模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
         }
 
         /// <summary>
@@ -448,6 +461,11 @@ namespace 日志书写器
             Mouse.DoMouseClick(); // 鼠标点击
             this.textBoxMain.Select(selectStart, 0); // 还原位置
         }
+
+        private void 自动聚焦ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.textBoxMain.MouseHover += textBoxMain_MouseHover;
+        }
         #endregion
 
         #region 右键菜单
@@ -530,5 +548,7 @@ namespace 日志书写器
 
             //...other code needed for the application
         }
+
+        
     }
 }
