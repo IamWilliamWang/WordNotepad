@@ -13,10 +13,100 @@ namespace 日志书写器
         private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         private bool FullScreen { get; set; } = false;
+        private bool DarkMode { get; set; } = false;
         private Timer autoSaveTimer;
         private string lastSearch = "";
 
-        #region 启动与关闭操作
+        #region 全屏模式和暗黑模式
+        /// <summary>
+        /// 打开暗黑模式
+        /// </summary>
+        private void DarkModeOn()
+        {
+            this.textBoxMain.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxMain.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxPath.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxPath.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.button保存.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.UseVisualStyleBackColor = false;
+            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonTopMost.UseVisualStyleBackColor = false;
+            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
+            this.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.ForeColor = System.Drawing.SystemColors.Window;
+            this.DarkMode = true;
+        }
+
+        private void DarkModeOff()
+        {
+            this.textBoxMain.BackColor = System.Drawing.SystemColors.Control;
+            this.textBoxMain.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.textBoxPath.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxPath.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.button保存.BackColor = System.Drawing.SystemColors.Control;
+            this.button保存.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button保存.UseVisualStyleBackColor = true;
+            this.buttonTopMost.BackColor = System.Drawing.SystemColors.Control;
+            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.buttonTopMost.UseVisualStyleBackColor = true;
+            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
+            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.BackColor = System.Drawing.SystemColors.Control;
+            this.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.DarkMode = false;
+        }
+
+        private void DarkModeSwitch()
+        {
+            if (DarkMode)
+                DarkModeOff();
+            else
+                DarkModeOn();
+        }
+
+        private void FullScreenModeOn()
+        {
+            int height = this.textBoxMain.Size.Height;
+            int width = textBoxMain.Size.Width;
+            if (height == 0 || width == 0)
+                return;
+            this.groupBoxSetting.Visible = false;
+            this.textBoxMain.Location = new System.Drawing.Point(13, 7);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
+            this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+            FullScreen = true;
+        }
+
+        private void FullScreenModeOff()
+        {
+            int height = this.textBoxMain.Size.Height;
+            int width = textBoxMain.Size.Width;
+            if (height == 0 || width == 0)
+                return;
+            this.groupBoxSetting.Visible = true;
+            this.textBoxMain.Location = new System.Drawing.Point(12, 59);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            FullScreen = false;
+        }
+
+        private void FullScreenModeSwitch()
+        {
+            if (FullScreen)
+                FullScreenModeOff();
+            else
+                FullScreenModeOn();
+        }
+        #endregion
+
+        #region 启动与关闭
         public FormEdit()
         {
             InitializeComponent();
@@ -59,29 +149,6 @@ namespace 日志书写器
                 //if (File.Exists(GetDefaultDocumentFileName()))
                 //    this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
             };
-        }
-
-        /// <summary>
-        /// 打开暗黑模式
-        /// </summary>
-        private void DarkModeOn()
-        {
-            this.textBoxMain.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxMain.ForeColor = System.Drawing.SystemColors.Window;
-            this.textBoxPath.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxPath.ForeColor = System.Drawing.SystemColors.Window;
-            this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.button保存.ForeColor = System.Drawing.SystemColors.Window;
-            this.button保存.UseVisualStyleBackColor = false;
-            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonTopMost.UseVisualStyleBackColor = false;
-            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
-            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
-            this.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.ForeColor = System.Drawing.SystemColors.Window;
         }
 
         private void FormEdit_Load(object sender, EventArgs e)
@@ -170,7 +237,7 @@ namespace 日志书写器
         }
         #endregion
 
-        #region 按钮点击操作
+        #region 按钮点击
         private void buttonTopMost_Click(object sender, EventArgs e)
         {
             Button topMostButton = (Button)sender;
@@ -316,44 +383,16 @@ namespace 日志书写器
         {
             this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
         }
-
         #endregion
 
         #region 双击操作
-        private void FullScreenModeOn(object sender)
-        {
-            if (!FullScreen)
-            {
-                int height = this.textBoxMain.Size.Height;
-                int width = textBoxMain.Size.Width;
-                if (height == 0 || width == 0)
-                    return;
-                this.groupBoxSetting.Visible = false;
-                this.textBoxMain.Location = new System.Drawing.Point(13, 7);
-                this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
-                this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-                FullScreen = true;
-            }
-            else
-            {
-                int height = this.textBoxMain.Size.Height;
-                int width = textBoxMain.Size.Width;
-                if (height == 0 || width == 0)
-                    return;
-                this.groupBoxSetting.Visible = true;
-                this.textBoxMain.Location = new System.Drawing.Point(12, 59);
-                this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
-                this.FormBorderStyle = FormBorderStyle.Sizable;
-                FullScreen = false;
-            }
-        }
-
         private void Form_DoubleClick(object sender, EventArgs e)
         {
-            FullScreenModeOn(sender);
+            FullScreenModeSwitch();
         }
         #endregion
 
+        #region 键盘快捷键
         private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.S && e.Control)
@@ -364,7 +403,9 @@ namespace 日志书写器
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
         }
+        #endregion
 
+        #region 自动ScrollBars & 全屏模式 & 聚焦
         /// <summary>
         /// 显示在屏幕上有多少行字
         /// </summary>
@@ -379,6 +420,11 @@ namespace 日志书写器
 
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
+            AutoScrollBar();
+        }
+
+        private void AutoScrollBar()
+        {
             int lineCount = this.textBoxMain.GetLineFromCharIndex(this.textBoxMain.Text.Length) + 1;
             // 当总行数大于显示，显示ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.None && lineCount > ShowedTextLines) // 提高执行效率
@@ -392,12 +438,41 @@ namespace 日志书写器
         {
             // 如果上方空间太挤，自动打开全屏模式
             if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
-                this.FullScreenModeOn(sender);
+                this.FullScreenModeOn();
         }
 
+        private void textBoxMain_MouseHover(object sender, EventArgs e)
+        {
+            this.Activate();
+        }
+        #endregion
+
+        #region 右键菜单
         private void 插入tToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
+        }
+
+        private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: lastSearch);
+            if (search == "")
+                return;
+            int index = this.textBoxMain.Text.IndexOf(search, this.textBoxMain.SelectionStart);
+            if (index == -1)
+            {
+                if (DialogResult.No == MessageBox.Show("未找到。是否从头开始查找？", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                    return;
+
+                index = textBoxMain.Text.IndexOf(search, 0);
+                if (index == -1)
+                {
+                    MessageBox.Show("仍然未找到");
+                    return;
+                }
+            }
+            lastSearch = search;
+            this.textBoxMain.Select(index, search.Length);
         }
 
         private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -415,41 +490,20 @@ namespace 日志书写器
             SendKeys.Send("^{v}");
         }
 
-        private void 全屏模式ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            FullScreenModeOn(sender);
-        }
-
-        private void 暗黑模式ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DarkModeOn();
-        }
-
-        private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: lastSearch);
-            if (search == "")
-                return;
-            int index = this.textBoxMain.Text.IndexOf(search, this.textBoxMain.SelectionStart);
-            if (index == -1)
-            {
-                if (DialogResult.Yes == MessageBox.Show("未找到。是否从头开始查找？", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                {
-                    index = textBoxMain.Text.IndexOf(search, 0);
-                    if (index == -1)
-                    {
-                        MessageBox.Show("仍然未找到");
-                        return;
-                    }
-                }
-            }
-            lastSearch = search;
-            this.textBoxMain.Select(index, search.Length);
-        }
-
         private void 删除ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("{DEL}");
         }
+
+        private void 全屏模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FullScreenModeSwitch();
+        }
+
+        private void 暗黑模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DarkModeSwitch();
+        }
+        #endregion
     }
 }
