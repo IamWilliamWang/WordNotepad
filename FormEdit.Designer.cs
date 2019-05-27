@@ -199,15 +199,16 @@
             // 
             // contextMenuStripMain
             // 
-            this.contextMenuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.插入tToolStripMenuItem,
-            this.查找ToolStripMenuItem,
-            this.剪切ToolStripMenuItem,
-            this.复制ToolStripMenuItem,
-            this.粘贴ToolStripMenuItem,
-            this.删除ToolStripMenuItem,
-            this.全屏模式ToolStripMenuItem,
-            this.暗黑模式ToolStripMenuItem});
+            this.contextMenuStripMain.Items.Add(this.插入tToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(this.查找ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(this.剪切ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(this.复制ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(this.粘贴ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(this.删除ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(this.全屏模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(this.暗黑模式ToolStripMenuItem);
             this.contextMenuStripMain.Name = "contextMenuStripMain";
             this.contextMenuStripMain.Size = new System.Drawing.Size(181, 202);
             // 
