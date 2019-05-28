@@ -8,103 +8,29 @@ namespace 日志书写器
 {
     public partial class FormEdit : Form
     {
+        #region 储存变量
+        // 作者姓名
         public static String AuthorName { get; } = "王劲翔";
-        private float DocumentFontSize { get { return 12F; } } //文档字号
-        private String DocumentFont { get { return "黑体"; } } //文档字体
-        private int SavedCharLength { get; set; } = 0; //上次保存的字符串长度
+        // 文档字号（数字）
+        private float DocumentFontSize { get { return this.GetFontSizeFromText(DocumentFontSizeZh); } }
+        // 文档字号（中文）
+        private string DocumentFontSizeZh { get; set; } = "小四";
+        // 文档显示字体
+        private String DocumentFont { get { return "黑体"; } }
+        // 上次保存的字符串长度（不包含换行）
+        private int SavedCharLength { get; set; } = 0;
+        // 各动态链接库的名称
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
+        // 多久秒自动保存一次
+        private int AutoSavePerSecond { get; set; } = 30;
+        // 全屏模式是否开启了
         private bool FullScreen { get; set; } = false;
+        // 暗黑模式是否开启了
         private bool DarkMode { get; set; } = false;
-        private Timer autoSaveTimer;
-        private string lastSearch = "";
-
-        #region 全屏模式和暗黑模式
-        /// <summary>
-        /// 打开暗黑模式
-        /// </summary>
-        private void DarkModeOn()
-        {
-            this.textBoxMain.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxMain.ForeColor = System.Drawing.SystemColors.Window;
-            this.textBoxPath.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxPath.ForeColor = System.Drawing.SystemColors.Window;
-            this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.button保存.ForeColor = System.Drawing.SystemColors.Window;
-            this.button保存.UseVisualStyleBackColor = false;
-            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonTopMost.UseVisualStyleBackColor = false;
-            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
-            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
-            this.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.ForeColor = System.Drawing.SystemColors.Window;
-            this.DarkMode = true;
-        }
-
-        private void DarkModeOff()
-        {
-            this.textBoxMain.BackColor = System.Drawing.SystemColors.Control;
-            this.textBoxMain.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.textBoxPath.BackColor = System.Drawing.SystemColors.Window;
-            this.textBoxPath.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.button保存.BackColor = System.Drawing.SystemColors.Control;
-            this.button保存.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button保存.UseVisualStyleBackColor = true;
-            this.buttonTopMost.BackColor = System.Drawing.SystemColors.Control;
-            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.buttonTopMost.UseVisualStyleBackColor = true;
-            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
-            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
-            this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.BackColor = System.Drawing.SystemColors.Control;
-            this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.DarkMode = false;
-        }
-
-        private void DarkModeSwitch()
-        {
-            if (DarkMode)
-                DarkModeOff();
-            else
-                DarkModeOn();
-        }
-
-        private void FullScreenModeOn()
-        {
-            int height = this.textBoxMain.Size.Height;
-            int width = textBoxMain.Size.Width;
-            if (height == 0 || width == 0)
-                return;
-            this.groupBoxSetting.Visible = false;
-            this.textBoxMain.Location = new System.Drawing.Point(13, 7);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
-            this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            FullScreen = true;
-        }
-
-        private void FullScreenModeOff()
-        {
-            int height = this.textBoxMain.Size.Height;
-            int width = textBoxMain.Size.Width;
-            if (height == 0 || width == 0)
-                return;
-            this.groupBoxSetting.Visible = true;
-            this.textBoxMain.Location = new System.Drawing.Point(12, 59);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
-            this.FormBorderStyle = FormBorderStyle.Sizable;
-            FullScreen = false;
-        }
-
-        private void FullScreenModeSwitch()
-        {
-            if (FullScreen)
-                FullScreenModeOff();
-            else
-                FullScreenModeOn();
-        }
+        // 自动保存Timer
+        private Timer AutoSaveTimer { get; set; }
+        // 保存最后一次成功搜索的内容
+        private string LastSearch { get; set; } = "";
         #endregion
 
         #region 启动与关闭
@@ -142,14 +68,10 @@ namespace 日志书写器
         /// </summary>
         private void CreateAutoSaveTimer()
         {
-            autoSaveTimer = new Timer();
-            autoSaveTimer.Interval = 30000;
-            autoSaveTimer.Tick += (sender, e) =>
-            {
+            AutoSaveTimer = new Timer();
+            AutoSaveTimer.Interval = AutoSavePerSecond * 1000;
+            AutoSaveTimer.Tick += (sender, e) =>
                 this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx", ".autosave"), false);
-                //if (File.Exists(GetDefaultDocumentFileName()))
-                //    this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
-            };
         }
 
         private void FormEdit_Load(object sender, EventArgs e)
@@ -159,7 +81,15 @@ namespace 日志书写器
             // 将实际字体替代在设计器中显示的字体
             this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             // 选定默认字体
-            this.comboBoxFontSize.SelectedIndex = 3;
+            for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
+            {
+                string sizeItem = this.comboBoxFontSize.Items[i].ToString();
+                if (sizeItem == this.DocumentFontSizeZh)
+                {
+                    this.comboBoxFontSize.SelectedIndex = i;
+                    break;
+                }
+            }
             // 有自动保存文件则恢复内容
             if (File.Exists(GetDefaultDocumentFileName().Replace(".docx", ".autosave")))
             {
@@ -169,7 +99,7 @@ namespace 日志书写器
                     {
                         Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
                         this.textBoxMain.Lines = wordRead.ReadWordLines();
-                        if(File.Exists(GetDefaultDocumentFileName()))
+                        if (File.Exists(GetDefaultDocumentFileName()))
                             this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
                         File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
                     }
@@ -179,7 +109,7 @@ namespace 日志书写器
                         this.checkBoxMailbox.Checked = false;
                         Application.Exit();
                     }
-                    
+
                 }
             }
             // 有保存的文件则直接加载内容
@@ -206,7 +136,7 @@ namespace 日志书写器
             this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
             // 启动自动保存计时器
             CreateAutoSaveTimer();
-            autoSaveTimer.Start();
+            AutoSaveTimer.Start();
             // 晚上时间开启暗黑模式
             if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
                 DarkModeOn();
@@ -229,7 +159,7 @@ namespace 日志书写器
         /// 检查是否需要进行保存操作
         /// </summary>
         /// <returns></returns>
-        private bool NeedSave() => this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length != this.SavedCharLength;
+        private bool NeedSave() => this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length != this.SavedCharLength;
 
         /// <summary>
         /// 关闭的时候检查保存
@@ -419,7 +349,103 @@ namespace 日志书写器
         }
         #endregion
 
-        #region 自动ScrollBars & 全屏模式 & 聚焦
+        #region 全屏模式、暗黑模式、自动聚焦
+        /// <summary>
+        /// 打开暗黑模式
+        /// </summary>
+        private void DarkModeOn()
+        {
+            this.textBoxMain.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxMain.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxPath.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxPath.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.button保存.ForeColor = System.Drawing.SystemColors.Window;
+            this.button保存.UseVisualStyleBackColor = false;
+            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonTopMost.UseVisualStyleBackColor = false;
+            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
+            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
+            this.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.ForeColor = System.Drawing.SystemColors.Window;
+            this.DarkMode = true;
+        }
+
+        private void DarkModeOff()
+        {
+            this.textBoxMain.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxMain.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.textBoxPath.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxPath.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.button保存.BackColor = System.Drawing.SystemColors.Control;
+            this.button保存.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button保存.UseVisualStyleBackColor = true;
+            this.buttonTopMost.BackColor = System.Drawing.SystemColors.Control;
+            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.buttonTopMost.UseVisualStyleBackColor = true;
+            this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
+            this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.BackColor = System.Drawing.SystemColors.Control;
+            this.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.DarkMode = false;
+        }
+
+        private void DarkModeSwitch()
+        {
+            if (DarkMode)
+                DarkModeOff();
+            else
+                DarkModeOn();
+        }
+
+        private void FullScreenModeOn()
+        {
+            int height = this.textBoxMain.Size.Height;
+            int width = textBoxMain.Size.Width;
+            if (height == 0 || width == 0)
+                return;
+            this.groupBoxSetting.Visible = false;
+            this.textBoxMain.Location = new System.Drawing.Point(13, 7);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
+            this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+            FullScreen = true;
+        }
+
+        private void FullScreenModeOff()
+        {
+            int height = this.textBoxMain.Size.Height;
+            int width = textBoxMain.Size.Width;
+            if (height == 0 || width == 0)
+                return;
+            this.groupBoxSetting.Visible = true;
+            this.textBoxMain.Location = new System.Drawing.Point(12, 59);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            FullScreen = false;
+        }
+
+        private void FullScreenModeSwitch()
+        {
+            if (FullScreen)
+                FullScreenModeOff();
+            else
+                FullScreenModeOn();
+        }
+
+        private void textBoxMain_MouseHover(object sender, EventArgs e)
+        {
+            int selectStart = this.textBoxMain.SelectionStart; // 保存位置
+            MouseSimulator.DoMouseClick(); // 鼠标点击
+            this.textBoxMain.Select(selectStart, 0); // 还原位置
+        }
+        #endregion
+
+        #region 自动ScrollBars、绑定全屏模式、绑定自动聚焦
         /// <summary>
         /// 显示在屏幕上有多少行字
         /// </summary>
@@ -455,12 +481,7 @@ namespace 日志书写器
                 this.FullScreenModeOn();
         }
 
-        private void textBoxMain_MouseHover(object sender, EventArgs e)
-        {
-            int selectStart = this.textBoxMain.SelectionStart; // 保存位置
-            Mouse.DoMouseClick(); // 鼠标点击
-            this.textBoxMain.Select(selectStart, 0); // 还原位置
-        }
+        
 
         private void 自动聚焦ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -476,7 +497,7 @@ namespace 日志书写器
 
         private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: lastSearch);
+            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: LastSearch);
             if (search == "")
                 return;
             int index = this.textBoxMain.Text.IndexOf(search, this.textBoxMain.SelectionStart);
@@ -492,7 +513,7 @@ namespace 日志书写器
                     return;
                 }
             }
-            lastSearch = search;
+            LastSearch = search;
             this.textBoxMain.Select(index, search.Length);
         }
 
@@ -527,7 +548,10 @@ namespace 日志书写器
         }
         #endregion
 
-        class Mouse
+        /// <summary>
+        /// 模拟鼠标点击事件
+        /// </summary>
+        class MouseSimulator
         {
             [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
             public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
@@ -537,7 +561,6 @@ namespace 日志书写器
             private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
             private const int MOUSEEVENTF_RIGHTUP = 0x10;
 
-
             public static void DoMouseClick()
             {
                 //Call the imported function with the cursor's current position
@@ -545,10 +568,6 @@ namespace 日志书写器
                 uint Y = (uint)Cursor.Position.Y;
                 mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
             }
-
-            //...other code needed for the application
         }
-
-        
     }
 }
