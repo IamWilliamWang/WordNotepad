@@ -398,9 +398,15 @@ namespace 日志书写器
         private void DarkModeSwitch()
         {
             if (DarkMode)
+            {
                 DarkModeOff();
+                this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
+            }
             else
+            {
                 DarkModeOn();
+                this.暗黑模式ToolStripMenuItem.Text = "取消暗黑";
+            }
         }
 
         private void FullScreenModeOn()
@@ -432,9 +438,15 @@ namespace 日志书写器
         private void FullScreenModeSwitch()
         {
             if (FullScreen)
+            {
                 FullScreenModeOff();
+                this.全屏模式ToolStripMenuItem.Text = "全屏模式";
+            }
             else
+            {
                 FullScreenModeOn();
+                this.全屏模式ToolStripMenuItem.Text = "取消全屏";
+            }
         }
 
         private void textBoxMain_MouseHover(object sender, EventArgs e)
@@ -481,11 +493,44 @@ namespace 日志书写器
                 this.FullScreenModeOn();
         }
 
-        
+        /// <summary>
+        /// 删除指定控件的指定事件
+        /// </summary>
+        /// <param name="control"></param>
+        /// <param name="eventname"></param>
+        private void ClearEvent(System.Windows.Forms.Control control, string eventname)
+        {
+            if (control == null) return;
+            if (string.IsNullOrEmpty(eventname)) return;
+
+            BindingFlags mPropertyFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic;
+            BindingFlags mFieldFlags = BindingFlags.Static | BindingFlags.NonPublic;
+            Type controlType = typeof(System.Windows.Forms.Control);
+            PropertyInfo propertyInfo = controlType.GetProperty("Events", mPropertyFlags);
+            System.ComponentModel.EventHandlerList eventHandlerList = (System.ComponentModel.EventHandlerList)propertyInfo.GetValue(control, null);
+            FieldInfo fieldInfo = (typeof(System.Windows.Forms.Control)).GetField("Event" + eventname, mFieldFlags);
+            Delegate d = eventHandlerList[fieldInfo.GetValue(control)];
+
+            if (d == null) return;
+            EventInfo eventInfo = controlType.GetEvent(eventname);
+
+            foreach (Delegate dx in d.GetInvocationList())
+                eventInfo.RemoveEventHandler(control, dx);
+
+        }
 
         private void 自动聚焦ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.textBoxMain.MouseHover += textBoxMain_MouseHover;
+            if (this.自动聚焦ToolStripMenuItem.Text == "自动聚焦")
+            {
+                this.textBoxMain.MouseHover += textBoxMain_MouseHover;
+                this.自动聚焦ToolStripMenuItem.Text = "取消聚焦";
+            }
+            else
+            {
+                ClearEvent(this.textBoxMain, "MouseHover");
+                this.自动聚焦ToolStripMenuItem.Text = "自动聚焦";
+            }
         }
         #endregion
 
