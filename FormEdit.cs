@@ -23,10 +23,10 @@ namespace 日志书写器
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         // 多久秒自动保存一次
         private int AutoSavePerSecond { get; set; } = 30;
-        // 全屏模式是否开启了
-        private bool FullScreen { get; set; } = false;
-        // 暗黑模式是否开启了
-        private bool DarkMode { get; set; } = false;
+        // 全屏模式
+        private bool FullScreen { get{ return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
+        // 暗黑模式
+        private bool DarkMode { get{ return this.全屏模式ToolStripMenuItem.Text != "全屏模式"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
         // 自动保存Timer
         private Timer AutoSaveTimer { get; set; }
         // 保存最后一次成功搜索的内容
@@ -139,7 +139,7 @@ namespace 日志书写器
             AutoSaveTimer.Start();
             // 晚上时间开启暗黑模式
             if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
-                DarkModeOn();
+                DarkMode = true;
             // 加右键菜单项
             this.contextMenuStripMain.Items.Clear();
             this.contextMenuStripMain.Items.Add(插入tToolStripMenuItem);
@@ -351,7 +351,7 @@ namespace 日志书写器
 
         #region 全屏模式、暗黑模式、自动聚焦
         /// <summary>
-        /// 打开暗黑模式
+        /// 打开暗黑模式，推荐使用DarkMode = true代替
         /// </summary>
         private void DarkModeOn()
         {
@@ -371,9 +371,12 @@ namespace 日志书写器
             this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ForeColor = System.Drawing.SystemColors.Window;
-            this.DarkMode = true;
+            this.暗黑模式ToolStripMenuItem.Text = "取消暗黑";
         }
 
+        /// <summary>
+        /// 关闭暗黑模式，推荐使用DarkMode = false代替
+        /// </summary>
         private void DarkModeOff()
         {
             this.textBoxMain.BackColor = System.Drawing.SystemColors.Window;
@@ -392,23 +395,20 @@ namespace 日志书写器
             this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.DarkMode = false;
+            this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
         }
 
+        /// <summary>
+        /// 切换暗黑模式状态
+        /// </summary>
         private void DarkModeSwitch()
         {
-            if (DarkMode)
-            {
-                DarkModeOff();
-                this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
-            }
-            else
-            {
-                DarkModeOn();
-                this.暗黑模式ToolStripMenuItem.Text = "取消暗黑";
-            }
+            DarkMode = DarkMode ? false : true;
         }
 
+        /// <summary>
+        /// 打开全屏模式，推荐使用FullScreen = true代替
+        /// </summary>
         private void FullScreenModeOn()
         {
             int height = this.textBoxMain.Size.Height;
@@ -419,9 +419,12 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(13, 7);
             this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            FullScreen = true;
+            this.全屏模式ToolStripMenuItem.Text = "取消全屏";
         }
 
+        /// <summary>
+        /// 关闭全屏模式，推荐使用FullScreen = false代替
+        /// </summary>
         private void FullScreenModeOff()
         {
             int height = this.textBoxMain.Size.Height;
@@ -432,21 +435,15 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
             this.FormBorderStyle = FormBorderStyle.Sizable;
-            FullScreen = false;
+            this.全屏模式ToolStripMenuItem.Text = "全屏模式";
         }
 
+        /// <summary>
+        /// 切换全屏模式状态
+        /// </summary>
         private void FullScreenModeSwitch()
         {
-            if (FullScreen)
-            {
-                FullScreenModeOff();
-                this.全屏模式ToolStripMenuItem.Text = "全屏模式";
-            }
-            else
-            {
-                FullScreenModeOn();
-                this.全屏模式ToolStripMenuItem.Text = "取消全屏";
-            }
+            FullScreen = FullScreen ? false : true;
         }
 
         private void textBoxMain_MouseHover(object sender, EventArgs e)
@@ -490,7 +487,7 @@ namespace 日志书写器
         {
             // 如果上方空间太挤，自动打开全屏模式
             if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
-                this.FullScreenModeOn();
+                FullScreen = true;
         }
 
         /// <summary>
