@@ -26,7 +26,7 @@ namespace 日志书写器
         // 全屏模式
         private bool FullScreen { get{ return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
         // 暗黑模式
-        private bool DarkMode { get{ return this.全屏模式ToolStripMenuItem.Text != "全屏模式"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
+        private bool DarkMode { get{ return this.暗黑模式ToolStripMenuItem.Text != "暗黑模式"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
         // 自动保存Timer
         private Timer AutoSaveTimer { get; set; }
         // 保存最后一次成功搜索的内容
@@ -169,8 +169,13 @@ namespace 日志书写器
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (NeedSave())
-                if (MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+            {
+                var dialogResult = MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+                if (dialogResult == DialogResult.Yes)
                     this.SaveDocx();
+                else if (dialogResult == DialogResult.Cancel)
+                    e.Cancel = true;
+            }
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
