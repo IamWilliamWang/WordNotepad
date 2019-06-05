@@ -74,6 +74,28 @@ namespace 日志书写器
                 this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx", ".autosave"), false);
         }
 
+        private void RestoreAutosave()
+        {
+            if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+            {
+                try
+                {
+                    Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+                    this.textBoxMain.Lines = wordRead.ReadWordLines();
+                    if (File.Exists(GetDefaultDocumentFileName()))
+                        this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
+                    File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.checkBoxMailbox.Checked = false;
+                    Application.Exit();
+                }
+
+            }
+        }
+
         private void FormEdit_Load(object sender, EventArgs e)
         {
             // 加版本号
@@ -93,40 +115,12 @@ namespace 日志书写器
             // 有自动保存文件则恢复内容
             if (File.Exists(GetDefaultDocumentFileName().Replace(".docx", ".autosave")))
             {
-                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                {
-                    try
-                    {
-                        Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
-                        this.textBoxMain.Lines = wordRead.ReadWordLines();
-                        if (File.Exists(GetDefaultDocumentFileName()))
-                            this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
-                        File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
-                    }
-                    catch (IOException)
-                    {
-                        MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        this.checkBoxMailbox.Checked = false;
-                        Application.Exit();
-                    }
-
-                }
+                RestoreAutosave();
             }
             // 有保存的文件则直接加载内容
             else if (File.Exists(GetDefaultDocumentFileName()))
             {
-                try
-                {
-                    Word wordRead = new Word(GetDefaultDocumentFileName());
-                    this.textBoxMain.Lines = wordRead.ReadWordLines();
-                    this.SavedCharLength = wordRead.Length;
-                }
-                catch (IOException)
-                {
-                    MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.checkBoxMailbox.Checked = false;
-                    Application.Exit();
-                }
+                LoadDocx(GetDefaultDocumentFileName());
             }
             // 如果没有dll文件就解压文件
             if (!File.Exists(dllNames[1]))
@@ -154,6 +148,24 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(暗黑模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
         }
+
+        private void LoadDocx(string docxFileName)
+        {
+            try
+            {
+                Word wordRead = new Word(docxFileName);
+                this.textBoxMain.Lines = wordRead.ReadWordLines();
+                this.SavedCharLength = wordRead.Length;
+            }
+            catch (IOException)
+            {
+                MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.checkBoxMailbox.Checked = false;
+                Application.Exit();
+            }
+        }
+
+
 
         /// <summary>
         /// 检查是否需要进行保存操作
@@ -614,6 +626,23 @@ namespace 日志书写器
                 uint X = (uint)Cursor.Position.X;
                 uint Y = (uint)Cursor.Position.Y;
                 mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
+            }
+        }
+
+        private void FormEdit_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+        }
+
+        private void FormEdit_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
+                string type = FileOrDirectory(file);
+                if (type == "File")
+                    this.LoadDocx(file);
             }
         }
     }
