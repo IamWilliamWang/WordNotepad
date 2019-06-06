@@ -84,7 +84,7 @@
             this.暗黑模式ToolStripMenuItem,
             this.自动聚焦ToolStripMenuItem});
             this.contextMenuStripMain.Name = "contextMenuStripMain";
-            this.contextMenuStripMain.Size = new System.Drawing.Size(125, 214);
+            this.contextMenuStripMain.Size = new System.Drawing.Size(125, 202);
             // 
             // 插入tToolStripMenuItem
             // 
@@ -154,18 +154,18 @@
             this.labelPath.AutoSize = true;
             this.labelPath.Location = new System.Drawing.Point(186, 19);
             this.labelPath.Name = "labelPath";
-            this.labelPath.Size = new System.Drawing.Size(53, 12);
+            this.labelPath.Size = new System.Drawing.Size(65, 12);
             this.labelPath.TabIndex = 7;
-            this.labelPath.Text = "保存路径";
+            this.labelPath.Text = "文件根目录";
             // 
             // textBoxPath
             // 
             this.textBoxPath.AllowDrop = true;
             this.textBoxPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPath.Location = new System.Drawing.Point(245, 14);
+            this.textBoxPath.Location = new System.Drawing.Point(257, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(336, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(324, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);

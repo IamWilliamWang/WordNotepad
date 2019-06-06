@@ -644,6 +644,7 @@ namespace 日志书写器
                 if (type == "File")
                     this.LoadDocx(file);
             }
+            textBoxPath_DragDrop(sender, e);
         }
     }
 }
