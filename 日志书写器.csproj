@@ -76,6 +76,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackupHelper.cs" />
     <Compile Include="BinaryFileWriter.cs" />
     <Compile Include="FormEdit.cs">
       <SubType>Form</SubType>
