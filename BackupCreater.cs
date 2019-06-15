@@ -77,9 +77,11 @@ namespace 日志书写器
         private string workingDirectory = Directory.GetCurrentDirectory();
         private 加密算法 encrypt算法;
         #endregion
+
         public enum 加密算法 { 无 };
+
         #region 事件注册
-        public event WriteProcedure WriteFileEvent;
+        public event WriteProcedure WriteBackupEvent;
         public delegate void WriteProcedure(string writeFileName);
         public delegate void RestoreProcedure();
         #endregion
@@ -91,9 +93,9 @@ namespace 日志书写器
         {
             this.Original文件名 = 备份源文件名;
             if (writeFileProcedure != null)
-                this.WriteFileEvent += writeFileProcedure;
+                this.WriteBackupEvent += writeFileProcedure;
             else
-                this.WriteFileEvent += DefaultBackupFunction;
+                this.WriteBackupEvent += DefaultBackupFunction;
             if (备份后缀名.StartsWith(".") == false)
                 this.Backup后缀名 = "." + 备份后缀名;
             else
@@ -108,7 +110,7 @@ namespace 日志书写器
 
         private void WriteBackupInvoke(object sender, EventArgs e)
         {
-            WriteFileEvent.Invoke(this.Backup文件名);
+            WriteBackupEvent.Invoke(this.Backup文件名);
             if (this.HiddenBackupFile)
                 File.SetAttributes(this.Backup文件名, FileAttributes.Hidden);
         }
@@ -139,7 +141,7 @@ namespace 日志书写器
         /// </summary>
         public void Start()
         {
-            if (WriteFileEvent.GetInvocationList().Length == 0)
+            if (WriteBackupEvent.GetInvocationList().Length == 0)
                 throw new System.Exception("BackupCreater未经初始化就强迫开始执行！");
             this.backupFileTimer.Start();
             this.ParametersReadOnly = true;

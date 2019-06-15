@@ -144,6 +144,7 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(全屏模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(暗黑模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
             // 启动自动保存计时器
             backup.Start();
         }
@@ -626,6 +627,20 @@ namespace 日志书写器
         {
             DarkModeSwitch();
         }
+
+        private void 停用备份ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (((ToolStripMenuItem)sender).Text == "停用备份")
+            {
+                this.backup.Stop();
+                ((ToolStripMenuItem)sender).Text = "启用备份";
+            }
+            else if (((ToolStripMenuItem)sender).Text == "启用备份")
+            {
+                this.backup.Start();
+                ((ToolStripMenuItem)sender).Text = "停用备份";
+            }
+        }
         #endregion
 
         /// <summary>
@@ -667,6 +682,11 @@ namespace 日志书写器
             }
             textBoxPath_DragDrop(sender, e);
         }
-        
+
+        private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.backup.WorkingDirectory = this.textBoxPath.Text;
+            MessageBox.Show("修改成功！");
+        }
     }
 }
