@@ -28,7 +28,7 @@ namespace 日志书写器
         // 暗黑模式
         private bool DarkMode { get{ return this.暗黑模式ToolStripMenuItem.Text != "暗黑模式"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
         // 自动保存Timer
-        private Timer AutoSaveTimer { get; set; }
+        private BackupCreater backup { get; set; }
         // 保存最后一次成功搜索的内容
         private string LastSearch { get; set; } = "";
         #endregion
@@ -66,38 +66,37 @@ namespace 日志书写器
         /// <summary>
         /// 创建并开启自动保存计时器
         /// </summary>
-        private void CreateAutoSaveTimer()
+        private void CreateBackupCreater()
         {
-            AutoSaveTimer = new Timer();
-            AutoSaveTimer.Interval = AutoSavePerSecond * 1000;
-            AutoSaveTimer.Tick += (sender, e) =>
-                this.SaveDocx(GetDefaultDocumentFileName().Replace(".docx", ".autosave"), false);
+            backup = new BackupCreater(GetDefaultDocumentFileName(), (writeFilename) => this.SaveBackup(writeFilename));
+            backup.Interval = AutoSavePerSecond * 1000;
+            backup.Backup后缀名 = ".autosave";
         }
 
+        /// <summary>
+        /// 恢复自动备份文件
+        /// </summary>
         private void RestoreAutosave()
         {
-            if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+            try
             {
-                try
-                {
-                    Word wordRead = new Word(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
-                    this.textBoxMain.Lines = wordRead.ReadWordLines();
-                    if (File.Exists(GetDefaultDocumentFileName()))
-                        this.SavedCharLength = new Word(GetDefaultDocumentFileName()).Length;
-                    File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
-                }
-                catch (IOException)
-                {
-                    MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.checkBoxMailbox.Checked = false;
-                    Application.Exit();
-                }
-
+                Word wordRead = new Word(backup.Backup文件名);
+                this.textBoxMain.Lines = wordRead.ReadWordLines();
+                if (File.Exists(backup.Original文件名))
+                    this.SavedCharLength = new Word(backup.Original文件名).Length;
+            }
+            catch (IOException)
+            {
+                MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.checkBoxMailbox.Checked = false;
+                Application.Exit();
             }
         }
 
         private void FormEdit_Load(object sender, EventArgs e)
         {
+            // 初始化自动备份
+            CreateBackupCreater();
             // 加版本号
             this.Text += " v" + Program.Version(1);
             // 将实际字体替代在设计器中显示的字体
@@ -113,14 +112,15 @@ namespace 日志书写器
                 }
             }
             // 有自动保存文件则恢复内容
-            if (File.Exists(GetDefaultDocumentFileName().Replace(".docx", ".autosave")))
+            if (File.Exists(backup.Backup文件名))
             {
-                RestoreAutosave();
+                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                    backup.RestoreFile(RestoreAutosave, true);
             }
             // 有保存的文件则直接加载内容
-            else if (File.Exists(GetDefaultDocumentFileName()))
+            else if (File.Exists(backup.Original文件名))
             {
-                LoadDocx(GetDefaultDocumentFileName());
+                LoadDocx(backup.Original文件名);
             }
             // 如果没有dll文件就解压文件
             if (!File.Exists(dllNames[1]))
@@ -128,9 +128,6 @@ namespace 日志书写器
                     WriteDllFile(i).Attributes = FileAttributes.Hidden;
             // 光标点在文本最后
             this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
-            // 启动自动保存计时器
-            CreateAutoSaveTimer();
-            AutoSaveTimer.Start();
             // 晚上时间开启暗黑模式
             if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
                 DarkMode = true;
@@ -147,8 +144,14 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(全屏模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(暗黑模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
+            // 启动自动保存计时器
+            backup.Start();
         }
 
+        /// <summary>
+        /// 加载指定的docx文档到文本框
+        /// </summary>
+        /// <param name="docxFileName"></param>
         private void LoadDocx(string docxFileName)
         {
             try
@@ -164,9 +167,7 @@ namespace 日志书写器
                 Application.Exit();
             }
         }
-
-
-
+        
         /// <summary>
         /// 检查是否需要进行保存操作
         /// </summary>
@@ -184,7 +185,7 @@ namespace 日志书写器
             {
                 var dialogResult = MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
                 if (dialogResult == DialogResult.Yes)
-                    this.SaveDocx();
+                    this.SaveDocument();
                 else if (dialogResult == DialogResult.Cancel)
                     e.Cancel = true;
             }
@@ -192,7 +193,7 @@ namespace 日志书写器
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+            backup.DeleteBackup();
             if (this.checkBoxMailbox.Checked)
                 System.Diagnostics.Process.Start("https://mail.qq.com/");
         }
@@ -265,13 +266,22 @@ namespace 日志书写器
         /// <summary>
         /// 保存docx文档
         /// </summary>
-        private void SaveDocx()
+        private void SaveDocument()
         {
-            SaveDocx(GetDefaultDocumentFileName());
+            SaveDocx(backup.Original文件名);
         }
 
         /// <summary>
-        /// 保存docx文档
+        /// 保存autosave文档
+        /// </summary>
+        /// <param name="backupFileName"></param>
+        private void SaveBackup(string backupFileName)
+        {
+            SaveDocx(backupFileName, false);
+        }
+
+        /// <summary>
+        /// 保存文档的具体实现
         /// </summary>
         private void SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
@@ -298,10 +308,15 @@ namespace 日志书写器
                 this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
         }
 
+        /// <summary>
+        /// 保存文档
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button保存_Click(object sender, EventArgs e)
         {
-            this.SaveDocx();
-            File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+            this.SaveDocument();
+            backup.DeleteBackup();
             MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
@@ -313,6 +328,11 @@ namespace 日志书写器
                 e.Effect = DragDropEffects.Move;
         }
 
+        /// <summary>
+        /// 根据文件名判断是文件还是文件夹，返回"File"或"Directory"
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
         private string FileOrDirectory(string filename)
         {
             int lastRightSlashIndex = filename.LastIndexOf('\\');
@@ -358,8 +378,8 @@ namespace 日志书写器
         {
             if (e.KeyCode == Keys.S && e.Control)
             {
-                this.SaveDocx();
-                File.Delete(GetDefaultDocumentFileName().Replace(".docx", ".autosave"));
+                this.SaveDocument();
+                backup.DeleteBackup();
             }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
