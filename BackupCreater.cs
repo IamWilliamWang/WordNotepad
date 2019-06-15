@@ -101,12 +101,14 @@ namespace 日志书写器
 
             backupFileTimer = new Timer();
             this.Interval = interval;
-            backupFileTimer.Tick += (sender, e) =>
-            {
-                WriteFileEvent.Invoke(this.Backup文件名);
-                if (this.HiddenBackupFile)
-                    File.SetAttributes(this.Backup文件名, FileAttributes.Hidden);
-            };
+            backupFileTimer.Tick += WriteBackupInvoke;
+        }
+
+        private void WriteBackupInvoke(object sender, EventArgs e)
+        {
+            WriteFileEvent.Invoke(this.Backup文件名);
+            if (this.HiddenBackupFile)
+                File.SetAttributes(this.Backup文件名, FileAttributes.Hidden);
         }
 
         /// <summary>
@@ -147,6 +149,14 @@ namespace 日志书写器
         public void Stop()
         {
             this.backupFileTimer.Stop();
+        }
+
+        /// <summary>
+        /// 不使用Timer，单次执行备份操作
+        /// </summary>
+        public void StartOnce()
+        {
+            this.WriteBackupInvoke(null,null);
         }
 
         /// <summary>
