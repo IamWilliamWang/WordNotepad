@@ -20,13 +20,15 @@ namespace 日志书写器
         /// </summary>
         public string Backup后缀名
         {
-            get {
+            get
+            {
                 if (Backup文件名 == null)
                     throw new Exception("Backup文件名未被初始化！");
-                int lastDotIndex = Backup文件名.LastIndexOf('.');
-                if (lastDotIndex == -1) return "";
+                string shortFileName = Backup文件名.Substring(Backup文件名.LastIndexOf("\\") + 1);
+                int dotIndex = shortFileName.IndexOf('.'); //可以支持多个dot的备份文件名
+                if (dotIndex == -1) return "";
                 else
-                    return Backup文件名.Substring(lastDotIndex);
+                    return shortFileName.Substring(dotIndex);
             }
             set
             {
@@ -81,7 +83,7 @@ namespace 日志书写器
         public delegate void WriteProcedure(string writeFileName);
         public delegate void RestoreProcedure();
         #endregion
-        
+
         private Timer backupFileTimer { get; set; }
         private bool ParametersReadOnly { get; set; } = false;
 
@@ -156,7 +158,7 @@ namespace 日志书写器
         /// </summary>
         public void StartOnce()
         {
-            this.WriteBackupInvoke(null,null);
+            this.WriteBackupInvoke(null, null);
         }
 
         /// <summary>
@@ -172,7 +174,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="restoreProcedure"></param>
         /// <param name="deleteBackupFile"></param>
-        public void RestoreFile(RestoreProcedure restoreProcedure=null, bool deleteBackupFile = false)
+        public void RestoreFile(RestoreProcedure restoreProcedure = null, bool deleteBackupFile = false)
         {
             if (restoreProcedure == null)
                 DefaultRestoreFunction();
