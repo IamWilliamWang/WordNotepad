@@ -7,16 +7,73 @@ namespace 日志书写器
     class BackupCreater
     {
         #region 保存的属性
-        public string Original文件名 { get { return original文件名; } set { Alert(); original文件名 = value; } }
+        /// <summary>
+        /// 备份的源文件名
+        /// </summary>
+        public string Original文件名 { get; set; }
+        /// <summary>
+        /// 自动保存Timer.Interval（启动后不可以修改）
+        /// </summary>
         public int Interval { get { return backupFileTimer.Interval; } set { Alert(); backupFileTimer.Interval = value; } }
-        public string Backup后缀名 { get { return backup后缀名; } set { Alert(); backup后缀名 = value; } }
+        /// <summary>
+        /// 备份文件的后缀名
+        /// </summary>
+        public string Backup后缀名
+        {
+            get {
+                if (Backup文件名 == null)
+                    throw new Exception("Backup文件名未被初始化！");
+                int lastDotIndex = Backup文件名.LastIndexOf('.');
+                if (lastDotIndex == -1) return "";
+                else
+                    return Backup文件名.Substring(lastDotIndex);
+            }
+            set
+            {
+                // 运行后改工作路径可以，改后缀名不行
+                Alert();
+                int lastDotIndex = this.Original文件名.LastIndexOf('.');
+                if (lastDotIndex == -1) //源文件没后缀，直接加
+                    this.Backup文件名 = this.Original文件名 + value;
+                else
+                    this.Backup文件名 = this.Original文件名.Substring(0, lastDotIndex) + value;
+            }
+        }
+        /// <summary>
+        /// BackupCreater的工作路径
+        /// </summary>
+        public string WorkingDirectory
+        {
+            get
+            {
+                return workingDirectory;
+            }
+            set
+            {
+                workingDirectory = value;
+                string shortOriginalFileName = Original文件名.Substring(Original文件名.LastIndexOf('\\') + 1);
+                string shortBackupFileName = Backup文件名.Substring(Backup文件名.LastIndexOf('\\') + 1);
+                if (workingDirectory.EndsWith("\\")) //统一去掉\
+                    workingDirectory = workingDirectory.Substring(0, workingDirectory.Length - 1);
+                Original文件名 = workingDirectory + "\\" + shortOriginalFileName;
+                Backup文件名 = workingDirectory + "\\" + shortBackupFileName;
+            }
+        }
+        /// <summary>
+        /// 备份文件名
+        /// </summary>
+        public string Backup文件名 { get; set; }
+        /// <summary>
+        /// 备份加密算法
+        /// </summary>
         public 加密算法 Encrypt算法 { get { return encrypt算法; } set { Alert(); encrypt算法 = value; } }
-        public bool HiddenBackupFile { get { return hiddenBackupFile; } set { Alert(); hiddenBackupFile = value; } }
+        /// <summary>
+        /// 隐藏备份文件
+        /// </summary>
+        public bool HiddenBackupFile { get; set; }
         /* 注意：下方变量只能在本region内使用！ */
-        private string original文件名;
-        private string backup后缀名;
+        private string workingDirectory = Directory.GetCurrentDirectory();
         private 加密算法 encrypt算法;
-        private bool hiddenBackupFile;
         #endregion
         public enum 加密算法 { 无 };
         #region 事件注册
@@ -24,15 +81,7 @@ namespace 日志书写器
         public delegate void WriteProcedure(string writeFileName);
         public delegate void RestoreProcedure();
         #endregion
-        public string Backup文件名 { get
-            {
-                int lastDotIndex = this.Original文件名.LastIndexOf('.');
-                if (lastDotIndex == -1)
-                    return this.Original文件名 + this.Backup后缀名;
-                else
-                    return this.Original文件名.Substring(0, lastDotIndex) + Backup后缀名;
-            }
-        }
+        
         private Timer backupFileTimer { get; set; }
         private bool ParametersReadOnly { get; set; } = false;
 
@@ -124,12 +173,12 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 如果Timer在运行时修改变量则会报错
+        /// 如果Timer在运行时修改部分变量则会报错
         /// </summary>
         private void Alert()
         {
             if (this.ParametersReadOnly)
-                throw new System.FieldAccessException("开始后不可以修改任何变量！");
+                throw new System.FieldAccessException("开始后不可以修改此变量！");
         }
     }
 }

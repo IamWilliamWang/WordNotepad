@@ -254,8 +254,8 @@ namespace 日志书写器
         private string GetDefaultDocumentFileName()
         {
             string filename = "";
-            if (this.textBoxPath.Text != "" && this.textBoxPath.Text[textBoxPath.Text.Length - 1] != '\\')
-                filename += this.textBoxPath.Text + "\\";
+            //if (this.textBoxPath.Text != "" && this.textBoxPath.Text[textBoxPath.Text.Length - 1] != '\\')
+            //    filename += this.textBoxPath.Text + "\\";
             filename += String.Format("{0:0000}", DateTime.Now.Year);
             filename += String.Format("{0:00}", DateTime.Now.Month);
             filename += String.Format("{0:00}", DateTime.Now.Day);
@@ -357,6 +357,7 @@ namespace 日志书写器
                     this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
                 else
                     this.textBoxPath.Text = file;
+                backup.WorkingDirectory = this.textBoxPath.Text;
             }
         }
 
@@ -666,5 +667,6 @@ namespace 日志书写器
             }
             textBoxPath_DragDrop(sender, e);
         }
+        
     }
 }
