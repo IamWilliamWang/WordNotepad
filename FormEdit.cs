@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -96,6 +98,10 @@ namespace 日志书写器
 
         private void FormEdit_Load(object sender, EventArgs e)
         {
+            // 检测后台是否运行同一程序
+            if (Process.GetProcessesByName("TextWriter").Length > 1)
+                if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
+                    Environment.Exit(0);
             // 初始化自动备份
             CreateBackupCreater();
             // 加版本号
@@ -160,6 +166,10 @@ namespace 日志书写器
             {
                 Word wordRead = new Word(docxFileName);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
+                string readFontText = this.GetTextFromFontSize(wordRead.FontSize);
+                int selectedIndex = new List<String>(this.fontTexts).IndexOf(readFontText);
+                if (selectedIndex != -1)
+                    this.comboBoxFontSize.SelectedIndex = selectedIndex;
                 this.SavedCharLength = wordRead.Length;
             }
             catch (IOException)
@@ -217,6 +227,8 @@ namespace 日志书写器
             }
         }
 
+        private readonly String[] fontTexts = new String[] { "六号", "小五", "五号", "小四", "四号", "小三", "三号", "小二", "二号", "小一", "一号" };
+        private readonly float[] fontSizes = new float[] { 7.5f, 9f, 10.5f, 12f, 14f, 15f, 16f, 18f, 22f, 24f, 26f };
         /// <summary>
         /// 转换字号string为实际大小
         /// </summary>
@@ -224,29 +236,20 @@ namespace 日志书写器
         /// <returns></returns>
         private float GetFontSizeFromText(string text)
         {
-            if (text == "六号")
-                return 7.5f;
-            else if (text == "小五")
-                return 9f;
-            else if (text == "五号")
+            int myIndex = new List<String>(fontTexts).IndexOf(text);
+            if (myIndex == -1)
                 return 10.5f;
-            else if (text == "小四")
-                return 12f;
-            else if (text == "四号")
-                return 14f;
-            else if (text == "小三")
-                return 15f;
-            else if (text == "三号")
-                return 16f;
-            else if (text == "小二")
-                return 18f;
-            else if (text == "二号")
-                return 22f;
-            else if (text == "小一")
-                return 24f;
-            else if (text == "一号")
-                return 26f;
-            return 10.5f;
+            else
+                return fontSizes[myIndex];
+        }
+
+        private String GetTextFromFontSize(float fontSize)
+        {
+            int myIndex = new List<float>(this.fontSizes).IndexOf(fontSize);
+            if (myIndex == -1)
+                return "五号";
+            else
+                return fontTexts[myIndex];
         }
 
         /// <summary>
@@ -721,6 +724,7 @@ namespace 日志书写器
             else
                 this.Text += " (" + docFileName + ")";
             backup.Stop();
+            backup.WorkingDirectory = this.textBoxPath.Text;
             backup.Original文件名 = docFileName;
             backup.Start();
         }
@@ -734,12 +738,15 @@ namespace 日志书写器
                 if (type == "File")
                 {
                     if (file.EndsWith(".docx"))
+                    {
+                        // 同步路径
+                        textBoxPath_DragDrop(sender, e);
                         this.LoadSpecificDocument(file);
+                    }
                     else
                         MessageBox.Show("只允许加载docx文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            textBoxPath_DragDrop(sender, e);
         }
 
         private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)

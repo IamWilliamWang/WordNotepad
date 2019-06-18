@@ -53,15 +53,9 @@ namespace 日志书写器
         public String ReadWord()
         {
             StringBuilder textReaded = new StringBuilder();
-            using (FileStream docxStream = File.OpenRead(this.filename))
-            {
-                XWPFDocument docRead = new XWPFDocument(docxStream);
-                foreach (XWPFParagraph paragraph in docRead.Paragraphs)
-                {
-                    string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
-                    textReaded.AppendLine(paragraphText);
-                }
-            }
+            String[] contentLines = ReadWordLines();
+            foreach (String line in contentLines)
+                textReaded.AppendLine(line);
             return textReaded.ToString();
         }
 
@@ -71,11 +65,14 @@ namespace 日志书写器
             using (FileStream docxStream = File.OpenRead(this.filename))
             {
                 XWPFDocument docRead = new XWPFDocument(docxStream);
+                if (docRead.Paragraphs.Count == 0)
+                    return lines.ToArray();
                 foreach (XWPFParagraph paragraph in docRead.Paragraphs)
                 {
                     string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
                     lines.Add(paragraphText);
                 }
+                this.FontSize = docRead.Paragraphs[0].Runs[0].FontSize;
             }
             return lines.ToArray();
         }
