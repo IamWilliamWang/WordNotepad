@@ -10,7 +10,18 @@ namespace 日志书写器
         /// <summary>
         /// 备份的源文件名
         /// </summary>
-        public string Original文件名 { get { return original文件名; } set { original文件名 = value; if(Backup文件名!=null)this.Backup后缀名 = this.Backup后缀名;/*同步信息到Backup文件名*/ } }
+        public string Original文件名 { get { return original文件名; } set {
+                original文件名 = value;
+                /* 不是初始化过程的时候，要用新的Original文件名更新Backup文件名 */
+                if (Backup文件名 != null)
+                {
+                    this.Backup后缀名 = this.Backup后缀名; //同步信息到Backup文件名
+                    int directoryEndIndex = original文件名.LastIndexOf('\\');
+                    if (directoryEndIndex != -1)
+                        this.workingDirectory = original文件名.Substring(0, directoryEndIndex);
+                }
+            }
+        }
         /// <summary>
         /// 自动保存Timer.Interval（启动后不可以修改）
         /// </summary>

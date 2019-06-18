@@ -370,6 +370,12 @@ namespace 日志书写器
         {
             this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
         }
+
+        private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.backup.WorkingDirectory = this.textBoxPath.Text;
+            MessageBox.Show("修改成功！");
+        }
         #endregion
 
         #region 双击操作
@@ -724,7 +730,6 @@ namespace 日志书写器
             else
                 this.Text += " (" + docFileName + ")";
             backup.Stop();
-            backup.WorkingDirectory = this.textBoxPath.Text;
             backup.Original文件名 = docFileName;
             backup.Start();
         }
@@ -747,12 +752,6 @@ namespace 日志书写器
                         MessageBox.Show("只允许加载docx文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-        }
-
-        private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.backup.WorkingDirectory = this.textBoxPath.Text;
-            MessageBox.Show("修改成功！");
         }
     }
 }
