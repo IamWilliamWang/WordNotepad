@@ -386,6 +386,15 @@ namespace 日志书写器
             }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
+            if (e.KeyCode == Keys.O && e.Control)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "文档|*.docx";
+                openFileDialog.Multiselect = false;
+                openFileDialog.Title = "打开docx文档";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    this.LoadSpecificDocument(openFileDialog.FileName);
+            }
             this.LastKeyDown = e;
         }
         #endregion
@@ -704,6 +713,18 @@ namespace 日志书写器
                 e.Effect = DragDropEffects.Copy;
         }
 
+        private void LoadSpecificDocument(string docFileName)
+        {
+            this.LoadDocx(docFileName);
+            if (this.Text.Contains("("))
+                this.Text = this.Text.Substring(0, this.Text.IndexOf('(')) + " (" + docFileName + ")";
+            else
+                this.Text += " (" + docFileName + ")";
+            backup.Stop();
+            backup.Original文件名 = docFileName;
+            backup.Start();
+        }
+
         private void FormEdit_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -711,7 +732,12 @@ namespace 日志书写器
                 string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
                 string type = FileOrDirectory(file);
                 if (type == "File")
-                    this.LoadDocx(file);
+                {
+                    if (file.EndsWith(".docx"))
+                        this.LoadSpecificDocument(file);
+                    else
+                        MessageBox.Show("只允许加载docx文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             textBoxPath_DragDrop(sender, e);
         }

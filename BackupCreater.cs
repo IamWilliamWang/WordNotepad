@@ -10,7 +10,7 @@ namespace 日志书写器
         /// <summary>
         /// 备份的源文件名
         /// </summary>
-        public string Original文件名 { get; set; }
+        public string Original文件名 { get { return original文件名; } set { original文件名 = value; if(Backup文件名!=null)this.Backup后缀名 = this.Backup后缀名;/*同步信息到Backup文件名*/ } }
         /// <summary>
         /// 自动保存Timer.Interval（启动后不可以修改）
         /// </summary>
@@ -32,13 +32,13 @@ namespace 日志书写器
             }
             set
             {
-                // 运行后改工作路径可以，改后缀名不行
-                Alert();
-                int lastDotIndex = this.Original文件名.LastIndexOf('.');
-                if (lastDotIndex == -1) //源文件没后缀，直接加
+                if (value[0] != '.')
+                    value = '.' + value;
+                int dotIndex = this.Original文件名.IndexOf('.');
+                if (dotIndex == -1) //源文件没后缀，直接加
                     this.Backup文件名 = this.Original文件名 + value;
                 else
-                    this.Backup文件名 = this.Original文件名.Substring(0, lastDotIndex) + value;
+                    this.Backup文件名 = this.Original文件名.Substring(0, dotIndex) + value;
             }
         }
         /// <summary>
@@ -74,6 +74,7 @@ namespace 日志书写器
         /// </summary>
         public bool HiddenBackupFile { get; set; }
         /* 注意：下方变量只能在本region内使用！ */
+        private string original文件名;
         private string workingDirectory = Directory.GetCurrentDirectory();
         private 加密算法 encrypt算法;
         #endregion
@@ -153,6 +154,7 @@ namespace 日志书写器
         public void Stop()
         {
             this.backupFileTimer.Stop();
+            this.ParametersReadOnly = false;
         }
 
         /// <summary>
