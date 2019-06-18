@@ -31,6 +31,7 @@ namespace 日志书写器
         private BackupCreater backup { get; set; }
         // 保存最后一次成功搜索的内容
         private string LastSearch { get; set; } = "";
+        private KeyEventArgs LastKeyDown { get; set; }
         #endregion
 
         #region 启动与关闭
@@ -385,6 +386,7 @@ namespace 日志书写器
             }
             if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
+            this.LastKeyDown = e;
         }
         #endregion
 
@@ -506,9 +508,40 @@ namespace 日志书写器
             }
         }
 
+        private void InsertKey(object insertContent)
+        {
+            SendKeys.SendWait(insertContent.ToString());
+            SendKeys.SendWait("{LEFT}");
+            this.textBoxMain.Select(textBoxMain.SelectionStart, 0);
+        }
+
+        private bool FastInsert(char keydown)
+        {
+            //string lefts = "(（—[【{<《\"“";
+            //string rights = ")）—]】}>》\"”";
+            string lefts = "(（[【{<《“";
+            string rights = ")）]】}>》”";
+            int index = lefts.IndexOf(keydown);
+            if (index == -1)
+                return false;
+            //if ("—\"".IndexOf(keydown) != -1) //防止无限循环
+            //    ClearEvent(this.textBoxMain, "TextChanged");
+            InsertKey("{"+rights[index]+"}");
+            //if ("—\"".IndexOf(keydown) != -1)
+            //    this.textBoxMain.TextChanged += textBoxMain_TextChanged;
+            return true;
+        }
+
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
             AutoScrollBar();
+            if (this.textBoxMain.SelectionStart == 0) 
+                return;
+            var key = LastKeyDown.KeyCode;
+            if (key == Keys.Back || key == Keys.Delete || key == Keys.Enter || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down)
+                return;
+            char recentCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
+            FastInsert(recentCh);
         }
 
         private void AutoScrollBar()
