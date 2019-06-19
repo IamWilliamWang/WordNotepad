@@ -115,6 +115,15 @@ namespace 日志书写器
         private Timer BackupFileTimer { get; set; }
         private bool ParametersReadOnly { get; set; } = false;
 
+        /// <summary>
+        /// 生成一个新的BackupCreater
+        /// </summary>
+        /// <param name="备份源文件名">备份源文件名</param>
+        /// <param name="writeFileProcedure">写文件函数（要求唯一的参数为写文件名）</param>
+        /// <param name="interval">备份间隔(毫秒)</param>
+        /// <param name="备份后缀名">备份后缀名</param>
+        /// <param name="hideBackup">是否设置备份为隐藏文件</param>
+        /// <param name="算法">备份算法</param>
         public BackupCreater(string 备份源文件名, WriteProcedure writeFileProcedure = null, int interval = 1000, string 备份后缀名 = ".backup", bool hideBackup = false, 加密算法 算法 = 加密算法.无)
         {
             this.Original文件名 = 备份源文件名;
@@ -179,6 +188,21 @@ namespace 日志书写器
         }
 
         /// <summary>
+        /// 开启自动备份，并返回正在执行的BackupCreater
+        /// </summary>
+        /// <param name="备份源文件名">备份源文件名</param>
+        /// <param name="writeFileProcedure">写文件函数（要求唯一的参数为写文件名）</param>
+        /// <param name="interval">备份间隔(毫秒)</param>
+        /// <param name="备份后缀名">备份后缀名</param>
+        /// <param name="hideBackup">是否设置备份为隐藏文件</param>
+        public static BackupCreater Backup(string 备份源文件名, WriteProcedure writeFileProcedure = null, int interval = 1000, string 备份后缀名 = ".backup", bool hideBackup = false)
+        {
+            var ret = new BackupCreater(备份后缀名, writeFileProcedure, interval, 备份后缀名, hideBackup);
+            ret.Start();
+            return ret;
+        }
+
+        /// <summary>
         /// 停止自动备份Timer
         /// </summary>
         public void Stop()
@@ -193,6 +217,19 @@ namespace 日志书写器
         public void StartOnce()
         {
             this.WriteBackupInvoke(null, null);
+        }
+        /// <summary>
+        /// 只执行单步备份操作，并返回正在执行的BackupCreater
+        /// </summary>
+        /// <param name="备份源文件名">备份源文件名</param>
+        /// <param name="writeFileProcedure">写文件函数（要求唯一的参数为写文件名）</param>
+        /// <param name="备份后缀名">备份后缀名</param>
+        /// <param name="hideBackup">是否设置备份为隐藏文件</param>
+        public static BackupCreater BackupOnce(string 备份源文件名, WriteProcedure writeFileProcedure = null, string 备份后缀名 = ".backup", bool hideBackup = false)
+        {
+            var ret = new BackupCreater(备份后缀名, writeFileProcedure, int.MaxValue, 备份后缀名, hideBackup);
+            ret.StartOnce();
+            return ret;
         }
 
         /// <summary>
