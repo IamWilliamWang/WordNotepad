@@ -34,6 +34,7 @@ namespace 日志书写器
         // 保存最后一次成功搜索的内容
         private string LastSearch { get; set; } = "";
         private KeyEventArgs LastKeyDown { get; set; }
+        private bool FastInsertDisabled { get; set; } = false;
         #endregion
 
         #region 启动与关闭
@@ -528,9 +529,16 @@ namespace 日志书写器
 
         private void InsertKey(object insertContent)
         {
-            SendKeys.SendWait(insertContent.ToString());
-            SendKeys.SendWait("{LEFT}");
-            this.textBoxMain.Select(textBoxMain.SelectionStart, 0);
+            try
+            {
+                SendKeys.SendWait(insertContent.ToString());
+                SendKeys.SendWait("{LEFT}");
+                this.textBoxMain.Select(textBoxMain.SelectionStart, 0);
+            }
+            catch(System.ComponentModel.Win32Exception)
+            {
+                this.FastInsertDisabled = true;
+            }
         }
 
         private bool FastInsert(char keydown)
@@ -552,9 +560,15 @@ namespace 日志书写器
 
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
+            // 自动滚动条
             AutoScrollBar();
+            // 如果指针在首部
             if (this.textBoxMain.SelectionStart == 0) 
                 return;
+            // 如果快速补全不可用
+            if (FastInsertDisabled)
+                return;
+            // 按下这些键不要进行快速补全
             var key = LastKeyDown.KeyCode;
             if (key == Keys.Back || key == Keys.Delete || key == Keys.Enter || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down)
                 return;
