@@ -105,7 +105,7 @@ namespace 日志书写器
             // 初始化自动备份
             CreateBackupCreater();
             // 加版本号
-            this.Text += " v" + Program.Version(1);
+            this.Text += " v" + Program.Version();
             // 将实际字体替代在设计器中显示的字体
             this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             // 选定默认字体
