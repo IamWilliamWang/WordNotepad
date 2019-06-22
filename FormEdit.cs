@@ -767,5 +767,11 @@ namespace 日志书写器
                 }
             }
         }
+
+        private void 保存并置为终稿ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.button保存_Click(sender, e);
+            this.textBoxMain.Enabled = false;
+        }
     }
 }
