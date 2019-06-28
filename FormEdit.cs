@@ -555,18 +555,19 @@ namespace 日志书写器
         /// 向光标位置插入字符串
         /// </summary>
         /// <param name="insertContent"></param>
-        private void InsertKey(object insertContent)
+        private void InsertKey(object insertContentObj)
         {
+            string insertContent = insertContentObj.ToString();
             try
             {
-                SendKeys.SendWait(insertContent.ToString());
+                SendKeys.SendWait(insertContent);
                 SendKeys.SendWait("{LEFT}");
                 this.textBoxMain.Select(textBoxMain.SelectionStart, 0);
             }
             catch(System.ComponentModel.Win32Exception)
             {
-                //this.FastInsertDisabled = true;
-                this.textBoxMain.Text = this.textBoxMain.Text.Insert(textBoxMain.SelectionStart, insertContent.ToString());
+                insertContent = insertContent.Substring(1, insertContent.Length - 2); //去掉{}
+                this.textBoxMain.Text = this.textBoxMain.Text.Insert(textBoxMain.SelectionStart, insertContent);
             }
         }
 
