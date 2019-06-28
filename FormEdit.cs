@@ -29,7 +29,7 @@ namespace 日志书写器
         // 全屏模式
         private bool FullScreen { get{ return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
         // 暗黑模式
-        private bool DarkMode { get{ return this.暗黑模式ToolStripMenuItem.Text != "暗黑模式"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
+        private bool DarkMode { get{ return this.暗黑模式ToolStripMenuItem.Text != "暗黑主题"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
         // 自动保存Timer
         private BackupCreater backup { get; set; }
         // 保存最后一次成功搜索的内容
@@ -479,7 +479,7 @@ namespace 日志书写器
             this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
+            this.暗黑模式ToolStripMenuItem.Text = "暗黑主题";
         }
 
         /// <summary>
@@ -503,7 +503,7 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(13, 7);
             this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            this.全屏模式ToolStripMenuItem.Text = "取消全屏";
+            this.全屏模式ToolStripMenuItem.Text = "普通模式";
         }
 
         /// <summary>
@@ -519,7 +519,7 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
             this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.全屏模式ToolStripMenuItem.Text = "全屏模式";
+            this.全屏模式ToolStripMenuItem.Text = "精简模式";
         }
 
         /// <summary>

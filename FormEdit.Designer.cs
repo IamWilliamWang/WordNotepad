@@ -140,14 +140,14 @@
             // 
             this.全屏模式ToolStripMenuItem.Name = "全屏模式ToolStripMenuItem";
             this.全屏模式ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.全屏模式ToolStripMenuItem.Text = "全屏模式";
+            this.全屏模式ToolStripMenuItem.Text = "精简模式";
             this.全屏模式ToolStripMenuItem.Click += new System.EventHandler(this.全屏模式ToolStripMenuItem_Click);
             // 
             // 暗黑模式ToolStripMenuItem
             // 
             this.暗黑模式ToolStripMenuItem.Name = "暗黑模式ToolStripMenuItem";
             this.暗黑模式ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.暗黑模式ToolStripMenuItem.Text = "暗黑模式";
+            this.暗黑模式ToolStripMenuItem.Text = "暗黑主题";
             this.暗黑模式ToolStripMenuItem.Click += new System.EventHandler(this.暗黑模式ToolStripMenuItem_Click);
             // 
             // 自动聚焦ToolStripMenuItem
