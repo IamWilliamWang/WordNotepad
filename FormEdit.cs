@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 namespace 日志书写器
@@ -34,7 +35,7 @@ namespace 日志书写器
         // 保存最后一次成功搜索的内容
         private string LastSearch { get; set; } = "";
         private KeyEventArgs LastKeyDown { get; set; }
-        private bool FastInsertDisabled { get; set; } = false;
+        //private bool FastInsertDisabled { get; set; } = false;
         #endregion
 
         #region 启动与关闭
@@ -167,10 +168,14 @@ namespace 日志书写器
             {
                 Word wordRead = new Word(docxFileName);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
+                // 读取字号
                 string readFontText = this.GetTextFromFontSize(wordRead.FontSize);
                 int selectedIndex = new List<String>(this.fontTexts).IndexOf(readFontText);
                 if (selectedIndex != -1)
                     this.comboBoxFontSize.SelectedIndex = selectedIndex;
+                // 读取字体
+                this.textBoxFont.Text = wordRead.Font;
+                // 储存字数
                 this.SavedCharLength = wordRead.Length;
             }
             catch (IOException)
@@ -181,6 +186,21 @@ namespace 日志书写器
             }
         }
         
+        private void LoadTxt(string txtFileName)
+        {
+            try
+            {
+                this.textBoxMain.Lines = File.ReadAllLines(txtFileName);
+                this.SavedCharLength = 0;
+                foreach (var str in this.textBoxMain.Lines)
+                    this.SavedCharLength += str.Length;
+            }
+            catch(IOException)
+            {
+                throw;
+            }
+        }
+
         /// <summary>
         /// 检查是否需要进行保存操作
         /// </summary>
@@ -394,9 +414,9 @@ namespace 日志书写器
                 this.SaveDocument();
                 backup.DeleteBackup();
             }
-            if (e.KeyCode == Keys.A && e.Control)
+            else if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
-            if (e.KeyCode == Keys.O && e.Control)
+            else if (e.KeyCode == Keys.O && e.Control)
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "文档|*.docx";
@@ -405,6 +425,10 @@ namespace 日志书写器
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                     this.LoadSpecificDocument(openFileDialog.FileName);
             }
+            else if (e.KeyCode == Keys.F && e.Control)
+                this.查找ToolStripMenuItem_Click(sender, e);
+            else if (e.KeyCode == Keys.T && e.Control)
+                this.插入tToolStripMenuItem_Click(sender, e);
             this.LastKeyDown = e;
         }
         #endregion
@@ -527,6 +551,10 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 向光标位置插入字符串
+        /// </summary>
+        /// <param name="insertContent"></param>
         private void InsertKey(object insertContent)
         {
             try
@@ -537,16 +565,22 @@ namespace 日志书写器
             }
             catch(System.ComponentModel.Win32Exception)
             {
-                this.FastInsertDisabled = true;
+                //this.FastInsertDisabled = true;
+                this.textBoxMain.Text = this.textBoxMain.Text.Insert(textBoxMain.SelectionStart, insertContent.ToString());
             }
         }
 
+        /// <summary>
+        /// 快捷插入，负责插入各种符号的后一半
+        /// </summary>
+        /// <param name="keydown"></param>
+        /// <returns></returns>
         private bool FastInsert(char keydown)
         {
-            //string lefts = "(（—[【{<《\"“";
-            //string rights = ")）—]】}>》\"”";
-            string lefts = "(（[【{<《“";
-            string rights = ")）]】}>》”";
+            //string lefts = "(（—[【{<《\"“‘";
+            //string rights = ")）—]】}>》\"”’";
+            string lefts = "(（[【{<《“‘";
+            string rights = ")）]】}>》”’";
             int index = lefts.IndexOf(keydown);
             if (index == -1)
                 return false;
@@ -566,8 +600,8 @@ namespace 日志书写器
             if (this.textBoxMain.SelectionStart == 0) 
                 return;
             // 如果快速补全不可用
-            if (FastInsertDisabled)
-                return;
+            //if (FastInsertDisabled)
+            //    return;
             // 按下这些键不要进行快速补全
             var key = LastKeyDown.KeyCode;
             if (key == Keys.Back || key == Keys.Delete || key == Keys.Enter || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down)
@@ -576,6 +610,9 @@ namespace 日志书写器
             FastInsert(recentCh);
         }
 
+        /// <summary>
+        /// 自动开启或关闭VerticalScrollBar
+        /// </summary>
         private void AutoScrollBar()
         {
             int lineCount = this.textBoxMain.GetLineFromCharIndex(this.textBoxMain.Text.Length) + 1;
@@ -639,6 +676,7 @@ namespace 日志书写器
         private void 插入tToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
+            this.textBoxMain.Select(textBoxMain.SelectionStart + 2, 0);
         }
 
         private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -763,7 +801,28 @@ namespace 日志书写器
                         this.LoadSpecificDocument(file);
                     }
                     else
-                        MessageBox.Show("只允许加载docx文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    {
+                        try
+                        {
+                            var fileInfo = new FileInfo(file);
+                            if(fileInfo.Length > 20 * 1024 * 1024)
+                            {
+                                MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return;
+                            }
+                            LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
+                            if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
+                            {
+                                MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                this.textBoxMain.Text = "";
+                                return;
+                            }
+                        }
+                        catch (IOException)
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
         }

@@ -73,6 +73,7 @@ namespace 日志书写器
                     lines.Add(paragraphText);
                 }
                 this.FontSize = docRead.Paragraphs[0].Runs[0].FontSize;
+                this.Font = docRead.Paragraphs[0].Runs[0].FontFamily;
             }
             return lines.ToArray();
         }
