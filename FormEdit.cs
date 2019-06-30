@@ -11,33 +11,38 @@ namespace 日志书写器
 {
     public partial class FormEdit : Form
     {
-        #region 储存变量
-        // 作者姓名
-        public static String AuthorName { get; } = "王劲翔";
+        #region 控制器
         // 文档字号（数字）
         private float DocumentFontSize { get { return this.GetFontSizeFromText(DocumentFontSizeZh); } }
         // 文档字号（中文）
-        private string DocumentFontSizeZh { get; set; } = "小四";
+        private string DocumentFontSizeZh { get { return fontSizeZh; } set { fontSizeZh = value; this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize); } } //先更新值然后用新值更新textBox
         // 文档显示字体
-        private String DocumentFont { get { return "黑体"; } }
+        private String DocumentFont { get { return font; } set { font = value; this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize); } }
+        // 全屏模式
+        private bool FullScreen { get { return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
+        // 暗黑模式
+        private bool DarkMode { get { return this.暗黑主题ToolStripMenuItem.Text != "暗黑主题"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
+        /* 以下基本变量只能在本region内使用！！ */
+        private string fontSizeZh = "小四";
+        private string font = "黑体";
+        #endregion
+
+        #region 一般变量
+        // 作者姓名
+        public static String AuthorName { get; } = "王劲翔";
         // 上次保存的字符串长度（不包含换行）
         private int SavedCharLength { get; set; } = 0;
         // 各动态链接库的名称
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         // 多久秒自动保存一次
         private int AutoSavePerSecond { get; set; } = 30;
-        // 全屏模式
-        private bool FullScreen { get{ return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
-        // 暗黑模式
-        private bool DarkMode { get{ return this.暗黑模式ToolStripMenuItem.Text != "暗黑主题"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
-        // 自动保存Timer
-        private BackupCreater backup { get; set; }
         // 保存最后一次成功搜索的内容
         private string LastSearch { get; set; } = "";
         private KeyEventArgs LastKeyDown { get; set; }
-        //private bool FastInsertDisabled { get; set; } = false;
         #endregion
-
+        
+        private BackupCreater Backup { get; set; } // 自动保存Timer
+        
         #region 启动与关闭
         public FormEdit()
         {
@@ -73,9 +78,9 @@ namespace 日志书写器
         /// </summary>
         private void CreateBackupCreater()
         {
-            backup = new BackupCreater(GetDefaultDocumentFileName(), (writeFilename) => this.SaveBackup(writeFilename));
-            backup.Interval = AutoSavePerSecond * 1000;
-            backup.Backup后缀名 = ".autosave";
+            Backup = new BackupCreater(GetDefaultDocumentFileName(), (writeFilename) => this.SaveBackup(writeFilename));
+            Backup.Interval = AutoSavePerSecond * 1000;
+            Backup.Backup后缀名 = ".autosave";
         }
 
         /// <summary>
@@ -85,10 +90,10 @@ namespace 日志书写器
         {
             try
             {
-                Word wordRead = new Word(backup.Backup文件名);
+                Word wordRead = new Word(Backup.Backup文件名);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
-                if (File.Exists(backup.Original文件名))
-                    this.SavedCharLength = new Word(backup.Original文件名).Length;
+                if (File.Exists(Backup.Original文件名))
+                    this.SavedCharLength = new Word(Backup.Original文件名).Length;
             }
             catch (IOException)
             {
@@ -121,15 +126,15 @@ namespace 日志书写器
                 }
             }
             // 有自动保存文件则恢复内容
-            if (File.Exists(backup.Backup文件名))
+            if (File.Exists(Backup.Backup文件名))
             {
                 if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                    backup.RestoreFile(RestoreAutosave, true);
+                    Backup.RestoreFile(RestoreAutosave, true);
             }
             // 有保存的文件则直接加载内容
-            else if (File.Exists(backup.Original文件名))
+            else if (File.Exists(Backup.Original文件名))
             {
-                LoadDocx(backup.Original文件名);
+                LoadDocx(Backup.Original文件名);
             }
             // 如果没有dll文件就解压文件
             if (!File.Exists(dllNames[1]))
@@ -142,20 +147,20 @@ namespace 日志书写器
                 DarkMode = true;
             // 加右键菜单项
             this.contextMenuStripMain.Items.Clear();
-            this.contextMenuStripMain.Items.Add(插入tToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(查找ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add("-");
             this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add("-");
-            this.contextMenuStripMain.Items.Add(全屏模式ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(暗黑模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
             // 启动自动保存计时器
-            backup.Start();
+            Backup.Start();
         }
 
         /// <summary>
@@ -226,7 +231,7 @@ namespace 日志书写器
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            backup.DeleteBackup();
+            Backup.DeleteBackup();
             if (this.checkBoxMailbox.Checked)
                 System.Diagnostics.Process.Start("https://mail.qq.com/");
         }
@@ -294,7 +299,7 @@ namespace 日志书写器
         /// </summary>
         private void SaveDocument()
         {
-            SaveDocx(backup.Original文件名);
+            SaveDocx(Backup.Original文件名);
         }
 
         /// <summary>
@@ -342,12 +347,18 @@ namespace 日志书写器
         private void button保存_Click(object sender, EventArgs e)
         {
             this.SaveDocument();
-            backup.DeleteBackup();
+            Backup.DeleteBackup();
             MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private void 保存并置为终稿ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.button保存_Click(sender, e);
+            this.textBoxMain.Enabled = false;
+        }
         #endregion
-        
-        #region groupbox内其他操作
+
+        #region 所有拖拽操作
         private void textBoxPath_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -383,18 +394,92 @@ namespace 日志书写器
                     this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
                 else
                     this.textBoxPath.Text = file;
-                backup.WorkingDirectory = this.textBoxPath.Text;
+                Backup.WorkingDirectory = this.textBoxPath.Text;
             }
+        }
+
+        private void FormEdit_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+        }
+
+        /// <summary>
+        /// 加载特定的docx文件，并修改操作目标文件
+        /// </summary>
+        /// <param name="docFileName"></param>
+        private void LoadSpecificDocument(string docFileName)
+        {
+            // 加载文档内容
+            this.LoadDocx(docFileName);
+            // 修改标题为新的docx文件名
+            if (this.Text.Contains("("))
+                this.Text = this.Text.Substring(0, this.Text.IndexOf('(')) + " (" + docFileName + ")";
+            else
+                this.Text += " (" + docFileName + ")";
+            // 停止计时器，修改源文件，开启计时器
+            Backup.Stop();
+            Backup.Original文件名 = docFileName;
+            Backup.Start();
+        }
+
+        private void FormEdit_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
+                string type = FileOrDirectory(file);
+                if (type == "File")
+                {
+                    if (file.EndsWith(".docx"))
+                    {
+                        // 同步路径
+                        textBoxPath_DragDrop(sender, e);
+                        this.LoadSpecificDocument(file);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var fileInfo = new FileInfo(file);
+                            if (fileInfo.Length > 20 * 1024 * 1024)
+                            {
+                                MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return;
+                            }
+                            LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
+                            if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
+                            {
+                                MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                this.textBoxMain.Text = "";
+                                return;
+                            }
+                        }
+                        catch (IOException)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region groupbox内其他操作
+        private void textBoxFont_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                this.DocumentFont = this.textBoxFont.Text;
         }
 
         private void comboBoxFontSize_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.textBoxMain.Font = new System.Drawing.Font(this.textBoxFont.Text, this.GetFontSizeFromText(this.comboBoxFontSize.Text));
+            this.DocumentFontSizeZh = this.comboBoxFontSize.Text;
         }
 
         private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.backup.WorkingDirectory = this.textBoxPath.Text;
+            this.Backup.WorkingDirectory = this.textBoxPath.Text;
             MessageBox.Show("修改成功！");
         }
         #endregion
@@ -412,7 +497,7 @@ namespace 日志书写器
             if (e.KeyCode == Keys.S && e.Control)
             {
                 this.SaveDocument();
-                backup.DeleteBackup();
+                Backup.DeleteBackup();
             }
             else if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
@@ -426,9 +511,9 @@ namespace 日志书写器
                     this.LoadSpecificDocument(openFileDialog.FileName);
             }
             else if (e.KeyCode == Keys.F && e.Control)
-                this.查找ToolStripMenuItem_Click(sender, e);
+                this.查找内容ToolStripMenuItem_Click(sender, e);
             else if (e.KeyCode == Keys.T && e.Control)
-                this.插入tToolStripMenuItem_Click(sender, e);
+                this.插入中文空格ToolStripMenuItem_Click(sender, e);
             this.LastKeyDown = e;
         }
         #endregion
@@ -446,16 +531,16 @@ namespace 日志书写器
             this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.button保存.ForeColor = System.Drawing.SystemColors.Window;
             this.button保存.UseVisualStyleBackColor = false;
-            this.buttonTopMost.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonTopMost.UseVisualStyleBackColor = false;
+            this.button窗口置顶.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.button窗口置顶.ForeColor = System.Drawing.SystemColors.Window;
+            this.button窗口置顶.UseVisualStyleBackColor = false;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
             this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ForeColor = System.Drawing.SystemColors.Window;
-            this.暗黑模式ToolStripMenuItem.Text = "取消暗黑";
+            this.暗黑主题ToolStripMenuItem.Text = "取消暗黑";
         }
 
         /// <summary>
@@ -470,16 +555,16 @@ namespace 日志书写器
             this.button保存.BackColor = System.Drawing.SystemColors.Control;
             this.button保存.ForeColor = System.Drawing.SystemColors.ControlText;
             this.button保存.UseVisualStyleBackColor = true;
-            this.buttonTopMost.BackColor = System.Drawing.SystemColors.Control;
-            this.buttonTopMost.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.buttonTopMost.UseVisualStyleBackColor = true;
+            this.button窗口置顶.BackColor = System.Drawing.SystemColors.Control;
+            this.button窗口置顶.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button窗口置顶.UseVisualStyleBackColor = true;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
             this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.暗黑模式ToolStripMenuItem.Text = "暗黑主题";
+            this.暗黑主题ToolStripMenuItem.Text = "暗黑主题";
         }
 
         /// <summary>
@@ -503,7 +588,7 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(13, 7);
             this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            this.全屏模式ToolStripMenuItem.Text = "普通模式";
+            this.精简模式ToolStripMenuItem.Text = "普通模式";
         }
 
         /// <summary>
@@ -519,7 +604,7 @@ namespace 日志书写器
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
             this.FormBorderStyle = FormBorderStyle.Sizable;
-            this.全屏模式ToolStripMenuItem.Text = "精简模式";
+            this.精简模式ToolStripMenuItem.Text = "精简模式";
         }
 
         /// <summary>
@@ -567,7 +652,9 @@ namespace 日志书写器
             catch(System.ComponentModel.Win32Exception)
             {
                 insertContent = insertContent.Substring(1, insertContent.Length - 2); //去掉{}
+                int nowStart = textBoxMain.SelectionStart;
                 this.textBoxMain.Text = this.textBoxMain.Text.Insert(textBoxMain.SelectionStart, insertContent);
+                this.textBoxMain.Select(nowStart, 0);
             }
         }
 
@@ -674,13 +761,14 @@ namespace 日志书写器
         #endregion
 
         #region 右键菜单
-        private void 插入tToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 插入中文空格ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            int nowStart = textBoxMain.SelectionStart;
             this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
-            this.textBoxMain.Select(textBoxMain.SelectionStart + 2, 0);
+            this.textBoxMain.Select(nowStart + 2, 0);
         }
 
-        private void 查找ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 查找内容ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: LastSearch);
             if (search == "")
@@ -722,12 +810,12 @@ namespace 日志书写器
             SendKeys.Send("{DEL}");
         }
 
-        private void 全屏模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 精简模式ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FullScreenModeSwitch();
         }
 
-        private void 暗黑模式ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 暗黑主题ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DarkModeSwitch();
         }
@@ -736,17 +824,18 @@ namespace 日志书写器
         {
             if (((ToolStripMenuItem)sender).Text == "停用备份")
             {
-                this.backup.Stop();
+                this.Backup.Stop();
                 ((ToolStripMenuItem)sender).Text = "启用备份";
             }
             else if (((ToolStripMenuItem)sender).Text == "启用备份")
             {
-                this.backup.Start();
+                this.Backup.Start();
                 ((ToolStripMenuItem)sender).Text = "停用备份";
             }
         }
         #endregion
 
+        #region 鼠标模拟
         /// <summary>
         /// 模拟鼠标点击事件
         /// </summary>
@@ -768,70 +857,6 @@ namespace 日志书写器
                 mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
             }
         }
-
-        private void FormEdit_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-                e.Effect = DragDropEffects.Copy;
-        }
-
-        private void LoadSpecificDocument(string docFileName)
-        {
-            this.LoadDocx(docFileName);
-            if (this.Text.Contains("("))
-                this.Text = this.Text.Substring(0, this.Text.IndexOf('(')) + " (" + docFileName + ")";
-            else
-                this.Text += " (" + docFileName + ")";
-            backup.Stop();
-            backup.Original文件名 = docFileName;
-            backup.Start();
-        }
-
-        private void FormEdit_DragDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
-                string type = FileOrDirectory(file);
-                if (type == "File")
-                {
-                    if (file.EndsWith(".docx"))
-                    {
-                        // 同步路径
-                        textBoxPath_DragDrop(sender, e);
-                        this.LoadSpecificDocument(file);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            var fileInfo = new FileInfo(file);
-                            if(fileInfo.Length > 20 * 1024 * 1024)
-                            {
-                                MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
-                            }
-                            LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
-                            if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
-                            {
-                                MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                this.textBoxMain.Text = "";
-                                return;
-                            }
-                        }
-                        catch (IOException)
-                        {
-                            throw;
-                        }
-                    }
-                }
-            }
-        }
-
-        private void 保存并置为终稿ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.button保存_Click(sender, e);
-            this.textBoxMain.Enabled = false;
-        }
+        #endregion
     }
 }
