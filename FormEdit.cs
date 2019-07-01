@@ -113,8 +113,8 @@ namespace 日志书写器
             CreateBackupCreater();
             // 加版本号
             this.Text += " v" + Program.Version();
-            // 将实际字体替代在设计器中显示的字体
-            this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
+            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             // 选定默认字体
             for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
             {
@@ -179,7 +179,7 @@ namespace 日志书写器
                 if (selectedIndex != -1)
                     this.comboBoxFontSize.SelectedIndex = selectedIndex;
                 // 读取字体
-                this.textBoxFont.Text = wordRead.Font;
+                this.DocumentFont = wordRead.Font;
                 // 储存字数
                 this.SavedCharLength = wordRead.Length;
             }
