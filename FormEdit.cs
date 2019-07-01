@@ -17,7 +17,12 @@ namespace 日志书写器
         // 文档字号（中文）
         private string DocumentFontSizeZh { get { return fontSizeZh; } set { fontSizeZh = value; this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize); } } //先更新值然后用新值更新textBox
         // 文档显示字体
-        private String DocumentFont { get { return font; } set { font = value; this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize); } }
+        private String DocumentFont { get { return font; } set {
+                font = value;
+                this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize);
+                if (this.textBoxFont.Text != font) //始终保持Font与textBoxFont同步
+                    this.textBoxFont.Text = font;
+            } }
         // 全屏模式
         private bool FullScreen { get { return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
         // 暗黑模式
