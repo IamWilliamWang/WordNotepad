@@ -44,8 +44,6 @@
             this.停用备份ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.labelPath = new System.Windows.Forms.Label();
             this.textBoxPath = new System.Windows.Forms.TextBox();
-            this.contextMenuStripPath = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.应用修改ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.button保存 = new System.Windows.Forms.Button();
             this.contextMenuStripSave = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,7 +55,6 @@
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
             this.contextMenuStripMain.SuspendLayout();
-            this.contextMenuStripPath.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
             this.SuspendLayout();
@@ -169,36 +166,22 @@
             this.labelPath.AutoSize = true;
             this.labelPath.Location = new System.Drawing.Point(186, 19);
             this.labelPath.Name = "labelPath";
-            this.labelPath.Size = new System.Drawing.Size(65, 12);
+            this.labelPath.Size = new System.Drawing.Size(53, 12);
             this.labelPath.TabIndex = 7;
-            this.labelPath.Text = "文件根目录";
+            this.labelPath.Text = "文件路径";
             // 
             // textBoxPath
             // 
             this.textBoxPath.AllowDrop = true;
             this.textBoxPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPath.ContextMenuStrip = this.contextMenuStripPath;
-            this.textBoxPath.Location = new System.Drawing.Point(257, 14);
+            this.textBoxPath.Location = new System.Drawing.Point(247, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(324, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(334, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
-            // 
-            // contextMenuStripPath
-            // 
-            this.contextMenuStripPath.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.应用修改ToolStripMenuItem});
-            this.contextMenuStripPath.Name = "contextMenuStripPath";
-            this.contextMenuStripPath.Size = new System.Drawing.Size(125, 26);
-            // 
-            // 应用修改ToolStripMenuItem
-            // 
-            this.应用修改ToolStripMenuItem.Name = "应用修改ToolStripMenuItem";
-            this.应用修改ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.应用修改ToolStripMenuItem.Text = "应用修改";
-            this.应用修改ToolStripMenuItem.Click += new System.EventHandler(this.应用修改ToolStripMenuItem_Click);
+            this.textBoxPath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxPath_KeyDown);
             // 
             // button保存
             // 
@@ -217,12 +200,12 @@
             this.contextMenuStripSave.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.保存并置为终稿ToolStripMenuItem});
             this.contextMenuStripSave.Name = "contextMenuStripSave";
-            this.contextMenuStripSave.Size = new System.Drawing.Size(181, 48);
+            this.contextMenuStripSave.Size = new System.Drawing.Size(161, 26);
             // 
             // 保存并置为终稿ToolStripMenuItem
             // 
             this.保存并置为终稿ToolStripMenuItem.Name = "保存并置为终稿ToolStripMenuItem";
-            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.保存并置为终稿ToolStripMenuItem.Text = "保存并置为终稿";
             this.保存并置为终稿ToolStripMenuItem.Click += new System.EventHandler(this.保存并置为终稿ToolStripMenuItem_Click);
             // 
@@ -341,7 +324,6 @@
             this.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
             this.Resize += new System.EventHandler(this.FormEdit_Resize);
             this.contextMenuStripMain.ResumeLayout(false);
-            this.contextMenuStripPath.ResumeLayout(false);
             this.contextMenuStripSave.ResumeLayout(false);
             this.groupBoxSetting.ResumeLayout(false);
             this.groupBoxSetting.PerformLayout();
@@ -373,8 +355,6 @@
         private System.Windows.Forms.ToolStripMenuItem 查找内容ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 删除ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自动聚焦ToolStripMenuItem;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStripPath;
-        private System.Windows.Forms.ToolStripMenuItem 应用修改ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 停用备份ToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripSave;
         private System.Windows.Forms.ToolStripMenuItem 保存并置为终稿ToolStripMenuItem;

@@ -81,7 +81,7 @@ namespace 日志书写器
                     this.DeleteBackup();
                 workingDirectory = value;
                 string shortOriginalFileName = Original文件名.Substring(Original文件名.LastIndexOf('\\') + 1);
-                if (workingDirectory.EndsWith("\\")) //统一去掉\
+                if (workingDirectory.EndsWith("\\")) //统一去掉最后的\
                     workingDirectory = workingDirectory.Substring(0, workingDirectory.Length - 1);
                 Original文件名 = workingDirectory + "\\" + shortOriginalFileName;
             }

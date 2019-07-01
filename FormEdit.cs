@@ -164,6 +164,8 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
+            // 显示工作路径
+            this.textBoxPath.Text = Backup.WorkingDirectory;
             // 启动自动保存计时器
             Backup.Start();
         }
@@ -258,6 +260,21 @@ namespace 日志书写器
             }
         }
 
+        private void CheckPathChanged()
+        {
+            if (this.textBoxPath.Text.Replace("\\","") != Backup.WorkingDirectory.Replace("\\", ""))
+            {
+                if (DialogResult.Yes == MessageBox.Show("检测到新文件路径未被更新。如果想立即应用更新请点“是”，如果想撤销文件路径的更新请点“否”", "更新文件路径", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                {
+                    this.textBoxPath_KeyDown(null, new KeyEventArgs(Keys.Enter));
+                }
+                else
+                {
+                    this.textBoxPath.Text = Backup.WorkingDirectory;
+                }
+            }
+        }
+
         private readonly String[] fontTexts = new String[] { "六号", "小五", "五号", "小四", "四号", "小三", "三号", "小二", "二号", "小一", "一号" };
         private readonly float[] fontSizes = new float[] { 7.5f, 9f, 10.5f, 12f, 14f, 15f, 16f, 18f, 22f, 24f, 26f };
         /// <summary>
@@ -302,9 +319,9 @@ namespace 日志书写器
         /// <summary>
         /// 保存docx文档
         /// </summary>
-        private void SaveDocument()
+        private bool SaveDocument()
         {
-            SaveDocx(Backup.Original文件名);
+            return SaveDocx(Backup.Original文件名);
         }
 
         /// <summary>
@@ -319,8 +336,9 @@ namespace 日志书写器
         /// <summary>
         /// 保存文档的具体实现
         /// </summary>
-        private void SaveDocx(string docxName, bool changeSavedCharLength = true)
+        private bool SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
+            CheckPathChanged();
             Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
                 word.Font = this.textBoxFont.Text;
@@ -337,11 +355,27 @@ namespace 日志书写器
             }
             catch (DirectoryNotFoundException)
             {
-                MessageBox.Show("保存目录不存在，请重新填写正确的保存目录！", "保存警告", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("保存目录不存在，请重新填写正确的保存目录！", "保存警告", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.textBoxPath.Text = "";
+                return false;
             }
-            if(changeSavedCharLength)
+            catch (UnauthorizedAccessException)
+            {
+                if (DialogResult.OK == MessageBox.Show("保存失败！因为软件没有足够的权限，可以使用管理员身份重启本程序。是否同意如此操作？", "保存警告", MessageBoxButtons.OKCancel, MessageBoxIcon.Error))
+                {
+                    this.checkBoxMailbox.Checked = false;
+                    RestartWithAdminRight(true);
+                }
+                else
+                {
+                    this.textBoxPath.Text = Directory.GetCurrentDirectory();
+                    this.Backup.WorkingDirectory = Directory.GetCurrentDirectory();
+                }
+                return false;
+            }
+            if (changeSavedCharLength)
                 this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
+            return true;
         }
 
         /// <summary>
@@ -351,9 +385,10 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void button保存_Click(object sender, EventArgs e)
         {
-            this.SaveDocument();
+            bool saveSuccess = this.SaveDocument();
             Backup.DeleteBackup();
-            MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if(saveSuccess)
+                MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void 保存并置为终稿ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -482,10 +517,19 @@ namespace 日志书写器
             this.DocumentFontSizeZh = this.comboBoxFontSize.Text;
         }
 
-        private void 应用修改ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void textBoxPath_KeyDown(object sender, KeyEventArgs e)
         {
-            this.Backup.WorkingDirectory = this.textBoxPath.Text;
-            MessageBox.Show("修改成功！");
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (FileOrDirectory(this.textBoxPath.Text) == "File")
+                {
+                    MessageBox.Show("路径名有误！");
+                    this.textBoxPath.Text = "";
+                    return;
+                }
+                this.Backup.WorkingDirectory = this.textBoxPath.Text;
+                MessageBox.Show("文件路径已被成功修改！");
+            }
         }
         #endregion
 
@@ -840,7 +884,7 @@ namespace 日志书写器
         }
         #endregion
 
-        #region 鼠标模拟
+        #region 外部引用模块（无错勿动）
         /// <summary>
         /// 模拟鼠标点击事件
         /// </summary>
@@ -860,6 +904,41 @@ namespace 日志书写器
                 uint X = (uint)Cursor.Position.X;
                 uint Y = (uint)Cursor.Position.Y;
                 mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, X, Y, 0, 0);
+            }
+        }
+
+        /// <summary>
+        /// 以管理管身份重新启动本程序
+        /// </summary>
+        /// <param name="muteMessage">禁止弹出提示</param>
+        public static void RestartWithAdminRight(bool muteMessage = false)
+        {
+            if (!muteMessage && MessageBox.Show("请使用管理员权限重启本程序再进行此操作，是否程序允许获取权限？", "操作失败", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+            {
+                return;
+            }
+            else
+            {
+                ProcessStartInfo proc = new ProcessStartInfo();
+                proc.UseShellExecute = true;
+                proc.WorkingDirectory = Environment.CurrentDirectory;
+                proc.FileName = Application.ExecutablePath;
+                proc.Arguments = "MessageUnabled";
+                proc.Verb = "runas";
+
+                try
+                {
+                    Process.Start(proc);
+                }
+                catch
+                {
+                    // 用户点击不要授权
+                    // 提示错误，什么都不要做
+                    MessageBox.Show("获得权限失败", "用户未允许授权", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                Application.Exit();
             }
         }
         #endregion
