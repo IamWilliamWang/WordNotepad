@@ -183,7 +183,7 @@ namespace 日志书写器
 
         public bool InputSuccess()
         {
-            return this.输入成功 && this.BoxText != String.Empty && this.BoxText != defaultText;
+            return this.输入成功 && this.BoxText != String.Empty;
         }
     }
 

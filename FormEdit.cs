@@ -560,7 +560,15 @@ namespace 日志书写器
                     this.LoadSpecificDocument(openFileDialog.FileName);
             }
             else if (e.KeyCode == Keys.F && e.Control)
-                this.查找内容ToolStripMenuItem_Click(sender, e);
+            {
+                if (LastSearch == "")
+                    SearchString();
+                else
+                {
+                    this.textBoxMain.SelectionStart += LastSearch.Length;
+                    SearchString(LastSearch);
+                }
+            }
             else if (e.KeyCode == Keys.T && e.Control)
                 this.插入中文空格ToolStripMenuItem_Click(sender, e);
             this.LastKeyDown = e;
@@ -817,9 +825,10 @@ namespace 日志书写器
             this.textBoxMain.Select(nowStart + 2, 0);
         }
 
-        private void 查找内容ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SearchString(string search = null)
         {
-            string search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: LastSearch);
+            if (search == null)
+                search = Interaction.InputBox("请输入从光标处要查找的内容", defaultText: LastSearch);
             if (search == "")
                 return;
             int index = this.textBoxMain.Text.IndexOf(search, this.textBoxMain.SelectionStart);
@@ -837,6 +846,11 @@ namespace 日志书写器
             }
             LastSearch = search;
             this.textBoxMain.Select(index, search.Length);
+        }
+
+        private void 查找内容ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SearchString();
         }
 
         private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
