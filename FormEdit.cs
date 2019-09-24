@@ -148,8 +148,8 @@ namespace 日志书写器
             // 光标点在文本最后
             this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
             // 晚上时间开启暗黑模式
-            if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
-                DarkMode = true;
+            //if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
+            //    DarkMode = true;
             // 加右键菜单项
             this.contextMenuStripMain.Items.Clear();
             this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
@@ -715,6 +715,11 @@ namespace 日志书写器
             }
         }
 
+        private bool fastInsertDisabledOnce = false;
+
+        private readonly string fastLefts = "(（[【{<《“‘\"";
+        private readonly string fastRights = ")）]】}>》”’\"";
+
         /// <summary>
         /// 快捷插入，负责插入各种符号的后一半
         /// </summary>
@@ -722,35 +727,64 @@ namespace 日志书写器
         /// <returns></returns>
         private bool FastInsert(char keydown)
         {
-            //string lefts = "(（—[【{<《\"“‘";
-            //string rights = ")）—]】}>》\"”’";
-            string lefts = "(（[【{<《“‘";
-            string rights = ")）]】}>》”’";
+            string lefts = fastLefts;
+            string rights = fastRights;
             int index = lefts.IndexOf(keydown);
             if (index == -1)
                 return false;
-            //if ("—\"".IndexOf(keydown) != -1) //防止无限循环
-            //    ClearEvent(this.textBoxMain, "TextChanged");
+            // 由于InsertKey是递归调用，防止无限循环
+            if (keydown == '\"')
+                fastInsertDisabledOnce = true; // 禁止下一次快捷插入
             InsertKey("{"+rights[index]+"}");
-            //if ("—\"".IndexOf(keydown) != -1)
-            //    this.textBoxMain.TextChanged += textBoxMain_TextChanged;
             return true;
+        }
+
+        private void FastDelete()
+        {
+            //char leftCh;
+            //if (this.textBoxMain.SelectionStart > 0)
+            //    leftCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
+            //else
+            //    leftCh = '\0';
+
+            char rightCh;
+            if (this.textBoxMain.SelectionStart < this.textBoxMain.TextLength)
+                rightCh = textBoxMain.Text[this.textBoxMain.SelectionStart];
+            else
+                return;
+            //if (leftCh == '\0' && rightCh == '\0')
+            //    return;
+            if (fastRights.IndexOf(rightCh) != -1)
+            {
+                InsertKey("{DELETE}");
+                this.textBoxMain.SelectionStart++;
+            }
+            return;
         }
 
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
+            // 如果被禁用一次说明现在不是用户输入，而是快捷插入在输入
+            if (fastInsertDisabledOnce)
+            {
+                fastInsertDisabledOnce = false;
+                return;
+            }
             // 自动滚动条
             AutoScrollBar();
-            // 如果指针在首部
-            if (this.textBoxMain.SelectionStart == 0) 
-                return;
-            // 如果快速补全不可用
-            //if (FastInsertDisabled)
-            //    return;
             // 按下这些键不要进行快速补全
-            var key = LastKeyDown.KeyCode;
-            if (key == Keys.Back || key == Keys.Delete || key == Keys.Enter || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down)
+            var key = LastKeyDown == null ? Keys.None : LastKeyDown.KeyCode;
+            if (key == Keys.Delete || key == Keys.Enter || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down || key == Keys.None)
                 return;
+            // 如果指针在首部（退格键除外）
+            if (this.textBoxMain.SelectionStart == 0 && key != Keys.Back)
+                return;
+            // 删除右括号等
+            if (key == Keys.Back)
+            {
+                FastDelete();
+                return;
+            }
             char recentCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
             FastInsert(recentCh);
         }
@@ -774,6 +808,8 @@ namespace 日志书写器
             // 如果上方空间太挤，自动打开全屏模式
             if (this.textBoxPath.ClientSize.Width == 0 && !FullScreen)
                 FullScreen = true;
+            // 自动滚动条
+            AutoScrollBar();
         }
 
         /// <summary>
@@ -956,5 +992,10 @@ namespace 日志书写器
             }
         }
         #endregion
+
+        private void textBoxPath_DoubleClick(object sender, EventArgs e)
+        {
+            Process.Start("Explorer.exe", this.textBoxPath.Text);
+        }
     }
 }
