@@ -739,25 +739,65 @@ namespace 日志书写器
             return true;
         }
 
+        /// <summary>
+        /// 计算original字符串中出现过几次value
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="original"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private int ContainsCount<T>(String original, T value)
+        {
+            int count = 0;
+            int startIndex = 0;
+            while ((startIndex = original.IndexOf(value.ToString(), startIndex)) != -1) 
+            {
+                count++;
+                startIndex += value.ToString().Length;
+                if (startIndex >= original.Length)
+                    break;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// 快捷删除，自动判断是否需要删除多余的符号并执行
+        /// </summary>
         private void FastDelete()
         {
-            //char leftCh;
-            //if (this.textBoxMain.SelectionStart > 0)
-            //    leftCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
-            //else
-            //    leftCh = '\0';
-
+            char leftCh;
+            // 检测光标左边的char
+            if (this.textBoxMain.SelectionStart > 0)
+                leftCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
+            else
+                leftCh = '\0'; // 越界情况
+            // 检测光标右边的char
             char rightCh;
             if (this.textBoxMain.SelectionStart < this.textBoxMain.TextLength)
                 rightCh = textBoxMain.Text[this.textBoxMain.SelectionStart];
             else
+                rightCh = '\0'; // 越界情况
+            // 都越界则返回
+            if (leftCh == '\0' && rightCh == '\0')
                 return;
-            //if (leftCh == '\0' && rightCh == '\0')
-            //    return;
+            // 右边有要删的东西，判断应不应该删
             if (fastRights.IndexOf(rightCh) != -1)
             {
-                InsertKey("{DELETE}");
-                this.textBoxMain.SelectionStart++;
+                bool delete = false;
+                if (fastLefts.IndexOf(leftCh) == -1 && fastRights.IndexOf(rightCh) == -1)  // 左边是正常内容，就删
+                    delete = true;
+                else // 左边和右边都是成对符号，需要判断是否数量一样
+                {
+                    int nowLineIndex = this.textBoxMain.GetLineFromCharIndex(textBoxMain.GetFirstCharIndexOfCurrentLine());
+                    String nowLine = this.textBoxMain.Lines[nowLineIndex];
+                    if (ContainsCount(nowLine, leftCh) != ContainsCount(nowLine, rightCh))
+                        delete = true;
+                }
+                if (delete)
+                {
+                    InsertKey("{DELETE}");
+                    this.textBoxMain.SelectionStart++;
+                }
             }
             return;
         }
