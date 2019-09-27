@@ -11,6 +11,11 @@ namespace 日志书写器
 {
     public partial class FormEdit : Form
     {
+        private BackupCreater Backup { get; set; } // 自动保存Timer
+        private BackupCreater AutoSaver { get; set; } // auto save
+        public static FormEdit Instance { get { return instance; } }
+        private static FormEdit instance;
+
         #region 控制器
         // 文档字号（数字）
         private float DocumentFontSize { get { return this.GetFontSizeFromText(DocumentFontSizeZh); } }
@@ -36,7 +41,8 @@ namespace 日志书写器
         // 作者姓名
         public static String AuthorName { get; } = "王劲翔";
         // 上次保存的字符串长度（不包含换行）
-        private int SavedCharLength { get; set; } = 0;
+        private int savedCharLength = 0;
+        private int savedBackupCharLength = 0;
         // 各动态链接库的名称
         private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
         // 多久秒自动保存一次
@@ -46,12 +52,11 @@ namespace 日志书写器
         private KeyEventArgs LastKeyDown { get; set; }
         #endregion
         
-        private BackupCreater Backup { get; set; } // 自动保存Timer
-        
         #region 启动与关闭
         public FormEdit()
         {
             InitializeComponent();
+            instance = this;
         }
 
         /// <summary>
@@ -83,9 +88,12 @@ namespace 日志书写器
         /// </summary>
         private void CreateBackupCreater()
         {
-            Backup = new BackupCreater(GetDefaultDocumentFileName(), (writeFilename) => this.SaveBackup(writeFilename));
-            Backup.Interval = AutoSavePerSecond * 1000;
-            Backup.Backup后缀名 = ".autosave";
+            Backup = new BackupCreater(GetDefaultDocumentFileName(), (backupFileName) => this.SaveBackup(backupFileName), AutoSavePerSecond * 1000, ".autosave");
+        }
+
+        private void CreateAutoSaver()
+        {
+            AutoSaver = new BackupCreater(GetDefaultDocumentFileName(), (docxFile) => this.SaveDocument(), AutoSavePerSecond * 1000); // 直接传入SaveDocument，文件名不受BackupCreater控制避免意外。
         }
 
         /// <summary>
@@ -98,7 +106,7 @@ namespace 日志书写器
                 Word wordRead = new Word(Backup.Backup文件名);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
                 if (File.Exists(Backup.Original文件名))
-                    this.SavedCharLength = new Word(Backup.Original文件名).Length;
+                    this.savedCharLength = new Word(Backup.Original文件名).Length;
             }
             catch (IOException)
             {
@@ -116,6 +124,8 @@ namespace 日志书写器
                     Environment.Exit(0);
             // 初始化自动备份
             CreateBackupCreater();
+            // 初始化自动保存
+            CreateAutoSaver();
             // 加版本号
             this.Text += " v" + Program.Version();
             // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
@@ -160,10 +170,12 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(窗口置顶ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
             // 显示工作路径
             this.textBoxPath.Text = Backup.WorkingDirectory;
             // 启动自动保存计时器
@@ -188,7 +200,7 @@ namespace 日志书写器
                 // 读取字体
                 this.DocumentFont = wordRead.Font;
                 // 储存字数
-                this.SavedCharLength = wordRead.Length;
+                this.savedCharLength = wordRead.Length;
             }
             catch (IOException)
             {
@@ -203,9 +215,9 @@ namespace 日志书写器
             try
             {
                 this.textBoxMain.Lines = File.ReadAllLines(txtFileName);
-                this.SavedCharLength = 0;
+                this.savedCharLength = 0;
                 foreach (var str in this.textBoxMain.Lines)
-                    this.SavedCharLength += str.Length;
+                    this.savedCharLength += str.Length;
             }
             catch(IOException)
             {
@@ -217,7 +229,7 @@ namespace 日志书写器
         /// 检查是否需要进行保存操作
         /// </summary>
         /// <returns></returns>
-        private bool NeedSave() => this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length != this.SavedCharLength;
+        private bool NeedSave() => this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length != this.savedCharLength;
 
         /// <summary>
         /// 关闭的时候检查保存
@@ -245,18 +257,18 @@ namespace 日志书写器
         #endregion
 
         #region 按钮点击
-        private void buttonTopMost_Click(object sender, EventArgs e)
+        private void 窗口置顶button_Click(object sender, EventArgs e)
         {
-            Button topMostButton = (Button)sender;
+            Button topMostButton = this.button窗口置顶;
             if (topMostButton.Text == "窗口置顶")
             {
                 this.TopMost = true;
-                topMostButton.Text = "取消置顶";
+                窗口置顶ToolStripMenuItem.Text = topMostButton.Text = "取消置顶";
             }
             else
             {
                 this.TopMost = false;
-                topMostButton.Text = "窗口置顶";
+                窗口置顶ToolStripMenuItem.Text = topMostButton.Text = "窗口置顶";
             }
         }
 
@@ -334,11 +346,24 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存文档的具体实现
+        /// 保存文档的具体实现（旧式接口兼容用）
         /// </summary>
         private bool SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
+            if (changeSavedCharLength)
+                return SaveDocx(docxName, ref this.savedCharLength);
+            else
+                return SaveDocx(docxName, ref this.savedBackupCharLength);
+        }
+
+        /// <summary>
+        /// 保存文档的具体实现
+        /// </summary>
+        private bool SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
+        {
             CheckPathChanged();
+            if (changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length)
+                return true; // 如果不需要保存就返回，假装保存好了
             Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
                 word.Font = this.textBoxFont.Text;
@@ -373,8 +398,8 @@ namespace 日志书写器
                 }
                 return false;
             }
-            if (changeSavedCharLength)
-                this.SavedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
+            if (changeCharLength)
+                changedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
             return true;
         }
 
@@ -509,7 +534,10 @@ namespace 日志书写器
         private void textBoxFont_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
+            {
+                this.textBoxFont.Text = this.textBoxFont.Text.Trim();
                 this.DocumentFont = this.textBoxFont.Text;
+            }
         }
 
         private void comboBoxFontSize_SelectedIndexChanged(object sender, EventArgs e)
@@ -530,6 +558,11 @@ namespace 日志书写器
                 this.Backup.WorkingDirectory = this.textBoxPath.Text;
                 MessageBox.Show("文件路径已被成功修改！");
             }
+        }
+
+        private void textBoxPath_DoubleClick(object sender, EventArgs e)
+        {
+            Process.Start("Explorer.exe", this.textBoxPath.Text);
         }
         #endregion
 
@@ -788,8 +821,7 @@ namespace 日志书写器
                     delete = true;
                 else // 左边和右边都是成对符号，需要判断是否数量一样
                 {
-                    int nowLineIndex = this.textBoxMain.GetLineFromCharIndex(textBoxMain.GetFirstCharIndexOfCurrentLine());
-                    String nowLine = this.textBoxMain.Lines[nowLineIndex];
+                    String nowLine = Util.GetNowLine(this.textBoxMain);
                     if (ContainsCount(nowLine, leftCh) != ContainsCount(nowLine, rightCh))
                         delete = true;
                 }
@@ -822,7 +854,12 @@ namespace 日志书写器
             // 删除右括号等
             if (key == Keys.Back)
             {
-                FastDelete();
+                try
+                {
+                    FastDelete();
+                }
+                catch // 失败就算了，不要报错
+                { }
                 return;
             }
             char recentCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
@@ -926,7 +963,10 @@ namespace 日志书写器
 
         private void 查找内容ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            bool savedSetting = this.TopMost;
+            this.TopMost = false;
             SearchString();
+            this.TopMost = savedSetting;
         }
 
         private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1032,10 +1072,54 @@ namespace 日志书写器
             }
         }
         #endregion
-
-        private void textBoxPath_DoubleClick(object sender, EventArgs e)
+        
+        /// <summary>
+        /// 文本定位帮助类
+        /// </summary>
+        private class Util
         {
-            Process.Start("Explorer.exe", this.textBoxPath.Text);
+            public static int GetRowIndex(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.GetLineFromCharIndex(textBox.SelectionStart);
+            }
+
+            public static int GetColumnIndex(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
+            }
+
+            public static String GetNowLine(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.Lines[GetRowIndex(textBox)];
+            }
+
+            public static int GetNowLineLength(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return GetNowLine(textBox).Length;
+            }
+        }
+
+        private void autoSaveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var menuItem = (ToolStripMenuItem)sender;
+            if (menuItem.Text == "Auto Save")
+            {
+                AutoSaver.Start();
+                menuItem.Text = "Auto Save Off";
+            }
+            else
+            {
+                AutoSaver.Stop();
+                menuItem.Text = "Auto Save";
+            }
         }
     }
 }
