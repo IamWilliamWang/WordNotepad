@@ -63,9 +63,9 @@ namespace 日志书写器.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] ICSharpCode_SharpZipLib {
+        internal static byte[] ICSharpCode_SharpZipLib_dll {
             get {
-                object obj = ResourceManager.GetObject("ICSharpCode_SharpZipLib", resourceCulture);
+                object obj = ResourceManager.GetObject("ICSharpCode_SharpZipLib_dll", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace 日志书写器.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] NPOI {
+        internal static byte[] NPOI_dll {
             get {
-                object obj = ResourceManager.GetObject("NPOI", resourceCulture);
+                object obj = ResourceManager.GetObject("NPOI_dll", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace 日志书写器.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] NPOI_OOXML {
+        internal static byte[] NPOI_OOXML_dll {
             get {
-                object obj = ResourceManager.GetObject("NPOI_OOXML", resourceCulture);
+                object obj = ResourceManager.GetObject("NPOI_OOXML_dll", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -93,9 +93,9 @@ namespace 日志书写器.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] NPOI_OpenXml4Net {
+        internal static byte[] NPOI_OpenXml4Net_dll {
             get {
-                object obj = ResourceManager.GetObject("NPOI_OpenXml4Net", resourceCulture);
+                object obj = ResourceManager.GetObject("NPOI_OpenXml4Net_dll", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -103,9 +103,9 @@ namespace 日志书写器.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] NPOI_OpenXmlFormats {
+        internal static byte[] NPOI_OpenXmlFormats_dll {
             get {
-                object obj = ResourceManager.GetObject("NPOI_OpenXmlFormats", resourceCulture);
+                object obj = ResourceManager.GetObject("NPOI_OpenXmlFormats_dll", resourceCulture);
                 return ((byte[])(obj));
             }
         }

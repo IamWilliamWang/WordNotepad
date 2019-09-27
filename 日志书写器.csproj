@@ -121,6 +121,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Resources\NPOI.OpenXmlFormats.dll.gz" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -130,15 +131,19 @@
     <None Include="Resources\ICSharpCode.SharpZipLib.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\ICSharpCode.SharpZipLib.dll.gz" />
     <None Include="Resources\NPOI.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\NPOI.dll.gz" />
     <None Include="Resources\NPOI.OOXML.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\NPOI.OOXML.dll.gz" />
     <None Include="Resources\NPOI.OpenXml4Net.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\NPOI.OpenXml4Net.dll.gz" />
     <None Include="Resources\NPOI.OpenXmlFormats.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

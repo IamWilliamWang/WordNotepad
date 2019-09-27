@@ -2,61 +2,164 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 
 namespace 日志书写器
 {
     public partial class FormEdit : Form
     {
-        private BackupCreater Backup { get; set; } // 自动保存Timer
-        private BackupCreater AutoSaver { get; set; } // auto save
-        public static FormEdit Instance { get { return instance; } }
-        private static FormEdit instance;
-
         #region 控制器
-        // 文档字号（数字）
+        /// <summary>
+        /// 文档字号（数字）
+        /// </summary>
         private float DocumentFontSize { get { return this.GetFontSizeFromText(DocumentFontSizeZh); } }
-        // 文档字号（中文）
+
+        /// <summary>
+        /// 文档字号（中文）
+        /// </summary>
         private string DocumentFontSizeZh { get { return fontSizeZh; } set { fontSizeZh = value; this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize); } } //先更新值然后用新值更新textBox
-        // 文档显示字体
+        
+        /// <summary>
+        /// 文档显示字体
+        /// </summary>
         private String DocumentFont { get { return font; } set {
                 font = value;
                 this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize);
                 if (this.textBoxFont.Text != font) //始终保持Font与textBoxFont同步
                     this.textBoxFont.Text = font;
             } }
-        // 全屏模式
+        
+        /// <summary>
+        /// 全屏模式
+        /// </summary>
         private bool FullScreen { get { return !this.groupBoxSetting.Visible; } set{ if (value) FullScreenModeOn(); else FullScreenModeOff(); } }
-        // 暗黑模式
+        
+        /// <summary>
+        /// 暗黑模式
+        /// </summary>
         private bool DarkMode { get { return this.暗黑主题ToolStripMenuItem.Text != "暗黑主题"; } set{ if (value) DarkModeOn(); else DarkModeOff(); } }
+        
         /* 以下基本变量只能在本region内使用！！ */
         private string fontSizeZh = "小四";
         private string font = "黑体";
         #endregion
 
         #region 一般变量
-        // 作者姓名
+        /// <summary>
+        /// 作者姓名
+        /// </summary>
         public static String AuthorName { get; } = "王劲翔";
-        // 上次保存的字符串长度（不包含换行）
-        private int savedCharLength = 0;
-        private int savedBackupCharLength = 0;
-        // 各动态链接库的名称
-        private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
-        // 多久秒自动保存一次
-        private int AutoSavePerSecond { get; set; } = 30;
-        // 保存最后一次成功搜索的内容
-        private string LastSearch { get; set; } = "";
-        private KeyEventArgs LastKeyDown { get; set; }
-        #endregion
         
+        /// <summary>
+        /// 上次保存的文档字符串长度（不包含换行）
+        /// </summary>
+        private int savedCharLength = 0;
+        
+        /// <summary>
+        /// 上次保存的备份字符串长度（不包含换行）
+        /// </summary>
+        private int savedBackupCharLength = 0;
+        
+        /// <summary>
+        /// 各动态链接库的名称
+        /// </summary>
+        private readonly String[] dllNames = new String[] { "ICSharpCode.SharpZipLib.dll", "NPOI.dll", "NPOI.OOXML.dll", "NPOI.OpenXml4Net.dll", "NPOI.OpenXmlFormats.dll" };
+        
+        /// <summary>
+        /// 多久秒自动保存一次
+        /// </summary>
+        private int AutoSavePerSecond { get; set; } = 30;
+        
+        /// <summary>
+        /// 保存最后一次成功搜索的内容
+        /// </summary>
+        private string LastSearch { get; set; } = "";
+        
+        /// <summary>
+        /// 保存最后一次按下的Key
+        /// </summary>
+        private KeyEventArgs LastKeyDown { get; set; }
+
+        /// <summary>
+        /// 是否要一直打开垂直滚动条
+        /// </summary>
+        public bool ScrollBarAlwaysOn { get; set; } = false;
+
+        /// <summary>
+        /// 自动保存Timer开、关
+        /// </summary>
+        public bool AutoSaverTimerBusy
+        {
+            get { return this.AutoSaver.IsBusy; }
+            set
+            {
+                if (value != this.AutoSaver.IsBusy)
+                    this.自动保存ToolStripMenuItem_Click(this.自动保存ToolStripMenuItem, null);
+            }
+        }
+
+        /// <summary>
+        /// 自动备份Timer开、关
+        /// </summary>
+        public bool BackupTimerBusy
+        {
+            get { return this.Backup.IsBusy; }
+            set
+            {
+                if (value != this.Backup.IsBusy)
+                    this.停用备份ToolStripMenuItem_Click(this.停用备份ToolStripMenuItem, null);
+            }
+        }
+
+        /// <summary>
+        /// 自动备份Timer
+        /// </summary>
+        private BackupCreater Backup { get; set; } 
+
+        /// <summary>
+        /// 自动保存Timer
+        /// </summary>
+        private BackupCreater AutoSaver { get; set; } 
+
+        /// <summary>
+        /// 获得FormEdit单例
+        /// </summary>
+        public static FormEdit Instance { get { return instance; } }
+
+        /// <summary>
+        /// 已保存的FormEdit实例
+        /// </summary>
+        private static FormEdit instance;
+        #endregion
+
         #region 启动与关闭
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public FormEdit()
         {
             InitializeComponent();
-            instance = this;
+            instance = this; // 保存实例
+        }
+
+        /// <summary>
+        /// 解压GZip字节数组，返回原字节数组
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static byte[] DecompressBytes(byte[] bytes)
+        {
+            using (GZipStream stream = new GZipStream(new MemoryStream(bytes), CompressionMode.Decompress))
+            {
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    stream.CopyTo(outputStream);
+                    return outputStream.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -69,28 +172,31 @@ namespace 日志书写器
             switch (dllIndex)
             {
                 case 0:
-                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.ICSharpCode_SharpZipLib, dllNames[dllIndex]);
+                    return BinaryFileWriter.WriteFileToDisk(DecompressBytes(Properties.Resources.ICSharpCode_SharpZipLib_dll), dllNames[dllIndex]);
                 case 1:
-                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI, dllNames[dllIndex]);
+                    return BinaryFileWriter.WriteFileToDisk(DecompressBytes(Properties.Resources.NPOI_dll), dllNames[dllIndex]);
                 case 2:
-                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OOXML, dllNames[dllIndex]);
+                    return BinaryFileWriter.WriteFileToDisk(DecompressBytes(Properties.Resources.NPOI_OOXML_dll), dllNames[dllIndex]);
                 case 3:
-                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OpenXml4Net, dllNames[dllIndex]);
+                    return BinaryFileWriter.WriteFileToDisk(DecompressBytes(Properties.Resources.NPOI_OpenXml4Net_dll), dllNames[dllIndex]);
                 case 4:
-                    return BinaryFileWriter.WriteFileToDisk(Properties.Resources.NPOI_OpenXmlFormats, dllNames[dllIndex]);
+                    return BinaryFileWriter.WriteFileToDisk(DecompressBytes(Properties.Resources.NPOI_OpenXmlFormats_dll), dllNames[dllIndex]);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         /// <summary>
-        /// 创建并开启自动保存计时器
+        /// 创建自动备份计时器
         /// </summary>
         private void CreateBackupCreater()
         {
             Backup = new BackupCreater(GetDefaultDocumentFileName(), (backupFileName) => this.SaveBackup(backupFileName), AutoSavePerSecond * 1000, ".autosave");
         }
 
+        /// <summary>
+        /// 创建自动保存计时器
+        /// </summary>
         private void CreateAutoSaver()
         {
             AutoSaver = new BackupCreater(GetDefaultDocumentFileName(), (docxFile) => this.SaveDocument(), AutoSavePerSecond * 1000); // 直接传入SaveDocument，文件名不受BackupCreater控制避免意外。
@@ -116,6 +222,11 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 加载窗体准备的工作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormEdit_Load(object sender, EventArgs e)
         {
             // 检测后台是否运行同一程序
@@ -146,7 +257,7 @@ namespace 日志书写器
                 if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
                     Backup.RestoreFile(RestoreAutosave, true);
             }
-            // 有保存的文件则直接加载内容
+            // 有保存的文档则直接加载内容
             else if (File.Exists(Backup.Original文件名))
             {
                 LoadDocx(Backup.Original文件名);
@@ -174,8 +285,8 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
             // 显示工作路径
             this.textBoxPath.Text = Backup.WorkingDirectory;
             // 启动自动保存计时器
@@ -210,6 +321,10 @@ namespace 日志书写器
             }
         }
         
+        /// <summary>
+        /// 加载txt文件，但不改变操作目标文件
+        /// </summary>
+        /// <param name="txtFileName"></param>
         private void LoadTxt(string txtFileName)
         {
             try
@@ -232,12 +347,13 @@ namespace 日志书写器
         private bool NeedSave() => this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length != this.savedCharLength;
 
         /// <summary>
-        /// 关闭的时候检查保存
+        /// 关闭时做的操作
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // 如果要保存，询问是否保存
             if (NeedSave())
             {
                 var dialogResult = MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
@@ -248,8 +364,14 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 关闭后的操作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            // 删除缓存，打开邮箱
             DeleteBackup();
             if (this.checkBoxMailbox.Checked)
                 System.Diagnostics.Process.Start("https://mail.qq.com/");
@@ -257,39 +379,42 @@ namespace 日志书写器
         #endregion
 
         #region 按钮点击
-        private void 窗口置顶ToolStripMenuItem_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 高级设置按钮按下
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button高级设置_Click(object sender, EventArgs e)
         {
-            if (this.窗口置顶ToolStripMenuItem.Text == "窗口置顶")
-            {
-                this.TopMost = true;
-                窗口置顶ToolStripMenuItem.Text = "取消置顶";
-            }
-            else
-            {
-                this.TopMost = false;
-                窗口置顶ToolStripMenuItem.Text = "窗口置顶";
-            }
+            new FormSettings().ShowDialog();
         }
 
+        /// <summary>
+        /// 检测WorkingDirectory是否有未提交的修改，并询问是否提交修改
+        /// </summary>
         private void CheckPathChanged()
         {
             if (this.textBoxPath.Text.Replace("\\","") != Backup.WorkingDirectory.Replace("\\", ""))
             {
                 if (DialogResult.Yes == MessageBox.Show("检测到新文件路径未被更新。如果想立即应用更新请点“是”，如果想撤销文件路径的更新请点“否”", "更新文件路径", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                {
                     this.textBoxPath_KeyDown(null, new KeyEventArgs(Keys.Enter));
-                }
                 else
-                {
                     this.textBoxPath.Text = Backup.WorkingDirectory;
-                }
             }
         }
 
-        private readonly String[] fontTexts = new String[] { "六号", "小五", "五号", "小四", "四号", "小三", "三号", "小二", "二号", "小一", "一号" };
-        private readonly float[] fontSizes = new float[] { 7.5f, 9f, 10.5f, 12f, 14f, 15f, 16f, 18f, 22f, 24f, 26f };
         /// <summary>
-        /// 转换字号string为实际大小
+        /// （只读）字号中文列表
+        /// </summary>
+        private readonly String[] fontTexts = new String[] { "六号", "小五", "五号", "小四", "四号", "小三", "三号", "小二", "二号", "小一", "一号" };
+        
+        /// <summary>
+        /// （只读）字号浮点数列表
+        /// </summary>
+        private readonly float[] fontSizes = new float[] { 7.5f, 9f, 10.5f, 12f, 14f, 15f, 16f, 18f, 22f, 24f, 26f };
+
+        /// <summary>
+        /// 转换字号string为实际大小（仅限黑体）。与GetTextFromFontSize互逆
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -302,6 +427,11 @@ namespace 日志书写器
                 return fontSizes[myIndex];
         }
 
+        /// <summary>
+        /// 转换实际大小到字号string（仅限黑体）。与GetFontSizeFromText互逆
+        /// </summary>
+        /// <param name="fontSize"></param>
+        /// <returns></returns>
         private String GetTextFromFontSize(float fontSize)
         {
             int myIndex = new List<float>(this.fontSizes).IndexOf(fontSize);
@@ -312,7 +442,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 获得默认的文件名
+        /// 获得默认的文档文件名
         /// </summary>
         /// <returns></returns>
         private string GetDefaultDocumentFileName()
@@ -328,7 +458,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存docx文档
+        /// 执行保存docx文档
         /// </summary>
         private bool SaveDocument()
         {
@@ -336,7 +466,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存autosave文档
+        /// 执行保存备份
         /// </summary>
         /// <param name="backupFileName"></param>
         private void SaveBackup(string backupFileName)
@@ -345,23 +475,27 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存文档的具体实现（旧式接口兼容用）
+        /// 保存文档的内部实现（旧式兼容性接口）
         /// </summary>
+        /// <param name="docxName">要保存的文件名</param>
+        /// <param name="changeSavedCharLength">是否修改SavedCharLength</param>
+        /// <returns></returns>
         private bool SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
-            if (changeSavedCharLength)
+            /* 原先此函数未考虑备份保存时判断跳过，所以没有使用SavedBackupCharLength。此接口为兼容接口，继续使用changeSavedCharLength来判断保存的是文档还是备份 */
+            if (changeSavedCharLength) // 保存的是文档
                 return SaveDocx(docxName, ref this.savedCharLength);
-            else
+            else // 保存的是备份
                 return SaveDocx(docxName, ref this.savedBackupCharLength);
         }
 
         /// <summary>
-        /// 保存文档的具体实现
+        /// 执行保存文档的内部实现
         /// </summary>
         private bool SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
         {
             CheckPathChanged();
-            if (changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length)
+            if (this.textBoxMain.Text != "" && changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length) 
                 return true; // 如果不需要保存就返回，假装保存好了
             Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
@@ -403,18 +537,23 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存文档
+        /// 保存按钮按下事件
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void button保存_Click(object sender, EventArgs e)
         {
-            bool saveSuccess = this.SaveDocument();
+            bool saveSuccess = this.SaveDocument(); // 调用下一层的保存文档函数
             DeleteBackup();
             if(saveSuccess)
                 MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        /// <summary>
+        /// 保存为终稿按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 保存并置为终稿ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.button保存_Click(sender, e);
@@ -423,6 +562,11 @@ namespace 日志书写器
         #endregion
 
         #region 所有拖拽操作
+        /// <summary>
+        /// 拖拽进入文件路径框事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxPath_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -448,6 +592,11 @@ namespace 日志书写器
                 return "Directory";
         }
 
+        /// <summary>
+        /// 拖拽放置到文件路径框事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxPath_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -462,6 +611,11 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 拖拽入窗体任意（未注册事件的）区域事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormEdit_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -469,7 +623,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 加载特定的docx文件，并修改操作目标文件
+        /// 执行加载特定的docx文件到文本框，并修改操作目标文件
         /// </summary>
         /// <param name="docFileName"></param>
         private void LoadSpecificDocument(string docFileName)
@@ -487,6 +641,11 @@ namespace 日志书写器
             Backup.Start();
         }
 
+        /// <summary>
+        /// 拖拽放置到窗体任意（未注册事件的）区域事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormEdit_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -530,6 +689,11 @@ namespace 日志书写器
         #endregion
 
         #region groupbox内其他操作
+        /// <summary>
+        /// 字体框输入事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxFont_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -539,11 +703,22 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 字号框选项被改变事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void comboBoxFontSize_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.DocumentFontSizeZh = this.comboBoxFontSize.Text;
+            AutoScrollBar();
         }
 
+        /// <summary>
+        /// 工作路径输入事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxPath_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -558,30 +733,48 @@ namespace 日志书写器
                 MessageBox.Show("文件路径已被成功修改为 " + this.Backup.WorkingDirectory);
             }
         }
+        #endregion
 
+        #region 双击操作
+        /// <summary>
+        /// 窗体双击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Form_DoubleClick(object sender, EventArgs e)
+        {
+            FullScreenModeSwitch();
+        }
+
+        /// <summary>
+        /// 工作路径双击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxPath_DoubleClick(object sender, EventArgs e)
         {
             Process.Start("Explorer.exe", this.textBoxPath.Text);
         }
         #endregion
 
-        #region 双击操作
-        private void Form_DoubleClick(object sender, EventArgs e)
-        {
-            FullScreenModeSwitch();
-        }
-        #endregion
-
-        #region 键盘快捷键
+        #region 键盘事件
+        /// <summary>
+        /// 主编辑框输入事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
         {
+            // Ctrl+S 保存文档
             if (e.KeyCode == Keys.S && e.Control)
             {
                 this.SaveDocument();
                 DeleteBackup();
             }
+            // Ctrl+A 全选文档
             else if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
+            // Ctrl+O 打开文档
             else if (e.KeyCode == Keys.O && e.Control)
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -591,6 +784,7 @@ namespace 日志书写器
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                     this.LoadSpecificDocument(openFileDialog.FileName);
             }
+            // Ctrl+F 查找内容
             else if (e.KeyCode == Keys.F && e.Control)
             {
                 if (LastSearch == "")
@@ -601,15 +795,29 @@ namespace 日志书写器
                     SearchString(LastSearch);
                 }
             }
+            // Ctrl+T 插入两个中文空格
             else if (e.KeyCode == Keys.T && e.Control)
                 this.插入中文空格ToolStripMenuItem_Click(sender, e);
-            this.LastKeyDown = e;
+            this.LastKeyDown = e; // 保存按下按键的内容
+        }
+
+        /// <summary>
+        /// 主编辑框按钮按完操作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void textBoxMain_KeyUp(object sender, KeyEventArgs e)
+        {
+            // 更新状态栏里的行、列、字数信息
+            this.toolStripStatusLabelRow.Text = "第" + (Util.GetRowIndex() + 1) + "行";
+            this.toolStripStatusLabelColumn.Text = "第" + (Util.GetColumnIndex() + 1) + "列";
+            this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
         }
         #endregion
 
         #region 全屏模式、暗黑模式、自动聚焦
         /// <summary>
-        /// 打开暗黑模式，推荐使用DarkMode = true代替
+        /// （弃用）打开暗黑模式。请使用DarkMode = true代替本函数
         /// </summary>
         private void DarkModeOn()
         {
@@ -633,7 +841,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 关闭暗黑模式，推荐使用DarkMode = false代替
+        /// （弃用）关闭暗黑模式。请使用DarkMode = false代替本函数
         /// </summary>
         private void DarkModeOff()
         {
@@ -665,7 +873,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 打开全屏模式，推荐使用FullScreen = true代替
+        /// （弃用）打开全屏模式。请使用FullScreen = true代替本函数
         /// </summary>
         private void FullScreenModeOn()
         {
@@ -675,13 +883,15 @@ namespace 日志书写器
                 return;
             this.groupBoxSetting.Visible = false;
             this.textBoxMain.Location = new System.Drawing.Point(13, 7);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height + 50);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height + 65);
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
             this.精简模式ToolStripMenuItem.Text = "普通模式";
+
+            this.statusStrip.Visible = false;
         }
 
         /// <summary>
-        /// 关闭全屏模式，推荐使用FullScreen = false代替
+        /// （弃用）关闭全屏模式。请使用FullScreen = false代替本函数
         /// </summary>
         private void FullScreenModeOff()
         {
@@ -691,9 +901,11 @@ namespace 日志书写器
                 return;
             this.groupBoxSetting.Visible = true;
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height - 50);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height - 65);
             this.FormBorderStyle = FormBorderStyle.Sizable;
             this.精简模式ToolStripMenuItem.Text = "精简模式";
+
+            this.statusStrip.Visible = true;
         }
 
         /// <summary>
@@ -704,6 +916,11 @@ namespace 日志书写器
             FullScreen = FullScreen ? false : true;
         }
 
+        /// <summary>
+        /// 鼠标盘旋事件（用于自动聚焦功能）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxMain_MouseHover(object sender, EventArgs e)
         {
             int selectStart = this.textBoxMain.SelectionStart; // 保存位置
@@ -714,7 +931,7 @@ namespace 日志书写器
 
         #region 自动ScrollBars、绑定全屏模式、绑定自动聚焦
         /// <summary>
-        /// 显示在屏幕上有多少行字
+        /// 显示在屏幕上有多少行字（仅适用于黑体）
         /// </summary>
         private int ShowedTextLines
         {
@@ -726,9 +943,9 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 向光标位置插入字符串
+        /// 向光标位置按规则插入字符串或按键
         /// </summary>
-        /// <param name="insertContent"></param>
+        /// <param name="insertContent">有规则字符串</param>
         private void InsertKey(object insertContentObj)
         {
             string insertContent = insertContentObj.ToString();
@@ -747,13 +964,23 @@ namespace 日志书写器
             }
         }
 
-        private bool fastInsertDisabledOnce = false;
+        /// <summary>
+        /// 快捷插入功能失效一次（用于阻止无限循环插入）
+        /// </summary>
+        private bool fastInsertDisabledOnce = false; 
 
+        /// <summary>
+        /// （只读）快捷插入功能支持的符号（左）
+        /// </summary>
         private readonly string fastLefts = "(（[【{<《“‘\"";
+
+        /// <summary>
+        /// （只读）快捷插入功能支持的符号（右）
+        /// </summary>
         private readonly string fastRights = ")）]】}>》”’\"";
 
         /// <summary>
-        /// 快捷插入，负责插入各种符号的后一半
+        /// 快捷插入的内部实现，负责查找需要查找的右半符号并执行插入
         /// </summary>
         /// <param name="keydown"></param>
         /// <returns></returns>
@@ -793,7 +1020,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 快捷删除，自动判断是否需要删除多余的符号并执行
+        /// 快捷删除的内部实现，自动判断是否需要删除多余的符号并执行
         /// </summary>
         private void FastDelete()
         {
@@ -833,6 +1060,11 @@ namespace 日志书写器
             return;
         }
 
+        /// <summary>
+        /// 主编辑框字数改变事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBoxMain_TextChanged(object sender, EventArgs e)
         {
             // 如果被禁用一次说明现在不是用户输入，而是快捷插入在输入
@@ -861,12 +1093,12 @@ namespace 日志书写器
                 { }
                 return;
             }
-            char recentCh = textBoxMain.Text[this.textBoxMain.SelectionStart - 1];
-            FastInsert(recentCh);
+            // 执行插入操作
+            FastInsert(textBoxMain.Text[this.textBoxMain.SelectionStart - 1]);
         }
 
         /// <summary>
-        /// 自动开启或关闭VerticalScrollBar
+        /// 自动开启或关闭垂直滚动条
         /// </summary>
         private void AutoScrollBar()
         {
@@ -881,6 +1113,11 @@ namespace 日志书写器
                 this.textBoxMain.ScrollBars = ScrollBars.None;
         }
 
+        /// <summary>
+        /// 主窗体调整大小事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormEdit_Resize(object sender, EventArgs e)
         {
             // 如果上方空间太挤，自动打开全屏模式
@@ -916,6 +1153,11 @@ namespace 日志书写器
 
         }
 
+        /// <summary>
+        /// 自动聚焦按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 自动聚焦ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (this.自动聚焦ToolStripMenuItem.Text == "自动聚焦")
@@ -932,6 +1174,11 @@ namespace 日志书写器
         #endregion
 
         #region 右键菜单
+        /// <summary>
+        /// 插入中文空格按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 插入中文空格ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             int nowStart = textBoxMain.SelectionStart;
@@ -939,6 +1186,10 @@ namespace 日志书写器
             this.textBoxMain.Select(nowStart + 2, 0);
         }
 
+        /// <summary>
+        /// 查找文本的内部实现
+        /// </summary>
+        /// <param name="search"></param>
         private void SearchString(string search = null)
         {
             if (search == null)
@@ -962,6 +1213,11 @@ namespace 日志书写器
             this.textBoxMain.Select(index, search.Length);
         }
 
+        /// <summary>
+        /// 查找内容按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 查找内容ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             bool savedSetting = this.TopMost;
@@ -970,36 +1226,90 @@ namespace 日志书写器
             this.TopMost = savedSetting;
         }
 
+        /// <summary>
+        /// 剪切按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("^{x}");
         }
 
+        /// <summary>
+        /// 复制按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 复制ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("^{c}");
         }
 
+        /// <summary>
+        /// 粘贴按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 粘贴ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("^{v}");
         }
 
+        /// <summary>
+        /// 删除按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 删除ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("{DEL}");
         }
 
+        /// <summary>
+        /// 窗口置顶/取消置顶按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 窗口置顶ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.窗口置顶ToolStripMenuItem.Text == "窗口置顶")
+            {
+                this.TopMost = true;
+                窗口置顶ToolStripMenuItem.Text = "取消置顶";
+            }
+            else
+            {
+                this.TopMost = false;
+                窗口置顶ToolStripMenuItem.Text = "窗口置顶";
+            }
+        }
+
+        /// <summary>
+        /// 精简模式/普通模式按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 精简模式ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FullScreenModeSwitch();
         }
 
+        /// <summary>
+        /// 暗黑主题/取消暗黑按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 暗黑主题ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DarkModeSwitch();
         }
 
+        /// <summary>
+        /// 停用备份/启用备份按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 停用备份ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (((ToolStripMenuItem)sender).Text == "停用备份")
@@ -1011,6 +1321,26 @@ namespace 日志书写器
             {
                 this.Backup.Start();
                 ((ToolStripMenuItem)sender).Text = "停用备份";
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 自动保存ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var menuItem = (ToolStripMenuItem)sender;
+            if (menuItem.Text == "自动保存")
+            {
+                AutoSaver.Start();
+                menuItem.Text = "不自动保存";
+            }
+            else
+            {
+                AutoSaver.Stop();
+                menuItem.Text = "自动保存";
             }
         }
         #endregion
@@ -1108,52 +1438,10 @@ namespace 日志书写器
             }
         }
 
-        private void 自动保存ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var menuItem = (ToolStripMenuItem)sender;
-            if (menuItem.Text == "Auto Save")
-            {
-                AutoSaver.Start();
-                menuItem.Text = "Auto Save Off";
-            }
-            else
-            {
-                AutoSaver.Stop();
-                menuItem.Text = "Auto Save";
-            }
-        }
-
-        private void button高级设置_Click(object sender, EventArgs e)
-        {
-            new FormSettings().ShowDialog();
-        }
-
-        public bool AutoSaverTimerBusy
-        {
-            get
-            {
-                return this.AutoSaver.IsBusy;
-            }
-            set
-            {
-                if (value != this.AutoSaver.IsBusy)
-                    this.自动保存ToolStripMenuItem_Click(this.自动保存ToolStripMenuItem, null);
-            }
-        }
-
-        public bool BackupTimerBusy
-        {
-            get
-            {
-                return this.Backup.IsBusy;
-            }
-            set
-            {
-                if (value != this.Backup.IsBusy)
-                    this.停用备份ToolStripMenuItem_Click(this.停用备份ToolStripMenuItem, null);
-            }
-        }
-
+        /// <summary>
+        /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
+        /// </summary>
+        /// <param name="autoSavePerSecond"></param>
         public void ChangeTimerPerSecond(int autoSavePerSecond)
         {
             this.AutoSavePerSecond = autoSavePerSecond;
@@ -1171,11 +1459,12 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// 直接删除当前的备份文件
+        /// </summary>
         public void DeleteBackup()
         {
             Backup.DeleteBackup();
         }
-
-        public bool ScrollBarAlwaysOn { get; set; } = false;
     }
 }
