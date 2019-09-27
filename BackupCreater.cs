@@ -114,6 +114,7 @@ namespace 日志书写器
 
         private Timer BackupFileTimer { get; set; }
         private bool ParametersReadOnly { get; set; } = false;
+        public bool IsBusy { get { return this.BackupFileTimer.Enabled; } }
 
         /// <summary>
         /// 生成一个新的BackupCreater

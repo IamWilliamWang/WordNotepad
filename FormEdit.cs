@@ -250,25 +250,24 @@ namespace 日志书写器
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Backup.DeleteBackup();
+            DeleteBackup();
             if (this.checkBoxMailbox.Checked)
                 System.Diagnostics.Process.Start("https://mail.qq.com/");
         }
         #endregion
 
         #region 按钮点击
-        private void 窗口置顶button_Click(object sender, EventArgs e)
+        private void 窗口置顶ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Button topMostButton = this.button窗口置顶;
-            if (topMostButton.Text == "窗口置顶")
+            if (this.窗口置顶ToolStripMenuItem.Text == "窗口置顶")
             {
                 this.TopMost = true;
-                窗口置顶ToolStripMenuItem.Text = topMostButton.Text = "取消置顶";
+                窗口置顶ToolStripMenuItem.Text = "取消置顶";
             }
             else
             {
                 this.TopMost = false;
-                窗口置顶ToolStripMenuItem.Text = topMostButton.Text = "窗口置顶";
+                窗口置顶ToolStripMenuItem.Text = "窗口置顶";
             }
         }
 
@@ -411,7 +410,7 @@ namespace 日志书写器
         private void button保存_Click(object sender, EventArgs e)
         {
             bool saveSuccess = this.SaveDocument();
-            Backup.DeleteBackup();
+            DeleteBackup();
             if(saveSuccess)
                 MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -556,7 +555,7 @@ namespace 日志书写器
                     return;
                 }
                 this.Backup.WorkingDirectory = this.textBoxPath.Text;
-                MessageBox.Show("文件路径已被成功修改！");
+                MessageBox.Show("文件路径已被成功修改为 " + this.Backup.WorkingDirectory);
             }
         }
 
@@ -579,7 +578,7 @@ namespace 日志书写器
             if (e.KeyCode == Keys.S && e.Control)
             {
                 this.SaveDocument();
-                Backup.DeleteBackup();
+                DeleteBackup();
             }
             else if (e.KeyCode == Keys.A && e.Control)
                 this.textBoxMain.SelectAll();
@@ -621,9 +620,9 @@ namespace 日志书写器
             this.button保存.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.button保存.ForeColor = System.Drawing.SystemColors.Window;
             this.button保存.UseVisualStyleBackColor = false;
-            this.button窗口置顶.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.button窗口置顶.ForeColor = System.Drawing.SystemColors.Window;
-            this.button窗口置顶.UseVisualStyleBackColor = false;
+            this.button高级设置.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.button高级设置.ForeColor = System.Drawing.SystemColors.Window;
+            this.button高级设置.UseVisualStyleBackColor = false;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
             this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
@@ -645,9 +644,9 @@ namespace 日志书写器
             this.button保存.BackColor = System.Drawing.SystemColors.Control;
             this.button保存.ForeColor = System.Drawing.SystemColors.ControlText;
             this.button保存.UseVisualStyleBackColor = true;
-            this.button窗口置顶.BackColor = System.Drawing.SystemColors.Control;
-            this.button窗口置顶.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.button窗口置顶.UseVisualStyleBackColor = true;
+            this.button高级设置.BackColor = System.Drawing.SystemColors.Control;
+            this.button高级设置.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button高级设置.UseVisualStyleBackColor = true;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
             this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
@@ -871,6 +870,8 @@ namespace 日志书写器
         /// </summary>
         private void AutoScrollBar()
         {
+            if (this.ScrollBarAlwaysOn)
+                this.textBoxMain.ScrollBars = ScrollBars.Vertical;
             int lineCount = this.textBoxMain.GetLineFromCharIndex(this.textBoxMain.Text.Length) + 1;
             // 当总行数大于显示，显示ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.None && lineCount > ShowedTextLines) // 提高执行效率
@@ -1107,7 +1108,7 @@ namespace 日志书写器
             }
         }
 
-        private void autoSaveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 自动保存ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var menuItem = (ToolStripMenuItem)sender;
             if (menuItem.Text == "Auto Save")
@@ -1121,5 +1122,60 @@ namespace 日志书写器
                 menuItem.Text = "Auto Save";
             }
         }
+
+        private void button高级设置_Click(object sender, EventArgs e)
+        {
+            new FormSettings().ShowDialog();
+        }
+
+        public bool AutoSaverTimerBusy
+        {
+            get
+            {
+                return this.AutoSaver.IsBusy;
+            }
+            set
+            {
+                if (value != this.AutoSaver.IsBusy)
+                    this.自动保存ToolStripMenuItem_Click(this.自动保存ToolStripMenuItem, null);
+            }
+        }
+
+        public bool BackupTimerBusy
+        {
+            get
+            {
+                return this.Backup.IsBusy;
+            }
+            set
+            {
+                if (value != this.Backup.IsBusy)
+                    this.停用备份ToolStripMenuItem_Click(this.停用备份ToolStripMenuItem, null);
+            }
+        }
+
+        public void ChangeTimerPerSecond(int autoSavePerSecond)
+        {
+            this.AutoSavePerSecond = autoSavePerSecond;
+            if (AutoSaverTimerBusy) 
+            {
+                AutoSaver.Stop();
+                CreateAutoSaver();
+                AutoSaver.Start();
+            }
+            if (BackupTimerBusy)
+            {
+                Backup.Stop();
+                CreateBackupCreater();
+                Backup.Start();
+            }
+        }
+
+        public void DeleteBackup()
+        {
+            Backup.DeleteBackup();
+        }
+
+        public bool ScrollBarAlwaysOn { get; set; } = false;
     }
 }
