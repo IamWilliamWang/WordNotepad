@@ -21,6 +21,16 @@ namespace 日志书写器
 
         private void FormSettings_Load(object sender, EventArgs e)
         {
+            if (Main.IsReadOnly())
+            {
+                this.checkBox自动保存.Enabled = false;
+                this.checkBox自动备份.Enabled = false;
+                this.textBox计时器时长.Enabled = false;
+                this.button计时器时长变更.Enabled = false;
+                this.button清除备份文件.Enabled = false;
+                return;
+            }
+
             if (Main.AutoSaverTimerBusy)
                 this.checkBox自动保存.Checked = true;
             if (Main.BackupTimerBusy)

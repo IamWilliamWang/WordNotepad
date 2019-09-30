@@ -89,6 +89,11 @@ namespace 日志书写器
         public bool ScrollBarAlwaysOn { get; set; } = false;
 
         /// <summary>
+        /// 储存读取的文件是否为只读文件。key=文件名，value=是否只读
+        /// </summary>
+        private Dictionary<string, bool> readOnly = new Dictionary<string, bool>();
+
+        /// <summary>
         /// 自动保存Timer开、关
         /// </summary>
         public bool AutoSaverTimerBusy
@@ -233,66 +238,13 @@ namespace 日志书写器
             if (Process.GetProcessesByName("TextWriter").Length > 1)
                 if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
                     Environment.Exit(0);
-            // 初始化自动备份
-            CreateBackupCreater();
-            // 初始化自动保存
-            CreateAutoSaver();
-            // 加版本号
-            this.Text += " v" + Program.Version();
-            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
-            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            // 选定默认字体
-            for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
-            {
-                string sizeItem = this.comboBoxFontSize.Items[i].ToString();
-                if (sizeItem == this.DocumentFontSizeZh)
-                {
-                    this.comboBoxFontSize.SelectedIndex = i;
-                    break;
-                }
-            }
-            // 有自动保存文件则恢复内容
-            if (File.Exists(Backup.Backup文件名))
-            {
-                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                    Backup.RestoreFile(RestoreAutosave, true);
-            }
-            // 有保存的文档则直接加载内容
-            else if (File.Exists(Backup.Original文件名))
-            {
-                LoadDocx(Backup.Original文件名);
-            }
-            // 如果没有dll文件就解压文件
-            if (!File.Exists(dllNames[1]))
-                for (int i = 0; i < dllNames.Length; i++)
-                    WriteDllFile(i).Attributes = FileAttributes.Hidden;
-            // 光标点在文本最后
-            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
-            // 晚上时间开启暗黑模式
-            //if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
-            //    DarkMode = true;
-            // 加右键菜单项
-            this.contextMenuStripMain.Items.Clear();
-            this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add("-");
-            this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add("-");
-            this.contextMenuStripMain.Items.Add(窗口置顶ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
-            // 显示工作路径
-            this.textBoxPath.Text = Backup.WorkingDirectory;
-            // 启动自动保存计时器
-            Backup.Start();
+            // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
+            this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
+            this.UpdateStyles();
+            // 启用后台的加载项线程
+            this.backgroundFormLoader.RunWorkerAsync();
         }
-
+        
         /// <summary>
         /// 加载指定的docx文档到文本框
         /// </summary>
@@ -497,6 +449,11 @@ namespace 日志书写器
             CheckPathChanged();
             if (this.textBoxMain.Text != "" && changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length) 
                 return true; // 如果不需要保存就返回，假装保存好了
+            if (new FileInfo(docxName).Attributes == FileAttributes.ReadOnly) // 不要写入只读文件
+            {
+                MessageBox.Show("请勿写入只读文件！", "保存失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
             Word word = new Word(docxName);
             if (this.textBoxFont.Text != this.DocumentFont)
                 word.Font = this.textBoxFont.Text;
@@ -623,6 +580,26 @@ namespace 日志书写器
         }
 
         /// <summary>
+        /// 判断是否为只读文件的快捷调用
+        /// </summary>
+        /// <returns></returns>
+        public bool IsReadOnly()
+        {
+            return IsReadOnly(this.Backup.Original文件名);
+        }
+
+        /// <summary>
+        /// 是否为只读文件
+        /// </summary>
+        public bool IsReadOnly(String docxName)
+        {
+            // 如果没保存过就获取并保存
+            if (!readOnly.ContainsKey(docxName))
+                this.readOnly[docxName] = new FileInfo(docxName).Attributes.HasFlag(FileAttributes.ReadOnly);
+            return this.readOnly[docxName];
+        }
+
+        /// <summary>
         /// 执行加载特定的docx文件到文本框，并修改操作目标文件
         /// </summary>
         /// <param name="docFileName"></param>
@@ -635,10 +612,16 @@ namespace 日志书写器
                 this.Text = this.Text.Substring(0, this.Text.IndexOf('(')) + " (" + docFileName + ")";
             else
                 this.Text += " (" + docFileName + ")";
+            // 判断是否为只读文件
+            if (IsReadOnly(docFileName))
+            {
+                this.Text += " [只读]";
+            }
             // 停止计时器，修改源文件，开启计时器
             Backup.Stop();
             Backup.Original文件名 = docFileName;
-            Backup.Start();
+            if (!IsReadOnly(docFileName))
+                Backup.Start();
         }
 
         /// <summary>
@@ -1319,6 +1302,11 @@ namespace 日志书写器
             }
             else if (((ToolStripMenuItem)sender).Text == "启用备份")
             {
+                if (IsReadOnly()) 
+                {
+                    MessageBox.Show("只读文件无需启用备份。");
+                    return;
+                }
                 this.Backup.Start();
                 ((ToolStripMenuItem)sender).Text = "停用备份";
             }
@@ -1334,6 +1322,11 @@ namespace 日志书写器
             var menuItem = (ToolStripMenuItem)sender;
             if (menuItem.Text == "自动保存")
             {
+                if (IsReadOnly())
+                {
+                    MessageBox.Show("只读文件无需启用自动保存。");
+                    return;
+                }
                 AutoSaver.Start();
                 menuItem.Text = "不自动保存";
             }
@@ -1345,6 +1338,76 @@ namespace 日志书写器
         }
         #endregion
 
+        #region BackgroundWorkers
+        private void BackgroundFormLoader_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            this.backgroundFormLoader.ReportProgress(100);
+        }
+
+        private void BackgroundFormLoader_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            // 初始化自动备份
+            CreateBackupCreater();
+            // 初始化自动保存
+            CreateAutoSaver();
+            // 加版本号
+            this.Text += " v" + Program.Version();
+            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
+            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            // 选定默认字体
+            for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
+            {
+                string sizeItem = this.comboBoxFontSize.Items[i].ToString();
+                if (sizeItem == this.DocumentFontSizeZh)
+                {
+                    this.comboBoxFontSize.SelectedIndex = i;
+                    break;
+                }
+            }
+            // 有自动保存文件则恢复内容
+            if (File.Exists(Backup.Backup文件名))
+            {
+                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                    Backup.RestoreFile(RestoreAutosave, true);
+            }
+            // 有保存的文档则直接加载内容
+            else if (File.Exists(Backup.Original文件名))
+            {
+                LoadDocx(Backup.Original文件名);
+            }
+            // 如果没有dll文件就解压文件
+            if (!File.Exists(dllNames[1]))
+                for (int i = 0; i < dllNames.Length; i++)
+                    WriteDllFile(i).Attributes = FileAttributes.Hidden;
+            // 光标点在文本最后
+            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
+            // 晚上时间开启暗黑模式
+            //if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
+            //    DarkMode = true;
+            // 加右键菜单项
+            this.contextMenuStripMain.Items.Clear();
+            this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(窗口置顶ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
+            // 显示工作路径
+            this.textBoxPath.Text = Backup.WorkingDirectory;
+            // 启动自动保存计时器
+            if (!IsReadOnly()) 
+                Backup.Start();
+        }
+        #endregion
+        
         #region 外部引用模块（无错勿动）
         /// <summary>
         /// 模拟鼠标点击事件
@@ -1438,6 +1501,7 @@ namespace 日志书写器
             }
         }
 
+        #region 外部调用接口
         /// <summary>
         /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
         /// </summary>
@@ -1466,5 +1530,6 @@ namespace 日志书写器
         {
             Backup.DeleteBackup();
         }
+        #endregion
     }
 }

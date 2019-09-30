@@ -8,7 +8,7 @@ namespace 日志书写器
     {
         #region 保存的属性
         /// <summary>
-        /// 备份的源文件名
+        /// 备份的源文件名。（赋值会同步更新后缀名和备份文件名；可以使用绝对路径或者相对路径，如果使用绝对路径会更新工作路径）
         /// </summary>
         public string Original文件名
         {
@@ -38,7 +38,7 @@ namespace 日志书写器
         /// </summary>
         public int Interval { get { return BackupFileTimer.Interval; } set { if (this.ParametersReadOnly) throw new System.FieldAccessException("开始后不可以修改此变量！"); BackupFileTimer.Interval = value; } }
         /// <summary>
-        /// 备份文件的后缀名
+        /// 备份文件的后缀名（如果文件名含多个拓展名，会取得多个拓展名而不是最后一个；赋值会同步更新备份文件名）
         /// </summary>
         public string Backup后缀名
         {
@@ -46,11 +46,12 @@ namespace 日志书写器
             {
                 if (Backup文件名 == null)
                     throw new Exception("Backup文件名未被初始化！");
-                string shortFileName = Backup文件名.Substring(Backup文件名.LastIndexOf("\\") + 1);
-                int dotIndex = shortFileName.IndexOf('.'); //可以支持多个dot的备份文件名
+                // 找到文件名的StartIndex，并提取出来
+                string fileName = Backup文件名.Substring(Backup文件名.LastIndexOf("\\") + 1);
+                int dotIndex = fileName.IndexOf('.'); // 找到第一个.
                 if (dotIndex == -1) return "";
                 else
-                    return shortFileName.Substring(dotIndex);
+                    return fileName.Substring(dotIndex); // 返回.开始的字符串
             }
             set
             {
