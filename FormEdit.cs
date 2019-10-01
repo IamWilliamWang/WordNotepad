@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 namespace 日志书写器
@@ -241,8 +242,66 @@ namespace 日志书写器
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
-            // 启用后台的加载项线程
-            this.backgroundFormLoader.RunWorkerAsync();
+            // 初始化自动备份
+            CreateBackupCreater();
+            // 初始化自动保存
+            CreateAutoSaver();
+            // 加版本号
+            this.Text += " v" + Program.Version();
+            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
+            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            // 选定默认字体
+            for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
+            {
+                string sizeItem = this.comboBoxFontSize.Items[i].ToString();
+                if (sizeItem == this.DocumentFontSizeZh)
+                {
+                    this.comboBoxFontSize.SelectedIndex = i;
+                    break;
+                }
+            }
+            // 有自动保存文件则恢复内容
+            if (File.Exists(Backup.Backup文件名))
+            {
+                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                    Backup.RestoreFile(RestoreAutosave, true);
+            }
+            // 有保存的文档则直接加载内容
+            else if (File.Exists(Backup.Original文件名))
+            {
+                LoadDocx(Backup.Original文件名);
+            }
+            // 如果没有dll文件就解压文件
+            if (!File.Exists(dllNames[1]))
+                for (int i = 0; i < dllNames.Length; i++)
+                    WriteDllFile(i).Attributes = FileAttributes.Hidden;
+            // 光标点在文本最后
+            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
+            // 晚上时间开启暗黑模式
+            //if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
+            //    DarkMode = true;
+            // 加右键菜单项
+            this.contextMenuStripMain.Items.Clear();
+            this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(插入链接ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add("-");
+            this.contextMenuStripMain.Items.Add(窗口置顶ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
+            // 显示工作路径
+            this.textBoxPath.Text = Backup.WorkingDirectory;
+            // 启动自动保存计时器
+            if (!IsReadOnly())
+                Backup.Start();
         }
         
         /// <summary>
@@ -1338,76 +1397,6 @@ namespace 日志书写器
         }
         #endregion
 
-        #region BackgroundWorkers
-        private void BackgroundFormLoader_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
-        {
-            this.backgroundFormLoader.ReportProgress(100);
-        }
-
-        private void BackgroundFormLoader_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-        {
-            // 初始化自动备份
-            CreateBackupCreater();
-            // 初始化自动保存
-            CreateAutoSaver();
-            // 加版本号
-            this.Text += " v" + Program.Version();
-            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
-            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            // 选定默认字体
-            for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
-            {
-                string sizeItem = this.comboBoxFontSize.Items[i].ToString();
-                if (sizeItem == this.DocumentFontSizeZh)
-                {
-                    this.comboBoxFontSize.SelectedIndex = i;
-                    break;
-                }
-            }
-            // 有自动保存文件则恢复内容
-            if (File.Exists(Backup.Backup文件名))
-            {
-                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                    Backup.RestoreFile(RestoreAutosave, true);
-            }
-            // 有保存的文档则直接加载内容
-            else if (File.Exists(Backup.Original文件名))
-            {
-                LoadDocx(Backup.Original文件名);
-            }
-            // 如果没有dll文件就解压文件
-            if (!File.Exists(dllNames[1]))
-                for (int i = 0; i < dllNames.Length; i++)
-                    WriteDllFile(i).Attributes = FileAttributes.Hidden;
-            // 光标点在文本最后
-            this.textBoxMain.Select(this.textBoxMain.Text.Length, 0);
-            // 晚上时间开启暗黑模式
-            //if (DateTime.Now.Hour >= 21 || DateTime.Now.Hour <= 9)
-            //    DarkMode = true;
-            // 加右键菜单项
-            this.contextMenuStripMain.Items.Clear();
-            this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add("-");
-            this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(粘贴ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(删除ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add("-");
-            this.contextMenuStripMain.Items.Add(窗口置顶ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(精简模式ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(暗黑主题ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(自动聚焦ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
-            this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
-            // 显示工作路径
-            this.textBoxPath.Text = Backup.WorkingDirectory;
-            // 启动自动保存计时器
-            if (!IsReadOnly()) 
-                Backup.Start();
-        }
-        #endregion
-        
         #region 外部引用模块（无错勿动）
         /// <summary>
         /// 模拟鼠标点击事件
@@ -1531,5 +1520,19 @@ namespace 日志书写器
             Backup.DeleteBackup();
         }
         #endregion
+
+        private void 插入链接ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int startAt = this.textBoxMain.SelectionStart;
+            int length = this.textBoxMain.SelectionLength;
+            string removedText = this.textBoxMain.Text.Substring(startAt, length);
+            string inputString = Interaction.InputBox("输入网址Url：");
+            if (inputString == "")
+                return;
+            StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
+            stringBuilder.Remove(startAt, length);
+            stringBuilder.Insert(startAt, "[" + removedText + "](" + inputString + ")");
+            this.textBoxMain.Text = stringBuilder.ToString();
+        }
     }
 }

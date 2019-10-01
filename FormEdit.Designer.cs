@@ -34,6 +34,7 @@
             this.contextMenuStripMain = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.中文空格ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.查找内容ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.插入链接ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.剪切ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.复制ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.粘贴ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -60,7 +61,6 @@
             this.toolStripStatusLabelRow = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelColumn = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
-            this.backgroundFormLoader = new System.ComponentModel.BackgroundWorker();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
@@ -86,6 +86,7 @@
             this.contextMenuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.中文空格ToolStripMenuItem,
             this.查找内容ToolStripMenuItem,
+            this.插入链接ToolStripMenuItem,
             this.剪切ToolStripMenuItem,
             this.复制ToolStripMenuItem,
             this.粘贴ToolStripMenuItem,
@@ -97,7 +98,7 @@
             this.自动保存ToolStripMenuItem,
             this.停用备份ToolStripMenuItem});
             this.contextMenuStripMain.Name = "contextMenuStripMain";
-            this.contextMenuStripMain.Size = new System.Drawing.Size(125, 268);
+            this.contextMenuStripMain.Size = new System.Drawing.Size(125, 290);
             // 
             // 中文空格ToolStripMenuItem
             // 
@@ -112,6 +113,13 @@
             this.查找内容ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.查找内容ToolStripMenuItem.Text = "查找内容";
             this.查找内容ToolStripMenuItem.Click += new System.EventHandler(this.查找内容ToolStripMenuItem_Click);
+            // 
+            // 插入链接ToolStripMenuItem
+            // 
+            this.插入链接ToolStripMenuItem.Name = "插入链接ToolStripMenuItem";
+            this.插入链接ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.插入链接ToolStripMenuItem.Text = "插入链接";
+            this.插入链接ToolStripMenuItem.Click += new System.EventHandler(this.插入链接ToolStripMenuItem_Click);
             // 
             // 剪切ToolStripMenuItem
             // 
@@ -358,15 +366,10 @@
             // 
             this.toolStripStatusLabelTextLength.Margin = new System.Windows.Forms.Padding(0, 3, 40, 2);
             this.toolStripStatusLabelTextLength.Name = "toolStripStatusLabelTextLength";
-            this.toolStripStatusLabelTextLength.Size = new System.Drawing.Size(638, 17);
+            this.toolStripStatusLabelTextLength.Size = new System.Drawing.Size(607, 17);
             this.toolStripStatusLabelTextLength.Spring = true;
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // backgroundFormLoader
-            // 
-            this.backgroundFormLoader.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundFormLoader_DoWork);
-            this.backgroundFormLoader.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundFormLoader_RunWorkerCompleted);
             // 
             // FormEdit
             // 
@@ -430,7 +433,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelRow;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelColumn;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelTextLength;
-        private System.ComponentModel.BackgroundWorker backgroundFormLoader;
+        private System.Windows.Forms.ToolStripMenuItem 插入链接ToolStripMenuItem;
     }
 }
 
