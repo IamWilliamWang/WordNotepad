@@ -218,10 +218,10 @@ namespace 日志书写器
         {
             try
             {
-                Word wordRead = new Word(Backup.Backup文件名);
+                Word wordRead = new Word(Backup.Backup文件名, AuthorName);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
                 if (File.Exists(Backup.Original文件名))
-                    this.savedCharLength = new Word(Backup.Original文件名).Length;
+                    this.savedCharLength = new Word(Backup.Original文件名, AuthorName).Length;
             }
             catch (IOException)
             {
@@ -316,7 +316,7 @@ namespace 日志书写器
         {
             try
             {
-                Word wordRead = new Word(docxFileName);
+                Word wordRead = new Word(docxFileName, AuthorName);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
                 // 读取字号
                 string readFontText = this.GetTextFromFontSize(wordRead.FontSize);
@@ -517,7 +517,7 @@ namespace 日志书写器
                 MessageBox.Show("请勿写入只读文件！", "保存失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-            Word word = new Word(docxName);
+            Word word = new Word(docxName, AuthorName);
             if (this.comboBoxFont.Text != this.DocumentFont)
                 word.Font = this.comboBoxFont.Text;
             else

@@ -16,9 +16,9 @@ namespace 日志书写器
         public string Font { get; set; } = "黑体";
         public int FontSize { get; set; } = 13;
         public int Length { get { return this.ReadWord().Replace("\r", "").Replace("\n", "").Length; } }
-        public Word(string docxFileName="document.docx")
+        public Word(string docxFileName = "document.docx", string authorName = "")
         {
-            docWrite.GetProperties().CoreProperties.Creator = FormEdit.AuthorName;
+            docWrite.GetProperties().CoreProperties.Creator = authorName;
             this.filename = docxFileName;
         }
 
