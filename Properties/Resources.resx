@@ -133,4 +133,7 @@
   <data name="NPOI_OpenXmlFormats_dll" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\NPOI.OpenXmlFormats.dll.gz;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="lock_and_unlock_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\lock-and-unlock-icon.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

@@ -51,15 +51,18 @@
             this.contextMenuStripSave = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
+            this.comboBoxFont = new System.Windows.Forms.ComboBox();
             this.button高级设置 = new System.Windows.Forms.Button();
             this.checkBoxMailbox = new System.Windows.Forms.CheckBox();
             this.comboBoxFontSize = new System.Windows.Forms.ComboBox();
-            this.textBoxFont = new System.Windows.Forms.TextBox();
             this.labelFontSize = new System.Windows.Forms.Label();
             this.labelFont = new System.Windows.Forms.Label();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabelRow = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelColumn = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabelEmpty = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabelLockScrollBar = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabelLockFullScreen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
@@ -69,12 +72,15 @@
             // 
             // textBoxMain
             // 
+            this.textBoxMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxMain.ContextMenuStrip = this.contextMenuStripMain;
             this.textBoxMain.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
             this.textBoxMain.Multiline = true;
             this.textBoxMain.Name = "textBoxMain";
-            this.textBoxMain.Size = new System.Drawing.Size(821, 561);
+            this.textBoxMain.Size = new System.Drawing.Size(833, 561);
             this.textBoxMain.TabIndex = 0;
             this.textBoxMain.TextChanged += new System.EventHandler(this.textBoxMain_TextChanged);
             this.textBoxMain.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
@@ -194,7 +200,7 @@
             // labelPath
             // 
             this.labelPath.AutoSize = true;
-            this.labelPath.Location = new System.Drawing.Point(186, 19);
+            this.labelPath.Location = new System.Drawing.Point(202, 18);
             this.labelPath.Name = "labelPath";
             this.labelPath.Size = new System.Drawing.Size(53, 12);
             this.labelPath.TabIndex = 7;
@@ -205,9 +211,9 @@
             this.textBoxPath.AllowDrop = true;
             this.textBoxPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPath.Location = new System.Drawing.Point(247, 14);
+            this.textBoxPath.Location = new System.Drawing.Point(261, 14);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(334, 21);
+            this.textBoxPath.Size = new System.Drawing.Size(332, 21);
             this.textBoxPath.TabIndex = 3;
             this.textBoxPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragDrop);
             this.textBoxPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxPath_DragEnter);
@@ -218,7 +224,7 @@
             // 
             this.button保存.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button保存.ContextMenuStrip = this.contextMenuStripSave;
-            this.button保存.Location = new System.Drawing.Point(743, 14);
+            this.button保存.Location = new System.Drawing.Point(755, 14);
             this.button保存.Name = "button保存";
             this.button保存.Size = new System.Drawing.Size(72, 23);
             this.button保存.TabIndex = 4;
@@ -244,10 +250,10 @@
             // 
             this.groupBoxSetting.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSetting.Controls.Add(this.comboBoxFont);
             this.groupBoxSetting.Controls.Add(this.button高级设置);
             this.groupBoxSetting.Controls.Add(this.checkBoxMailbox);
             this.groupBoxSetting.Controls.Add(this.comboBoxFontSize);
-            this.groupBoxSetting.Controls.Add(this.textBoxFont);
             this.groupBoxSetting.Controls.Add(this.labelFontSize);
             this.groupBoxSetting.Controls.Add(this.labelFont);
             this.groupBoxSetting.Controls.Add(this.labelPath);
@@ -255,14 +261,31 @@
             this.groupBoxSetting.Controls.Add(this.textBoxPath);
             this.groupBoxSetting.Location = new System.Drawing.Point(13, 7);
             this.groupBoxSetting.Name = "groupBoxSetting";
-            this.groupBoxSetting.Size = new System.Drawing.Size(821, 46);
+            this.groupBoxSetting.Size = new System.Drawing.Size(833, 46);
             this.groupBoxSetting.TabIndex = 8;
             this.groupBoxSetting.TabStop = false;
+            // 
+            // comboBoxFont
+            // 
+            this.comboBoxFont.Font = new System.Drawing.Font("黑体", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.comboBoxFont.FormattingEnabled = true;
+            this.comboBoxFont.Items.AddRange(new object[] {
+            "黑体",
+            "微软雅黑",
+            "等线",
+            "宋体"});
+            this.comboBoxFont.Location = new System.Drawing.Point(41, 15);
+            this.comboBoxFont.Name = "comboBoxFont";
+            this.comboBoxFont.Size = new System.Drawing.Size(59, 22);
+            this.comboBoxFont.TabIndex = 1;
+            this.comboBoxFont.Text = "黑体";
+            this.comboBoxFont.SelectedIndexChanged += new System.EventHandler(this.comboBoxFont_SelectedIndexChanged);
+            this.comboBoxFont.KeyDown += new System.Windows.Forms.KeyEventHandler(this.comboBoxFont_KeyDown);
             // 
             // button高级设置
             // 
             this.button高级设置.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button高级设置.Location = new System.Drawing.Point(665, 14);
+            this.button高级设置.Location = new System.Drawing.Point(677, 14);
             this.button高级设置.Name = "button高级设置";
             this.button高级设置.Size = new System.Drawing.Size(72, 23);
             this.button高级设置.TabIndex = 10;
@@ -276,7 +299,7 @@
             this.checkBoxMailbox.AutoSize = true;
             this.checkBoxMailbox.Checked = true;
             this.checkBoxMailbox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMailbox.Location = new System.Drawing.Point(587, 11);
+            this.checkBoxMailbox.Location = new System.Drawing.Point(599, 11);
             this.checkBoxMailbox.Name = "checkBoxMailbox";
             this.checkBoxMailbox.Size = new System.Drawing.Size(72, 28);
             this.checkBoxMailbox.TabIndex = 9;
@@ -301,27 +324,16 @@
             "二号",
             "小一",
             "一号"});
-            this.comboBoxFontSize.Location = new System.Drawing.Point(125, 15);
+            this.comboBoxFontSize.Location = new System.Drawing.Point(141, 13);
             this.comboBoxFontSize.Name = "comboBoxFontSize";
             this.comboBoxFontSize.Size = new System.Drawing.Size(55, 21);
             this.comboBoxFontSize.TabIndex = 2;
             this.comboBoxFontSize.SelectedIndexChanged += new System.EventHandler(this.comboBoxFontSize_SelectedIndexChanged);
             // 
-            // textBoxFont
-            // 
-            this.textBoxFont.Font = new System.Drawing.Font("黑体", 10F);
-            this.textBoxFont.Location = new System.Drawing.Point(41, 14);
-            this.textBoxFont.Name = "textBoxFont";
-            this.textBoxFont.Size = new System.Drawing.Size(43, 23);
-            this.textBoxFont.TabIndex = 1;
-            this.textBoxFont.Text = "黑体";
-            this.textBoxFont.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBoxFont.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxFont_KeyDown);
-            // 
             // labelFontSize
             // 
             this.labelFontSize.AutoSize = true;
-            this.labelFontSize.Location = new System.Drawing.Point(90, 19);
+            this.labelFontSize.Location = new System.Drawing.Point(106, 17);
             this.labelFontSize.Name = "labelFontSize";
             this.labelFontSize.Size = new System.Drawing.Size(29, 12);
             this.labelFontSize.TabIndex = 6;
@@ -341,10 +353,14 @@
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabelRow,
             this.toolStripStatusLabelColumn,
+            this.toolStripStatusLabelEmpty,
+            this.toolStripStatusLabelLockScrollBar,
+            this.toolStripStatusLabelLockFullScreen,
             this.toolStripStatusLabelTextLength});
             this.statusStrip.Location = new System.Drawing.Point(0, 623);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(846, 22);
+            this.statusStrip.ShowItemToolTips = true;
+            this.statusStrip.Size = new System.Drawing.Size(858, 22);
             this.statusStrip.TabIndex = 9;
             this.statusStrip.Text = "statusStrip1";
             // 
@@ -362,12 +378,43 @@
             this.toolStripStatusLabelColumn.Size = new System.Drawing.Size(39, 17);
             this.toolStripStatusLabelColumn.Text = "第0列";
             // 
+            // toolStripStatusLabelEmpty
+            // 
+            this.toolStripStatusLabelEmpty.Name = "toolStripStatusLabelEmpty";
+            this.toolStripStatusLabelEmpty.Size = new System.Drawing.Size(509, 17);
+            this.toolStripStatusLabelEmpty.Spring = true;
+            // 
+            // toolStripStatusLabelLockScrollBar
+            // 
+            this.toolStripStatusLabelLockScrollBar.AutoToolTip = true;
+            this.toolStripStatusLabelLockScrollBar.BackgroundImage = global::日志书写器.Properties.Resources.lock_and_unlock_icon;
+            this.toolStripStatusLabelLockScrollBar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.toolStripStatusLabelLockScrollBar.Margin = new System.Windows.Forms.Padding(0, 3, 29, 2);
+            this.toolStripStatusLabelLockScrollBar.Name = "toolStripStatusLabelLockScrollBar";
+            this.toolStripStatusLabelLockScrollBar.Size = new System.Drawing.Size(28, 17);
+            this.toolStripStatusLabelLockScrollBar.Text = "     ";
+            this.toolStripStatusLabelLockScrollBar.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.toolStripStatusLabelLockScrollBar.ToolTipText = "锁定垂直滚动条";
+            this.toolStripStatusLabelLockScrollBar.Click += new System.EventHandler(this.toolStripStatusLockScrollBar_Click);
+            // 
+            // toolStripStatusLabelLockFullScreen
+            // 
+            this.toolStripStatusLabelLockFullScreen.AutoToolTip = true;
+            this.toolStripStatusLabelLockFullScreen.BackgroundImage = global::日志书写器.Properties.Resources.lock_and_unlock_icon;
+            this.toolStripStatusLabelLockFullScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.toolStripStatusLabelLockFullScreen.Margin = new System.Windows.Forms.Padding(0, 3, 29, 2);
+            this.toolStripStatusLabelLockFullScreen.Name = "toolStripStatusLabelLockFullScreen";
+            this.toolStripStatusLabelLockFullScreen.Size = new System.Drawing.Size(28, 17);
+            this.toolStripStatusLabelLockFullScreen.Text = "     ";
+            this.toolStripStatusLabelLockFullScreen.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.toolStripStatusLabelLockFullScreen.ToolTipText = "锁定全屏模式";
+            this.toolStripStatusLabelLockFullScreen.Click += new System.EventHandler(this.toolStripStatusLockFullScreen_Click);
+            // 
             // toolStripStatusLabelTextLength
             // 
             this.toolStripStatusLabelTextLength.Margin = new System.Windows.Forms.Padding(0, 3, 40, 2);
             this.toolStripStatusLabelTextLength.Name = "toolStripStatusLabelTextLength";
-            this.toolStripStatusLabelTextLength.Size = new System.Drawing.Size(607, 17);
-            this.toolStripStatusLabelTextLength.Spring = true;
+            this.toolStripStatusLabelTextLength.Size = new System.Drawing.Size(27, 17);
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
@@ -376,7 +423,7 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(846, 645);
+            this.ClientSize = new System.Drawing.Size(858, 645);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.groupBoxSetting);
             this.Controls.Add(this.textBoxMain);
@@ -408,7 +455,6 @@
         private System.Windows.Forms.TextBox textBoxPath;
         private System.Windows.Forms.Button button保存;
         private System.Windows.Forms.GroupBox groupBoxSetting;
-        private System.Windows.Forms.TextBox textBoxFont;
         private System.Windows.Forms.Label labelFontSize;
         private System.Windows.Forms.Label labelFont;
         private System.Windows.Forms.ComboBox comboBoxFontSize;
@@ -434,6 +480,10 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelColumn;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelTextLength;
         private System.Windows.Forms.ToolStripMenuItem 插入链接ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelLockFullScreen;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelEmpty;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelLockScrollBar;
+        private System.Windows.Forms.ComboBox comboBoxFont;
     }
 }
 

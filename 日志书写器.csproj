@@ -146,5 +146,14 @@
     <None Include="Resources\NPOI.OpenXml4Net.dll.gz" />
     <None Include="Resources\NPOI.OpenXmlFormats.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\lock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\unlock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\lock-and-unlock-icon.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

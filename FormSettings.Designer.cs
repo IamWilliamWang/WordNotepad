@@ -35,7 +35,6 @@
             this.checkBox自动保存 = new System.Windows.Forms.CheckBox();
             this.groupBox状态控制 = new System.Windows.Forms.GroupBox();
             this.button清除备份文件 = new System.Windows.Forms.Button();
-            this.buttonAlwaysOnScrollBar = new System.Windows.Forms.Button();
             this.groupBox状态控制.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -100,7 +99,7 @@
             // 
             // button清除备份文件
             // 
-            this.button清除备份文件.Location = new System.Drawing.Point(181, 67);
+            this.button清除备份文件.Location = new System.Drawing.Point(247, 63);
             this.button清除备份文件.Name = "button清除备份文件";
             this.button清除备份文件.Size = new System.Drawing.Size(88, 23);
             this.button清除备份文件.TabIndex = 6;
@@ -108,22 +107,11 @@
             this.button清除备份文件.UseVisualStyleBackColor = true;
             this.button清除备份文件.Click += new System.EventHandler(this.button清除备份文件_Click);
             // 
-            // buttonAlwaysOnScrollBar
-            // 
-            this.buttonAlwaysOnScrollBar.Location = new System.Drawing.Point(305, 67);
-            this.buttonAlwaysOnScrollBar.Name = "buttonAlwaysOnScrollBar";
-            this.buttonAlwaysOnScrollBar.Size = new System.Drawing.Size(104, 23);
-            this.buttonAlwaysOnScrollBar.TabIndex = 7;
-            this.buttonAlwaysOnScrollBar.Text = "滚动条强制打开";
-            this.buttonAlwaysOnScrollBar.UseVisualStyleBackColor = true;
-            this.buttonAlwaysOnScrollBar.Click += new System.EventHandler(this.buttonAlwaysOnScrollBar_Click);
-            // 
             // FormSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(454, 117);
-            this.Controls.Add(this.buttonAlwaysOnScrollBar);
             this.Controls.Add(this.button清除备份文件);
             this.Controls.Add(this.groupBox状态控制);
             this.Controls.Add(this.button计时器时长变更);
@@ -150,6 +138,5 @@
         private System.Windows.Forms.CheckBox checkBox自动保存;
         private System.Windows.Forms.GroupBox groupBox状态控制;
         private System.Windows.Forms.Button button清除备份文件;
-        private System.Windows.Forms.Button buttonAlwaysOnScrollBar;
     }
 }

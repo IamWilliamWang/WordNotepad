@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -29,8 +30,8 @@ namespace 日志书写器
         private String DocumentFont { get { return font; } set {
                 font = value;
                 this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize);
-                if (this.textBoxFont.Text != font) //始终保持Font与textBoxFont同步
-                    this.textBoxFont.Text = font;
+                if (this.comboBoxFont.Text != font) //始终保持Font与textBoxFont同步
+                    this.comboBoxFont.Text = font;
             } }
         
         /// <summary>
@@ -87,7 +88,9 @@ namespace 日志书写器
         /// <summary>
         /// 是否要一直打开垂直滚动条
         /// </summary>
-        public bool ScrollBarAlwaysOn { get; set; } = false;
+        private bool LockScrollBarStatus { get; set; } = true;
+
+        private bool LockFullScreenMode { get; set; } = true;
 
         /// <summary>
         /// 储存读取的文件是否为只读文件。key=文件名，value=是否只读
@@ -248,8 +251,9 @@ namespace 日志书写器
             CreateAutoSaver();
             // 加版本号
             this.Text += " v" + Program.Version();
-            // 将实际字体替代在设计器中显示的字体（移到LoadDocx中进行）
-            //this.textBoxMain.Font = new System.Drawing.Font(DocumentFont, DocumentFontSize, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            // 状态栏内的锁初始化
+            this.SwitchScrollBarLockStatus();
+            this.SwitchFullScreenLockStatus();
             // 选定默认字体
             for (int i = 0; i < this.comboBoxFontSize.Items.Count; i++)
             {
@@ -514,8 +518,8 @@ namespace 日志书写器
                 return false;
             }
             Word word = new Word(docxName);
-            if (this.textBoxFont.Text != this.DocumentFont)
-                word.Font = this.textBoxFont.Text;
+            if (this.comboBoxFont.Text != this.DocumentFont)
+                word.Font = this.comboBoxFont.Text;
             else
                 word.Font = this.DocumentFont;
             var nowFontSize = this.GetFontSizeFromText(this.comboBoxFontSize.Text);
@@ -736,13 +740,18 @@ namespace 日志书写器
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxFont_KeyDown(object sender, KeyEventArgs e)
+        private void comboBoxFont_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                this.textBoxFont.Text = this.textBoxFont.Text.Trim();
-                this.DocumentFont = this.textBoxFont.Text;
+                this.comboBoxFont.Text = this.comboBoxFont.Text.Trim();
+                this.DocumentFont = this.comboBoxFont.Text;
             }
+        }
+
+        private void comboBoxFont_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            this.DocumentFont = this.comboBoxFont.Text;
         }
 
         /// <summary>
@@ -807,39 +816,98 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
         {
-            // Ctrl+S 保存文档
-            if (e.KeyCode == Keys.S && e.Control)
+            if (e.Control)
             {
-                this.SaveDocument();
-                DeleteBackup();
-            }
-            // Ctrl+A 全选文档
-            else if (e.KeyCode == Keys.A && e.Control)
-                this.textBoxMain.SelectAll();
-            // Ctrl+O 打开文档
-            else if (e.KeyCode == Keys.O && e.Control)
-            {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "文档|*.docx";
-                openFileDialog.Multiselect = false;
-                openFileDialog.Title = "打开docx文档";
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                    this.LoadSpecificDocument(openFileDialog.FileName);
-            }
-            // Ctrl+F 查找内容
-            else if (e.KeyCode == Keys.F && e.Control)
-            {
-                if (LastSearch == "")
-                    SearchString();
-                else
+                // Ctrl+S 保存文档
+                if (e.KeyCode == Keys.S)
                 {
-                    this.textBoxMain.SelectionStart += LastSearch.Length;
-                    SearchString(LastSearch);
+                    this.SaveDocument();
+                    DeleteBackup();
+                }
+                // Ctrl+A 全选文档
+                else if (e.KeyCode == Keys.A)
+                    this.textBoxMain.SelectAll();
+                // Ctrl+O 打开文档
+                else if (e.KeyCode == Keys.O)
+                {
+                    OpenFileDialog openFileDialog = new OpenFileDialog();
+                    openFileDialog.Filter = "文档|*.docx";
+                    openFileDialog.Multiselect = false;
+                    openFileDialog.Title = "打开docx文档";
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                        this.LoadSpecificDocument(openFileDialog.FileName);
+                }
+                // Ctrl+F 查找内容
+                else if (e.KeyCode == Keys.F)
+                {
+                    if (LastSearch == "")
+                        SearchString();
+                    else
+                    {
+                        this.textBoxMain.SelectionStart += LastSearch.Length;
+                        SearchString(LastSearch);
+                    }
+                }
+                // Ctrl+T 插入两个中文空格
+                else if (e.KeyCode == Keys.T)
+                    this.插入中文空格ToolStripMenuItem_Click(sender, e);
+            }
+            if (e.Alt)
+            {
+                if (e.KeyCode == Keys.Up)
+                {
+                    try
+                    {
+                        // 储存本行和上面一行开始位置和内容
+                        int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
+                        int upperLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() - 1);
+                        String nowLine = Util.GetNowLine();
+                        String upperLine = Util.GetLine(Util.GetNowLineIndex() - 1);
+                        StringBuilder content = new StringBuilder(this.textBoxMain.Text);
+                        // 交换两行内容
+                        content.Remove(nowLineStartAt, nowLine.Length);
+                        content.Insert(nowLineStartAt, upperLine);
+                        content.Remove(upperLineStartAt, upperLine.Length);
+                        content.Insert(upperLineStartAt, nowLine);
+                        // 保存列号和选择长度
+                        int savedColumnIndex = Util.GetColumnIndex();
+                        int savedSelectionLength = this.textBoxMain.SelectionLength;
+                        // 屏幕指针指向新位置
+                        this.textBoxMain.Text = content.ToString();
+                        this.textBoxMain.SelectionStart = upperLineStartAt + savedColumnIndex;
+                        this.textBoxMain.SelectionLength = savedSelectionLength;
+                    }
+                    catch (System.Exception)
+                    { }
+                }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    try
+                    {
+                        // 储存本行和下面一行开始位置和内容
+                        int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
+                        int lowerLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() + 1);
+                        String nowLine = Util.GetNowLine();
+                        String lowerLine = Util.GetLine(Util.GetNowLineIndex() + 1);
+                        StringBuilder content = new StringBuilder(this.textBoxMain.Text);
+                        // 交换两行内容
+                        content.Remove(lowerLineStartAt, lowerLine.Length);
+                        content.Insert(lowerLineStartAt, nowLine);
+                        content.Remove(nowLineStartAt, nowLine.Length);
+                        content.Insert(nowLineStartAt, lowerLine);
+                        // 保存列号和选择长度与新的行号
+                        int savedSelectionLength = this.textBoxMain.SelectionLength;
+                        int savedColumnIndex = Util.GetColumnIndex();
+                        int newLineIndex = Util.GetNowLineIndex() + 1;
+                        // 屏幕指针指向新位置
+                        this.textBoxMain.Text = content.ToString();
+                        this.textBoxMain.SelectionStart = Util.GetFirstCharIndexOfLine(newLineIndex) + savedColumnIndex;
+                        this.textBoxMain.SelectionLength = savedSelectionLength;
+                    }
+                    catch (System.Exception)
+                    { }
                 }
             }
-            // Ctrl+T 插入两个中文空格
-            else if (e.KeyCode == Keys.T && e.Control)
-                this.插入中文空格ToolStripMenuItem_Click(sender, e);
             this.LastKeyDown = e; // 保存按下按键的内容
         }
 
@@ -851,7 +919,7 @@ namespace 日志书写器
         private void textBoxMain_KeyUp(object sender, KeyEventArgs e)
         {
             // 更新状态栏里的行、列、字数信息
-            this.toolStripStatusLabelRow.Text = "第" + (Util.GetRowIndex() + 1) + "行";
+            this.toolStripStatusLabelRow.Text = "第" + (Util.GetNowLineIndex() + 1) + "行";
             this.toolStripStatusLabelColumn.Text = "第" + (Util.GetColumnIndex() + 1) + "列";
             this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
         }
@@ -875,8 +943,8 @@ namespace 日志书写器
             this.button高级设置.UseVisualStyleBackColor = false;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.Window;
-            this.textBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this.textBoxFont.ForeColor = System.Drawing.SystemColors.Window;
+            this.comboBoxFont.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.comboBoxFont.ForeColor = System.Drawing.SystemColors.Window;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ForeColor = System.Drawing.SystemColors.Window;
             this.暗黑主题ToolStripMenuItem.Text = "取消暗黑";
@@ -899,8 +967,8 @@ namespace 日志书写器
             this.button高级设置.UseVisualStyleBackColor = true;
             this.comboBoxFontSize.BackColor = System.Drawing.SystemColors.Window;
             this.comboBoxFontSize.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.textBoxFont.BackColor = System.Drawing.SystemColors.Window;
-            this.textBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.comboBoxFont.BackColor = System.Drawing.SystemColors.Window;
+            this.comboBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.暗黑主题ToolStripMenuItem.Text = "暗黑主题";
@@ -919,6 +987,8 @@ namespace 日志书写器
         /// </summary>
         private void FullScreenModeOn()
         {
+            if (LockFullScreenMode)
+                return;
             int height = this.textBoxMain.Size.Height;
             int width = textBoxMain.Size.Width;
             if (height == 0 || width == 0)
@@ -928,7 +998,7 @@ namespace 日志书写器
             this.textBoxMain.Size = new System.Drawing.Size(width, height + 65);
             this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
             this.精简模式ToolStripMenuItem.Text = "普通模式";
-
+            
             this.statusStrip.Visible = false;
         }
 
@@ -937,6 +1007,8 @@ namespace 日志书写器
         /// </summary>
         private void FullScreenModeOff()
         {
+            if (LockFullScreenMode)
+                return;
             int height = this.textBoxMain.Size.Height;
             int width = textBoxMain.Size.Width;
             if (height == 0 || width == 0)
@@ -1138,14 +1210,15 @@ namespace 日志书写器
             // 执行插入操作
             FastInsert(textBoxMain.Text[this.textBoxMain.SelectionStart - 1]);
         }
-
+        
         /// <summary>
         /// 自动开启或关闭垂直滚动条
         /// </summary>
         private void AutoScrollBar()
         {
-            if (this.ScrollBarAlwaysOn)
-                this.textBoxMain.ScrollBars = ScrollBars.Vertical;
+            if (this.LockScrollBarStatus)
+                return;
+            
             int lineCount = this.textBoxMain.GetLineFromCharIndex(this.textBoxMain.Text.Length) + 1;
             // 当总行数大于显示，显示ScrollBar
             if (this.textBoxMain.ScrollBars == ScrollBars.None && lineCount > ShowedTextLines) // 提高执行效率
@@ -1265,6 +1338,25 @@ namespace 日志书写器
             bool savedSetting = this.TopMost;
             this.TopMost = false;
             SearchString();
+            this.TopMost = savedSetting;
+        }
+
+        private void 插入链接ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool savedSetting = this.TopMost;
+            this.TopMost = false;
+
+            int startAt = this.textBoxMain.SelectionStart;
+            int length = this.textBoxMain.SelectionLength;
+            string removedText = this.textBoxMain.Text.Substring(startAt, length);
+            string inputString = Interaction.InputBox("输入网址Url：");
+            if (inputString == "")
+                return;
+            StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
+            stringBuilder.Remove(startAt, length);
+            stringBuilder.Insert(startAt, "[" + removedText + "](" + inputString + ")");
+            this.textBoxMain.Text = stringBuilder.ToString();
+
             this.TopMost = savedSetting;
         }
 
@@ -1397,6 +1489,171 @@ namespace 日志书写器
         }
         #endregion
 
+        #region 状态栏
+        private void SwitchFullScreenLockStatus()
+        {
+            var icon = Properties.Resources.lock_and_unlock_icon;
+            Rectangle cropRect;
+            if (LockFullScreenMode) // 锁定变不锁定
+            {
+                cropRect = new Rectangle(0, 0, 200, 200);
+                LockFullScreenMode = false;
+                this.toolStripStatusLabelLockFullScreen.ToolTipText = "普通/精简模式未被锁定";
+            }
+            else // 不锁定变锁定
+            {
+                cropRect = new Rectangle(200, 0, 200, 200);
+                LockFullScreenMode = true;
+                if (this.FullScreen)
+                    this.toolStripStatusLabelLockFullScreen.ToolTipText = "已锁定为精简模式";
+                else
+                    this.toolStripStatusLabelLockFullScreen.ToolTipText = "已锁定为普通模式";
+            }
+            Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
+
+            using (Graphics g = Graphics.FromImage(target))
+            {
+                g.DrawImage(icon, new Rectangle(0, 0, target.Width, target.Height),
+                      cropRect,
+                      GraphicsUnit.Pixel);
+            }
+            this.toolStripStatusLabelLockFullScreen.BackgroundImage = target;
+        }
+
+        private void toolStripStatusLockFullScreen_Click(object sender, EventArgs e)
+        {
+            SwitchFullScreenLockStatus();
+        }
+
+        private void SwitchScrollBarLockStatus()
+        {
+            var icon = Properties.Resources.lock_and_unlock_icon;
+            Rectangle cropRect;
+            if (LockScrollBarStatus) // 锁定变不锁定
+            {
+                cropRect = new Rectangle(0, 0, 200, 200);
+                LockScrollBarStatus = false;
+                this.toolStripStatusLabelLockScrollBar.ToolTipText = "滚动条状态未被锁定";
+            }
+            else // 不锁定边锁定
+            {
+                cropRect = new Rectangle(200, 0, 200, 200);
+                LockScrollBarStatus = true;
+                if (this.textBoxMain.ScrollBars == ScrollBars.Vertical)
+                    this.toolStripStatusLabelLockScrollBar.ToolTipText = "滚动条已被锁定为开启状态";
+                else
+                    this.toolStripStatusLabelLockScrollBar.ToolTipText = "滚动条已被锁定为关闭状态";
+            }
+            Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
+
+            using (Graphics g = Graphics.FromImage(target))
+            {
+                g.DrawImage(icon, new Rectangle(0, 0, target.Width, target.Height),
+                      cropRect,
+                      GraphicsUnit.Pixel);
+            }
+            this.toolStripStatusLabelLockScrollBar.BackgroundImage = target;
+        }
+
+        private void toolStripStatusLockScrollBar_Click(object sender, EventArgs e)
+        {
+            SwitchScrollBarLockStatus();
+        }
+        #endregion
+
+        #region 外部调用接口
+        /// <summary>
+        /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
+        /// </summary>
+        /// <param name="autoSavePerSecond"></param>
+        public void ChangeTimerPerSecond(int autoSavePerSecond)
+        {
+            this.AutoSavePerSecond = autoSavePerSecond;
+            if (AutoSaverTimerBusy)
+            {
+                AutoSaver.Stop();
+                CreateAutoSaver();
+                AutoSaver.Start();
+            }
+            if (BackupTimerBusy)
+            {
+                Backup.Stop();
+                CreateBackupCreater();
+                Backup.Start();
+            }
+        }
+
+        /// <summary>
+        /// 直接删除当前的备份文件
+        /// </summary>
+        public void DeleteBackup()
+        {
+            Backup.DeleteBackup();
+        }
+        #endregion
+
+        /// <summary>
+        /// 文本定位帮助类
+        /// </summary>
+        private class Util
+        {
+            public static int GetNowLineIndex(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.GetLineFromCharIndex(textBox.SelectionStart);
+            }
+
+            public static int GetColumnIndex(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
+            }
+
+            public static String GetNowLine(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return GetLine(GetNowLineIndex(textBox), textBox);
+            }
+
+            public static String GetLine(int lineNumber, TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.Lines[lineNumber];
+            }
+
+            public static int GetNowLineLength(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return GetLineLength(GetNowLineIndex(textBox));
+            }
+
+            public static int GetLineLength(int lineNumber, TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return GetLine(lineNumber, textBox).Length;
+            }
+
+            public static int GetFirstCharIndexOfCurrentLine(TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return GetFirstCharIndexOfLine(GetNowLineIndex(textBox), textBox);
+            }
+
+            public static int GetFirstCharIndexOfLine(int lineNumber, TextBox textBox = null)
+            {
+                if (textBox == null)
+                    textBox = FormEdit.Instance.textBoxMain;
+                return textBox.GetFirstCharIndexFromLine(lineNumber);
+            }
+        }
+
         #region 外部引用模块（无错勿动）
         /// <summary>
         /// 模拟鼠标点击事件
@@ -1455,84 +1712,5 @@ namespace 日志书写器
             }
         }
         #endregion
-        
-        /// <summary>
-        /// 文本定位帮助类
-        /// </summary>
-        private class Util
-        {
-            public static int GetRowIndex(TextBox textBox = null)
-            {
-                if (textBox == null)
-                    textBox = FormEdit.Instance.textBoxMain;
-                return textBox.GetLineFromCharIndex(textBox.SelectionStart);
-            }
-
-            public static int GetColumnIndex(TextBox textBox = null)
-            {
-                if (textBox == null)
-                    textBox = FormEdit.Instance.textBoxMain;
-                return textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
-            }
-
-            public static String GetNowLine(TextBox textBox = null)
-            {
-                if (textBox == null)
-                    textBox = FormEdit.Instance.textBoxMain;
-                return textBox.Lines[GetRowIndex(textBox)];
-            }
-
-            public static int GetNowLineLength(TextBox textBox = null)
-            {
-                if (textBox == null)
-                    textBox = FormEdit.Instance.textBoxMain;
-                return GetNowLine(textBox).Length;
-            }
-        }
-
-        #region 外部调用接口
-        /// <summary>
-        /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
-        /// </summary>
-        /// <param name="autoSavePerSecond"></param>
-        public void ChangeTimerPerSecond(int autoSavePerSecond)
-        {
-            this.AutoSavePerSecond = autoSavePerSecond;
-            if (AutoSaverTimerBusy) 
-            {
-                AutoSaver.Stop();
-                CreateAutoSaver();
-                AutoSaver.Start();
-            }
-            if (BackupTimerBusy)
-            {
-                Backup.Stop();
-                CreateBackupCreater();
-                Backup.Start();
-            }
-        }
-
-        /// <summary>
-        /// 直接删除当前的备份文件
-        /// </summary>
-        public void DeleteBackup()
-        {
-            Backup.DeleteBackup();
-        }
-        #endregion
-
-        private void 插入链接ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            int startAt = this.textBoxMain.SelectionStart;
-            int length = this.textBoxMain.SelectionLength;
-            string removedText = this.textBoxMain.Text.Substring(startAt, length);
-            string inputString = Interaction.InputBox("输入网址Url：");
-            if (inputString == "")
-                return;
-            StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
-            stringBuilder.Remove(startAt, length);
-            stringBuilder.Insert(startAt, "[" + removedText + "](" + inputString + ")");
-            this.textBoxMain.Text = stringBuilder.ToString();
-        }
     }
 }

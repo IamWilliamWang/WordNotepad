@@ -57,11 +57,5 @@ namespace 日志书写器
         {
             Main.DeleteBackup();
         }
-
-        private void buttonAlwaysOnScrollBar_Click(object sender, EventArgs e)
-        {
-            Main.ScrollBarAlwaysOn = true;
-            MessageBox.Show("已设置为强制打开");
-        }
     }
 }

@@ -71,6 +71,16 @@ namespace 日志书写器.Properties {
         }
         
         /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap lock_and_unlock_icon {
+            get {
+                object obj = ResourceManager.GetObject("lock_and_unlock_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
         internal static byte[] NPOI_dll {
