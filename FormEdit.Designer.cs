@@ -200,7 +200,7 @@
             // labelPath
             // 
             this.labelPath.AutoSize = true;
-            this.labelPath.Location = new System.Drawing.Point(202, 18);
+            this.labelPath.Location = new System.Drawing.Point(202, 19);
             this.labelPath.Name = "labelPath";
             this.labelPath.Size = new System.Drawing.Size(53, 12);
             this.labelPath.TabIndex = 7;
@@ -211,7 +211,7 @@
             this.textBoxPath.AllowDrop = true;
             this.textBoxPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPath.Location = new System.Drawing.Point(261, 14);
+            this.textBoxPath.Location = new System.Drawing.Point(261, 15);
             this.textBoxPath.Name = "textBoxPath";
             this.textBoxPath.Size = new System.Drawing.Size(332, 21);
             this.textBoxPath.TabIndex = 3;
@@ -276,7 +276,7 @@
             "宋体"});
             this.comboBoxFont.Location = new System.Drawing.Point(41, 15);
             this.comboBoxFont.Name = "comboBoxFont";
-            this.comboBoxFont.Size = new System.Drawing.Size(59, 22);
+            this.comboBoxFont.Size = new System.Drawing.Size(59, 21);
             this.comboBoxFont.TabIndex = 1;
             this.comboBoxFont.Text = "黑体";
             this.comboBoxFont.SelectedIndexChanged += new System.EventHandler(this.comboBoxFont_SelectedIndexChanged);
@@ -324,7 +324,7 @@
             "二号",
             "小一",
             "一号"});
-            this.comboBoxFontSize.Location = new System.Drawing.Point(141, 13);
+            this.comboBoxFontSize.Location = new System.Drawing.Point(141, 15);
             this.comboBoxFontSize.Name = "comboBoxFontSize";
             this.comboBoxFontSize.Size = new System.Drawing.Size(55, 21);
             this.comboBoxFontSize.TabIndex = 2;
@@ -333,7 +333,7 @@
             // labelFontSize
             // 
             this.labelFontSize.AutoSize = true;
-            this.labelFontSize.Location = new System.Drawing.Point(106, 17);
+            this.labelFontSize.Location = new System.Drawing.Point(106, 19);
             this.labelFontSize.Name = "labelFontSize";
             this.labelFontSize.Size = new System.Drawing.Size(29, 12);
             this.labelFontSize.TabIndex = 6;
