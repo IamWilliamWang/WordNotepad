@@ -851,11 +851,17 @@ namespace 日志书写器
                 // Ctrl+T 插入两个中文空格
                 else if (e.KeyCode == Keys.T)
                     this.插入中文空格ToolStripMenuItem_Click(sender, e);
+                // Ctrl+I 插入超链接
+                else if (e.KeyCode == Keys.I)
+                    this.插入链接ToolStripMenuItem_Click(sender, e);
             }
             if (e.Alt)
             {
                 if (e.KeyCode == Keys.Up)
                 {
+                    // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
+                    var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
+                    this.textBoxMain.Font = new Font(DocumentFont, 1);
                     try
                     {
                         // 储存本行和上面一行开始位置和内容
@@ -879,9 +885,16 @@ namespace 日志书写器
                     }
                     catch (System.Exception)
                     { }
+                    finally // 恢复字号
+                    {
+                        this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                    }
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
+                    // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
+                    var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
+                    this.textBoxMain.Font = new Font(DocumentFont, 1);
                     try
                     {
                         // 储存本行和下面一行开始位置和内容
@@ -906,6 +919,10 @@ namespace 日志书写器
                     }
                     catch (System.Exception)
                     { }
+                    finally // 恢复字号
+                    {
+                        this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                    }
                 }
             }
             this.LastKeyDown = e; // 保存按下按键的内容
@@ -947,6 +964,8 @@ namespace 日志书写器
             this.comboBoxFont.ForeColor = System.Drawing.SystemColors.Window;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ForeColor = System.Drawing.SystemColors.Window;
+            this.statusStrip.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.statusStrip.ForeColor = System.Drawing.SystemColors.Window;
             this.暗黑主题ToolStripMenuItem.Text = "取消暗黑";
         }
 
@@ -971,6 +990,8 @@ namespace 日志书写器
             this.comboBoxFont.ForeColor = System.Drawing.SystemColors.WindowText;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.statusStrip.BackColor = System.Drawing.SystemColors.Control;
+            this.statusStrip.ForeColor = System.Drawing.SystemColors.ControlText;
             this.暗黑主题ToolStripMenuItem.Text = "暗黑主题";
         }
 
