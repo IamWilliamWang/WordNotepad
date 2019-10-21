@@ -237,9 +237,17 @@ namespace 日志书写器
         /// <summary>
         /// 删除备份文件
         /// </summary>
-        public void DeleteBackup()
+        public bool DeleteBackup()
         {
-            File.Delete(this.Backup文件名);
+            try
+            {
+                File.Delete(this.Backup文件名);
+                return true;
+            }
+            catch(IOException)
+            {
+                return false;
+            }
         }
 
         /// <summary>

@@ -786,7 +786,7 @@ namespace 日志书写器
         }
         #endregion
 
-        #region 双击操作
+        #region 单双击操作
         /// <summary>
         /// 窗体双击事件
         /// </summary>
@@ -805,6 +805,11 @@ namespace 日志书写器
         private void textBoxPath_DoubleClick(object sender, EventArgs e)
         {
             Process.Start("Explorer.exe", this.textBoxPath.Text);
+        }
+
+        private void textBoxMain_Click(object sender, EventArgs e)
+        {
+            UpdateStatusStripInfo();
         }
         #endregion
 
@@ -928,6 +933,14 @@ namespace 日志书写器
             this.LastKeyDown = e; // 保存按下按键的内容
         }
 
+        private void UpdateStatusStripInfo()
+        {
+            // 更新状态栏里的行、列、字数信息
+            this.toolStripStatusLabelRow.Text = "第" + (Util.GetNowLineIndex() + 1) + "行";
+            this.toolStripStatusLabelColumn.Text = "第" + (Util.GetColumnIndex() + 1) + "列";
+            this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
+        }
+
         /// <summary>
         /// 主编辑框按钮按完操作
         /// </summary>
@@ -935,10 +948,7 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void textBoxMain_KeyUp(object sender, KeyEventArgs e)
         {
-            // 更新状态栏里的行、列、字数信息
-            this.toolStripStatusLabelRow.Text = "第" + (Util.GetNowLineIndex() + 1) + "行";
-            this.toolStripStatusLabelColumn.Text = "第" + (Util.GetColumnIndex() + 1) + "列";
-            this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
+            UpdateStatusStripInfo();
         }
         #endregion
 
