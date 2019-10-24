@@ -131,7 +131,12 @@ namespace 日志书写器
         /// <summary>
         /// 自动保存Timer
         /// </summary>
-        private BackupCreater AutoSaver { get; set; } 
+        private BackupCreater AutoSaver { get; set; }
+
+        /// <summary>
+        /// 保存Undo、Redo功能要显示的内容
+        /// </summary>
+        private FormerSaver former = new FormerSaver();
 
         /// <summary>
         /// 获得FormEdit单例
@@ -239,7 +244,7 @@ namespace 日志书写器
         private void FormEdit_Load(object sender, EventArgs e)
         {
             // 检测后台是否运行同一程序
-            if (Process.GetProcessesByName("TextWriter").Length > 1)
+            if (Process.GetProcessesByName("TextWriter").Length > 1 || Process.GetProcessesByName("日志书写器").Length > 1)
                 if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
                     Environment.Exit(0);
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
@@ -814,6 +819,21 @@ namespace 日志书写器
         #endregion
 
         #region 键盘事件
+        private bool ConvertLF2CRLF()
+        {
+            var strBuilder = new StringBuilder(this.textBoxMain.Text);
+            strBuilder.Replace("\r\n", "\n"); // 先把CRLF统一成LF
+            strBuilder.Replace("\n", "\r\n"); // 再把LF变成CRLF达到转换的目的
+            if (this.textBoxMain.Text.Length != strBuilder.Length)
+            {
+                if (MessageBox.Show("检测到存在LF，已将其转换为CRLF！如果想撤回转换，请点击取消，但是会导致文本布局混乱。", "换行符不统一", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
+                    return false;
+                this.textBoxMain.Text = strBuilder.ToString();
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// 主编辑框输入事件
         /// </summary>
@@ -821,6 +841,10 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void textBoxMain_KeyDown(object sender, KeyEventArgs e)
         {
+            // 按下回车时保存内容
+            if (e.KeyCode == Keys.Enter)
+                this.former.SaveText(this.textBoxMain.Text);
+            // Ctrl + 某按键
             if (e.Control)
             {
                 // Ctrl+S 保存文档
@@ -853,6 +877,20 @@ namespace 日志书写器
                         SearchString(LastSearch);
                     }
                 }
+                // Ctrl+Z 撤回
+                else if (e.KeyCode == Keys.Z)
+                {
+                    var undoResult = this.former.Undo();
+                    if (undoResult != null)
+                        this.textBoxMain.Text = undoResult;
+                }
+                // Ctrl+Y 重做
+                else if (e.KeyCode == Keys.Y)
+                {
+                    var redoResult = this.former.Redo();
+                    if (redoResult != null)
+                        this.textBoxMain.Text = redoResult;
+                }
                 // Ctrl+T 插入两个中文空格
                 else if (e.KeyCode == Keys.T)
                     this.插入中文空格ToolStripMenuItem_Click(sender, e);
@@ -860,73 +898,82 @@ namespace 日志书写器
                 else if (e.KeyCode == Keys.I)
                     this.插入链接ToolStripMenuItem_Click(sender, e);
             }
-            if (e.Alt)
+            // Alt + 某按键
+            else if (e.Alt)
             {
                 if (e.KeyCode == Keys.Up)
                 {
-                    // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
-                    var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
-                    this.textBoxMain.Font = new Font(DocumentFont, 1);
-                    try
+                    this.former.SaveText(this.textBoxMain.Text);
+                    if (!this.ConvertLF2CRLF())
                     {
-                        // 储存本行和上面一行开始位置和内容
-                        int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
-                        int upperLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() - 1);
-                        String nowLine = Util.GetNowLine();
-                        String upperLine = Util.GetLine(Util.GetNowLineIndex() - 1);
-                        StringBuilder content = new StringBuilder(this.textBoxMain.Text);
-                        // 交换两行内容
-                        content.Remove(nowLineStartAt, nowLine.Length);
-                        content.Insert(nowLineStartAt, upperLine);
-                        content.Remove(upperLineStartAt, upperLine.Length);
-                        content.Insert(upperLineStartAt, nowLine);
-                        // 保存列号和选择长度
-                        int savedColumnIndex = Util.GetColumnIndex();
-                        int savedSelectionLength = this.textBoxMain.SelectionLength;
-                        // 屏幕指针指向新位置
-                        this.textBoxMain.Text = content.ToString();
-                        this.textBoxMain.SelectionStart = upperLineStartAt + savedColumnIndex;
-                        this.textBoxMain.SelectionLength = savedSelectionLength;
-                    }
-                    catch (System.Exception)
-                    { }
-                    finally // 恢复字号
-                    {
-                        this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                        // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
+                        var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
+                        this.textBoxMain.Font = new Font(DocumentFont, 1);
+                        try
+                        {
+                            // 储存本行和上面一行开始位置和内容
+                            int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
+                            int upperLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() - 1);
+                            String nowLine = Util.GetNowLine();
+                            String upperLine = Util.GetLine(Util.GetNowLineIndex() - 1);
+                            StringBuilder content = new StringBuilder(this.textBoxMain.Text);
+                            // 交换两行内容
+                            content.Remove(nowLineStartAt, nowLine.Length);
+                            content.Insert(nowLineStartAt, upperLine);
+                            content.Remove(upperLineStartAt, upperLine.Length);
+                            content.Insert(upperLineStartAt, nowLine);
+                            // 保存列号和选择长度
+                            int savedColumnIndex = Util.GetColumnIndex();
+                            int savedSelectionLength = this.textBoxMain.SelectionLength;
+                            // 屏幕指针指向新位置
+                            this.textBoxMain.Text = content.ToString();
+                            this.textBoxMain.SelectionStart = upperLineStartAt + savedColumnIndex;
+                            this.textBoxMain.SelectionLength = savedSelectionLength;
+                        }
+                        catch (System.Exception)
+                        { }
+                        finally // 恢复字号
+                        {
+                            this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                        }
                     }
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
-                    // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
-                    var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
-                    this.textBoxMain.Font = new Font(DocumentFont, 1);
-                    try
+                    this.former.SaveText(this.textBoxMain.Text);
+                    if (!this.ConvertLF2CRLF())
                     {
-                        // 储存本行和下面一行开始位置和内容
-                        int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
-                        int lowerLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() + 1);
-                        String nowLine = Util.GetNowLine();
-                        String lowerLine = Util.GetLine(Util.GetNowLineIndex() + 1);
-                        StringBuilder content = new StringBuilder(this.textBoxMain.Text);
-                        // 交换两行内容
-                        content.Remove(lowerLineStartAt, lowerLine.Length);
-                        content.Insert(lowerLineStartAt, nowLine);
-                        content.Remove(nowLineStartAt, nowLine.Length);
-                        content.Insert(nowLineStartAt, lowerLine);
-                        // 保存列号和选择长度与新的行号
-                        int savedSelectionLength = this.textBoxMain.SelectionLength;
-                        int savedColumnIndex = Util.GetColumnIndex();
-                        int newLineIndex = Util.GetNowLineIndex() + 1;
-                        // 屏幕指针指向新位置
-                        this.textBoxMain.Text = content.ToString();
-                        this.textBoxMain.SelectionStart = Util.GetFirstCharIndexOfLine(newLineIndex) + savedColumnIndex;
-                        this.textBoxMain.SelectionLength = savedSelectionLength;
-                    }
-                    catch (System.Exception)
-                    { }
-                    finally // 恢复字号
-                    {
-                        this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                        // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
+                        var savedDocumentFontSizeZh = this.DocumentFontSizeZh;
+                        this.textBoxMain.Font = new Font(DocumentFont, 1);
+                        try
+                        {
+                            // 储存本行和下面一行开始位置和内容
+                            int nowLineStartAt = Util.GetFirstCharIndexOfCurrentLine();
+                            int lowerLineStartAt = Util.GetFirstCharIndexOfLine(Util.GetNowLineIndex() + 1);
+                            String nowLine = Util.GetNowLine();
+                            String lowerLine = Util.GetLine(Util.GetNowLineIndex() + 1);
+                            StringBuilder content = new StringBuilder(this.textBoxMain.Text);
+                            // 交换两行内容
+                            content.Remove(lowerLineStartAt, lowerLine.Length);
+                            content.Insert(lowerLineStartAt, nowLine);
+                            content.Remove(nowLineStartAt, nowLine.Length);
+                            content.Insert(nowLineStartAt, lowerLine);
+                            // 保存列号和选择长度与新的行号
+                            int savedSelectionLength = this.textBoxMain.SelectionLength;
+                            int savedColumnIndex = Util.GetColumnIndex();
+                            int newLineIndex = Util.GetNowLineIndex() + 1;
+                            // 屏幕指针指向新位置
+                            this.textBoxMain.Text = content.ToString();
+                            this.textBoxMain.SelectionStart = Util.GetFirstCharIndexOfLine(newLineIndex) + savedColumnIndex;
+                            this.textBoxMain.SelectionLength = savedSelectionLength;
+                        }
+                        catch (System.Exception)
+                        { }
+                        finally // 恢复字号
+                        {
+                            this.DocumentFontSizeZh = savedDocumentFontSizeZh;
+                        }
                     }
                 }
             }
@@ -1330,6 +1377,8 @@ namespace 日志书写器
             int nowStart = textBoxMain.SelectionStart;
             this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
             this.textBoxMain.Select(nowStart + 2, 0);
+            this.ConvertLF2CRLF();
+            this.former.SaveText(this.textBoxMain.Text);
         }
 
         /// <summary>
@@ -1374,6 +1423,10 @@ namespace 日志书写器
 
         private void 插入链接ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            this.former.SaveText(this.textBoxMain.Text);
+            if (ConvertLF2CRLF())
+                return;
+
             bool savedSetting = this.TopMost;
             this.TopMost = false;
 
@@ -1383,6 +1436,7 @@ namespace 日志书写器
             string inputString = Interaction.InputBox("输入网址Url：");
             if (inputString == "")
                 return;
+
             StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
             stringBuilder.Remove(startAt, length);
             stringBuilder.Insert(startAt, "[" + removedText + "](" + inputString + ")");
@@ -1399,6 +1453,7 @@ namespace 日志书写器
         private void 剪切ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("^{x}");
+            this.former.SaveText(this.textBoxMain.Text);
         }
 
         /// <summary>
@@ -1419,6 +1474,8 @@ namespace 日志书写器
         private void 粘贴ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SendKeys.Send("^{v}");
+            former.SaveText(this.textBoxMain.Text);
+            this.ConvertLF2CRLF();
         }
 
         /// <summary>
@@ -1589,6 +1646,36 @@ namespace 日志书写器
         private void toolStripStatusLockScrollBar_Click(object sender, EventArgs e)
         {
             SwitchScrollBarLockStatus();
+        }
+        #endregion
+
+        #region Undo和Redo
+        class FormerSaver
+        {
+            private List<String> formerText = new List<string>();
+            private int formerText_NowPlace = -1;
+            public String Undo()
+            {
+                if (this.formerText_NowPlace < 0)
+                    return null;
+                return formerText[formerText_NowPlace--];
+            }
+            public String Redo()
+            {
+                if (this.formerText_NowPlace > this.formerText.Count - 2)
+                    return null;
+                return formerText[++formerText_NowPlace];
+            }
+            public void SaveText(String text)
+            {
+                if (this.formerText.Count - 1 > this.formerText_NowPlace)
+                    this.formerText.RemoveRange(this.formerText_NowPlace + 1, this.formerText.Count - 1 - this.formerText_NowPlace);
+                if (formerText.Count > 0 && formerText[formerText.Count - 1] == text)
+                    return;
+
+                formerText.Add(text);
+                this.formerText_NowPlace++;
+            }
         }
         #endregion
 
