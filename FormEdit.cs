@@ -255,7 +255,7 @@ namespace 日志书写器
             // 初始化自动保存
             CreateAutoSaver();
             // 加版本号
-            this.Text += " v" + Program.Version();
+            Title.Version = Program.Version();
             // 状态栏内的锁初始化
             this.SwitchScrollBarLockStatus();
             this.SwitchFullScreenLockStatus();
@@ -676,18 +676,17 @@ namespace 日志书写器
             // 加载文档内容
             this.LoadDocx(docFileName);
             // 修改标题为新的docx文件名
-            if (this.Text.Contains("("))
-                this.Text = this.Text.Substring(0, this.Text.IndexOf('(')) + " (" + docFileName + ")";
-            else
-                this.Text += " (" + docFileName + ")";
+            Title.SpecifiedDocumentFullName = docFileName;
             // 判断是否为只读文件
             if (IsReadOnly(docFileName))
-            {
-                this.Text += " [只读]";
-            }
+                Title.ReadOnly = true;
+            else
+                Title.ReadOnly = false;
             // 停止计时器，修改源文件，开启计时器
             Backup.Stop();
             Backup.Original文件名 = docFileName;
+            // 更新文件路径框
+            this.textBoxPath.Text = Backup.WorkingDirectory;
             if (!IsReadOnly(docFileName))
                 Backup.Start();
         }
@@ -1649,67 +1648,7 @@ namespace 日志书写器
         }
         #endregion
 
-        #region Undo和Redo
-        class FormerSaver
-        {
-            private List<String> formerText = new List<string>();
-            private int formerText_NowPlace = -1;
-            public String Undo()
-            {
-                if (this.formerText_NowPlace < 0)
-                    return null;
-                return formerText[formerText_NowPlace--];
-            }
-            public String Redo()
-            {
-                if (this.formerText_NowPlace > this.formerText.Count - 2)
-                    return null;
-                return formerText[++formerText_NowPlace];
-            }
-            public void SaveText(String text)
-            {
-                if (this.formerText.Count - 1 > this.formerText_NowPlace)
-                    this.formerText.RemoveRange(this.formerText_NowPlace + 1, this.formerText.Count - 1 - this.formerText_NowPlace);
-                if (formerText.Count > 0 && formerText[formerText.Count - 1] == text)
-                    return;
-
-                formerText.Add(text);
-                this.formerText_NowPlace++;
-            }
-        }
-        #endregion
-
-        #region 外部调用接口
-        /// <summary>
-        /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
-        /// </summary>
-        /// <param name="autoSavePerSecond"></param>
-        public void ChangeTimerPerSecond(int autoSavePerSecond)
-        {
-            this.AutoSavePerSecond = autoSavePerSecond;
-            if (AutoSaverTimerBusy)
-            {
-                AutoSaver.Stop();
-                CreateAutoSaver();
-                AutoSaver.Start();
-            }
-            if (BackupTimerBusy)
-            {
-                Backup.Stop();
-                CreateBackupCreater();
-                Backup.Start();
-            }
-        }
-
-        /// <summary>
-        /// 直接删除当前的备份文件
-        /// </summary>
-        public void DeleteBackup()
-        {
-            Backup.DeleteBackup();
-        }
-        #endregion
-
+        #region 帮助类封装
         /// <summary>
         /// 文本定位帮助类
         /// </summary>
@@ -1772,6 +1711,118 @@ namespace 日志书写器
             }
         }
 
+        /// <summary>
+        /// Undo和Redo的实现类
+        /// </summary>
+        class FormerSaver
+        {
+            private List<String> formerText = new List<string>();
+            private int formerText_NowPlace = -1;
+            public String Undo()
+            {
+                if (this.formerText_NowPlace < 0)
+                    return null;
+                return formerText[formerText_NowPlace--];
+            }
+            public String Redo()
+            {
+                if (this.formerText_NowPlace > this.formerText.Count - 2)
+                    return null;
+                return formerText[++formerText_NowPlace];
+            }
+            public void SaveText(String text)
+            {
+                if (this.formerText.Count - 1 > this.formerText_NowPlace)
+                    this.formerText.RemoveRange(this.formerText_NowPlace + 1, this.formerText.Count - 1 - this.formerText_NowPlace);
+                if (formerText.Count > 0 && formerText[formerText.Count - 1] == text)
+                    return;
+
+                formerText.Add(text);
+                this.formerText_NowPlace++;
+            }
+        }
+        
+        /// <summary>
+        /// 主程序的标题管理类
+        /// </summary>
+        static class Title
+        {
+            private static string titleName = "日志书写器";
+            private static string version = null;
+            private static string specifiedDocumentFullName = null;
+            private static bool isReadOnly = false;
+            private static bool isEdited = false;
+            public static string TitleName { set {
+                    titleName = value;
+                    UpdateTitle();
+                } }
+            public static string Version { set {
+                    Title.version = value;
+                    Title.UpdateTitle();
+                } }
+            public static string SpecifiedDocumentFullName { set {
+                    Title.specifiedDocumentFullName = value;
+                    Title.UpdateTitle();
+                } }
+            public static bool ReadOnly { set {
+                    Title.isReadOnly = value;
+                    Title.UpdateTitle();
+                } }
+            public static void UpdateTitle()
+            {
+                StringBuilder finalTitle = new StringBuilder();
+                finalTitle.Append(titleName);
+                if (version != null)
+                {
+                    finalTitle.Append(" v");
+                    finalTitle.Append(version);
+                }
+                if (specifiedDocumentFullName != null)
+                {
+                    finalTitle.Append(" (");
+                    finalTitle.Append(specifiedDocumentFullName);
+                    finalTitle.Append(")");
+                }
+                if (isReadOnly)
+                    finalTitle.Append(" [只读]");
+                if (isEdited)
+                    finalTitle.Append("*");
+                FormEdit.instance.Text = finalTitle.ToString();
+            }
+        }
+        #endregion
+
+        #region 外部调用接口
+        /// <summary>
+        /// 改变所有的Timer的间隔事件为autoSavePerSecond秒，并重启所有正在运行的Timer
+        /// </summary>
+        /// <param name="autoSavePerSecond"></param>
+        public void ChangeTimerPerSecond(int autoSavePerSecond)
+        {
+            this.AutoSavePerSecond = autoSavePerSecond;
+            if (AutoSaverTimerBusy)
+            {
+                AutoSaver.Stop();
+                CreateAutoSaver();
+                AutoSaver.Start();
+            }
+            if (BackupTimerBusy)
+            {
+                Backup.Stop();
+                CreateBackupCreater();
+                Backup.Start();
+            }
+        }
+
+        /// <summary>
+        /// 直接删除当前的备份文件
+        /// </summary>
+        public void DeleteBackup()
+        {
+            Backup.DeleteBackup();
+        }
+        #endregion
+        
         #region 外部引用模块（无错勿动）
         /// <summary>
         /// 模拟鼠标点击事件

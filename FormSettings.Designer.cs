@@ -44,6 +44,7 @@
             this.textBox计时器时长.Name = "textBox计时器时长";
             this.textBox计时器时长.Size = new System.Drawing.Size(100, 21);
             this.textBox计时器时长.TabIndex = 0;
+            this.textBox计时器时长.Text = "30";
             // 
             // label计时器时长
             // 

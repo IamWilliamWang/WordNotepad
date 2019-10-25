@@ -298,8 +298,6 @@
             // 
             this.checkBoxMailbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxMailbox.AutoSize = true;
-            this.checkBoxMailbox.Checked = true;
-            this.checkBoxMailbox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxMailbox.Location = new System.Drawing.Point(599, 11);
             this.checkBoxMailbox.Name = "checkBoxMailbox";
             this.checkBoxMailbox.Size = new System.Drawing.Size(72, 28);
