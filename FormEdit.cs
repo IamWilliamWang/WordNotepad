@@ -495,7 +495,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 保存文档的内部实现（旧式兼容性接口）
+        /// 执行保存文档的内部实现（兼容性接口）
         /// </summary>
         /// <param name="docxName">要保存的文件名</param>
         /// <param name="changeSavedCharLength">是否修改SavedCharLength</param>
@@ -510,7 +510,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 执行保存文档的内部实现
+        /// 执行保存文档的内部实现（旧式方法）
         /// </summary>
         private bool SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
         {
@@ -583,6 +583,12 @@ namespace 日志书写器
         {
             this.button保存_Click(sender, e);
             this.textBoxMain.Enabled = false;
+        }
+
+        private void 强制保存ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            savedCharLength = -1;
+            button保存_Click(sender, e);
         }
         #endregion
 
@@ -691,6 +697,30 @@ namespace 日志书写器
                 Backup.Start();
         }
 
+        private void LoadTextFromSpecificTxtFile(string file)
+        {
+            try
+            {
+                var fileInfo = new FileInfo(file);
+                if (fileInfo.Length > 20 * 1024 * 1024)
+                {
+                    MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
+                if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
+                {
+                    MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.textBoxMain.Text = "";
+                    return;
+                }
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+        }
+
         /// <summary>
         /// 拖拽放置到窗体任意（未注册事件的）区域事件
         /// </summary>
@@ -712,26 +742,7 @@ namespace 日志书写器
                     }
                     else
                     {
-                        try
-                        {
-                            var fileInfo = new FileInfo(file);
-                            if (fileInfo.Length > 20 * 1024 * 1024)
-                            {
-                                MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
-                            }
-                            LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
-                            if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
-                            {
-                                MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                this.textBoxMain.Text = "";
-                                return;
-                            }
-                        }
-                        catch (IOException)
-                        {
-                            throw;
-                        }
+                        this.LoadTextFromSpecificTxtFile(file);
                     }
                 }
             }
@@ -859,11 +870,16 @@ namespace 日志书写器
                 else if (e.KeyCode == Keys.O)
                 {
                     OpenFileDialog openFileDialog = new OpenFileDialog();
-                    openFileDialog.Filter = "文档|*.docx";
+                    openFileDialog.Filter = "docx文档|*.docx|所有文件|*.*";
                     openFileDialog.Multiselect = false;
                     openFileDialog.Title = "打开docx文档";
                     if (openFileDialog.ShowDialog() == DialogResult.OK)
-                        this.LoadSpecificDocument(openFileDialog.FileName);
+                    {
+                        if (openFileDialog.FileName.Contains(".docx"))
+                            this.LoadSpecificDocument(openFileDialog.FileName);
+                        else
+                            this.LoadTextFromSpecificTxtFile(openFileDialog.FileName);
+                    }
                 }
                 // Ctrl+F 查找内容
                 else if (e.KeyCode == Keys.F)
@@ -1428,20 +1444,23 @@ namespace 日志书写器
 
             bool savedSetting = this.TopMost;
             this.TopMost = false;
+            try
+            {
+                int startAt = this.textBoxMain.SelectionStart;
+                int length = this.textBoxMain.SelectionLength;
+                string removedText = this.textBoxMain.Text.Substring(startAt, length);
+                string inputString = Interaction.InputBox("输入链接网址Url（如果想插入Tab请点击取消）：");
+                if (inputString == "")
+                    return;
 
-            int startAt = this.textBoxMain.SelectionStart;
-            int length = this.textBoxMain.SelectionLength;
-            string removedText = this.textBoxMain.Text.Substring(startAt, length);
-            string inputString = Interaction.InputBox("输入网址Url：");
-            if (inputString == "")
-                return;
-
-            StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
-            stringBuilder.Remove(startAt, length);
-            stringBuilder.Insert(startAt, "[" + removedText + "](" + inputString + ")");
-            this.textBoxMain.Text = stringBuilder.ToString();
-
-            this.TopMost = savedSetting;
+                String newText = this.former.GetNewest().Insert(startAt, "[");
+                newText = newText.Insert(startAt + length + 1, "](" + inputString + ")");
+                this.textBoxMain.Text = newText;
+            }
+            finally
+            {
+                this.TopMost = savedSetting;
+            }
         }
 
         /// <summary>
@@ -1716,29 +1735,50 @@ namespace 日志书写器
         /// </summary>
         class FormerSaver
         {
-            private List<String> formerText = new List<string>();
-            private int formerText_NowPlace = -1;
+            /* 由于要使用Redo，就不能使用Stack类进行操作 */
+            private List<String> formerText = new List<string>(20); // 储存每个状态下的Text的记录顺序表
+            private int formerText_NowPlace = -1; // 最新元素的储存位置
+            /// <summary>
+            /// 撤销
+            /// </summary>
+            /// <returns></returns>
             public String Undo()
             {
                 if (this.formerText_NowPlace < 0)
                     return null;
                 return formerText[formerText_NowPlace--];
             }
+            /// <summary>
+            /// 重做
+            /// </summary>
+            /// <returns></returns>
             public String Redo()
             {
                 if (this.formerText_NowPlace > this.formerText.Count - 2)
                     return null;
                 return formerText[++formerText_NowPlace];
             }
+            /// <summary>
+            /// 保存Text
+            /// </summary>
+            /// <param name="text"></param>
             public void SaveText(String text)
             {
                 if (this.formerText.Count - 1 > this.formerText_NowPlace)
                     this.formerText.RemoveRange(this.formerText_NowPlace + 1, this.formerText.Count - 1 - this.formerText_NowPlace);
                 if (formerText.Count > 0 && formerText[formerText.Count - 1] == text)
                     return;
-
+                
                 formerText.Add(text);
                 this.formerText_NowPlace++;
+            }
+            /// <summary>
+            /// 获得最新的Text
+            /// </summary>
+            /// <returns></returns>
+            public string GetNewest()
+            {
+                return formerText[formerText_NowPlace];
             }
         }
         

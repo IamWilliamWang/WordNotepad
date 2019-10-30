@@ -64,6 +64,7 @@
             this.toolStripStatusLabelLockScrollBar = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelLockFullScreen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
+            this.强制保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
@@ -236,14 +237,15 @@
             // contextMenuStripSave
             // 
             this.contextMenuStripSave.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.保存并置为终稿ToolStripMenuItem});
+            this.保存并置为终稿ToolStripMenuItem,
+            this.强制保存ToolStripMenuItem});
             this.contextMenuStripSave.Name = "contextMenuStripSave";
-            this.contextMenuStripSave.Size = new System.Drawing.Size(161, 26);
+            this.contextMenuStripSave.Size = new System.Drawing.Size(181, 70);
             // 
             // 保存并置为终稿ToolStripMenuItem
             // 
             this.保存并置为终稿ToolStripMenuItem.Name = "保存并置为终稿ToolStripMenuItem";
-            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.保存并置为终稿ToolStripMenuItem.Text = "保存并置为终稿";
             this.保存并置为终稿ToolStripMenuItem.Click += new System.EventHandler(this.保存并置为终稿ToolStripMenuItem_Click);
             // 
@@ -417,6 +419,13 @@
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // 强制保存ToolStripMenuItem
+            // 
+            this.强制保存ToolStripMenuItem.Name = "强制保存ToolStripMenuItem";
+            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.强制保存ToolStripMenuItem.Text = "强制保存";
+            this.强制保存ToolStripMenuItem.Click += new System.EventHandler(this.强制保存ToolStripMenuItem_Click);
+            // 
             // FormEdit
             // 
             this.AllowDrop = true;
@@ -483,6 +492,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelEmpty;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelLockScrollBar;
         private System.Windows.Forms.ComboBox comboBoxFont;
+        private System.Windows.Forms.ToolStripMenuItem 强制保存ToolStripMenuItem;
     }
 }
 
