@@ -108,9 +108,8 @@ namespace 日志书写器
         private System.Windows.Forms.Button button取消;
 
         #endregion
-
-
-        /**************** InputBoxForm.cs ****************/
+        
+        #region InputBoxForm.cs
         public string BoxText { get { return this.textBoxInput.Text; } set { this.textBoxInput.Text = value; } }
         private int CharCountPerLine { get; set; } = 30;
         public string Title { get { return this.Text; } set { this.Text = value; } }
@@ -185,8 +184,8 @@ namespace 日志书写器
         {
             return this.输入成功 && this.BoxText != String.Empty;
         }
+        #endregion
     }
-
 
     class Interaction
     {

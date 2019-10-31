@@ -236,6 +236,11 @@ namespace 日志书写器
             }
         }
 
+        private bool ExistProcess(string processName)
+        {
+            return Process.GetProcessesByName(processName).Length > 1;
+        }
+
         /// <summary>
         /// 加载窗体准备的工作
         /// </summary>
@@ -244,7 +249,7 @@ namespace 日志书写器
         private void FormEdit_Load(object sender, EventArgs e)
         {
             // 检测后台是否运行同一程序
-            if (Process.GetProcessesByName("TextWriter").Length > 1 || Process.GetProcessesByName("日志书写器").Length > 1)
+            if (ExistProcess(Assembly.GetExecutingAssembly().GetName().Name) || ExistProcess("TextWriter") || ExistProcess("日志书写器"))
                 if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
                     Environment.Exit(0);
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
@@ -845,6 +850,30 @@ namespace 日志书写器
         }
 
         /// <summary>
+        /// 执行撤销操作
+        /// </summary>
+        private void UndoText()
+        {
+            var oldText = this.former.Undo();
+            while (oldText == this.textBoxMain.Text)
+                oldText = this.former.Redo();
+            if (oldText != null)
+                this.textBoxMain.Text = oldText;
+        }
+
+        /// <summary>
+        /// 执行重做操作
+        /// </summary>
+        private void RedoText()
+        {
+            var newText = this.former.Redo();
+            while (newText == this.textBoxMain.Text)
+                newText = this.former.Redo();
+            if (newText != null)
+                this.textBoxMain.Text = newText;
+        }
+
+        /// <summary>
         /// 主编辑框输入事件
         /// </summary>
         /// <param name="sender"></param>
@@ -854,6 +883,13 @@ namespace 日志书写器
             // 按下回车时保存内容
             if (e.KeyCode == Keys.Enter)
                 this.former.SaveText(this.textBoxMain.Text);
+            // 只有全屏模式才执行的快捷键
+            if (this.FullScreen)
+            {
+                // Ctrl+Alt+L 切换全屏锁状态
+                if (e.Control && e.Alt && e.KeyCode == Keys.L)
+                    this.SwitchFullScreenLockStatus();
+            }
             // Ctrl + 某按键
             if (e.Control)
             {
@@ -894,18 +930,10 @@ namespace 日志书写器
                 }
                 // Ctrl+Z 撤回
                 else if (e.KeyCode == Keys.Z)
-                {
-                    var undoResult = this.former.Undo();
-                    if (undoResult != null)
-                        this.textBoxMain.Text = undoResult;
-                }
+                    UndoText();
                 // Ctrl+Y 重做
                 else if (e.KeyCode == Keys.Y)
-                {
-                    var redoResult = this.former.Redo();
-                    if (redoResult != null)
-                        this.textBoxMain.Text = redoResult;
-                }
+                    RedoText();
                 // Ctrl+T 插入两个中文空格
                 else if (e.KeyCode == Keys.T)
                     this.插入中文空格ToolStripMenuItem_Click(sender, e);
@@ -1415,7 +1443,7 @@ namespace 日志书写器
                 index = textBoxMain.Text.IndexOf(search, 0);
                 if (index == -1)
                 {
-                    MessageBox.Show("仍然未找到");
+                    MessageBox.Show("仍然未找到", "搜索结果", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
             }
@@ -1449,9 +1477,11 @@ namespace 日志书写器
                 int startAt = this.textBoxMain.SelectionStart;
                 int length = this.textBoxMain.SelectionLength;
                 string removedText = this.textBoxMain.Text.Substring(startAt, length);
-                string inputString = Interaction.InputBox("输入链接网址Url（如果想插入Tab请点击取消）：");
+                string inputString = Interaction.InputBox("输入链接网址Url：", hint: "提示：想取消插入请点击取消");
                 if (inputString == "")
+                {
                     return;
+                }
 
                 String newText = this.former.GetNewest().Insert(startAt, "[");
                 newText = newText.Insert(startAt + length + 1, "](" + inputString + ")");
@@ -1739,7 +1769,7 @@ namespace 日志书写器
             private List<String> formerText = new List<string>(20); // 储存每个状态下的Text的记录顺序表
             private int formerText_NowPlace = -1; // 最新元素的储存位置
             /// <summary>
-            /// 撤销
+            /// 撤销，如果越界会返回null
             /// </summary>
             /// <returns></returns>
             public String Undo()
@@ -1749,7 +1779,7 @@ namespace 日志书写器
                 return formerText[formerText_NowPlace--];
             }
             /// <summary>
-            /// 重做
+            /// 重做，如果越界会返回null
             /// </summary>
             /// <returns></returns>
             public String Redo()

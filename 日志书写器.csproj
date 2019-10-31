@@ -7,7 +7,7 @@
     <ProjectGuid>{C246C629-6B2C-47D2-A709-BFE1C5A9E0AB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>日志书写器</RootNamespace>
-    <AssemblyName>TextWriter</AssemblyName>
+    <AssemblyName>WordNotepad</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
