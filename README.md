@@ -1,23 +1,23 @@
-﻿WordNotepad v3.4
+﻿# WordNotepad v3.5
 
 基于.NET的记事本风格的Word文档编辑器
 
-免安装稳定版本下载（需要预装.NET framework 4.6及以上版本）：
+<font size=5>**免安装稳定版本下载**</font>（需要预装.NET framework 4.6及以上版本）：
 
-[Ultimate旗舰版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.4/TextWriter.exe)：
+[Ultimate旗舰版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.4/TextWriter.exe)
 
 新增内容：精简文件大小。普通模式下添加状态栏，栏内显示行、列号、字数，还能控制是否锁定全屏模式、锁定滚动条开启状态。支持插入链接、字体下拉选择，Alt+上下挪动本行文字，Ctrl+Z撤销，Ctrl+Y重做。完善意外保护
 
-[Community社区版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v2.12/TextWriter.exe)：
+[Community社区版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v2.12/TextWriter.exe)
 
 新增内容：添加了全屏模式、黑暗模式、自动聚焦、窗口置顶、自动保存、自动备份、自动恢复、文件拖动加载、保存终稿、插入中文空格、查找、快速查找、快捷输入、快捷删除以及出现各种意外情况的保护
 
-[Lite精简版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v1.6/DocxWriter.exe)：
+[Lite精简版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v1.6/DocxWriter.exe)
 
 基本介绍：记事本风格的Word文本编辑器，支持基本的Word编辑功能。支持设置字体字号，退出时弹出邮箱
+<br><br>
 
-<br>
-版本更新：
+## 版本更新：
 
 1.0:可以写日志，设置字体字号，保存日志，未保存关闭会提示。
 
@@ -72,3 +72,5 @@
 3.3:单击更新行列号。增加了LF检测和LF转为CRLF功能。增加了Ctrl+Z撤销和Ctrl+Y重做功能，在回车、Ctrl+Up、Ctrl+Down、Ctrl+T、Ctrl+I、Ctrl+X、Ctrl+V时会保存为撤销点
 
 3.4:修复了标题产生多余空格问题。不默认勾选退出后打开邮箱。添加强制保存功能。修复了插入链接后界面混乱的问题。Ctrl+O可以载入非docx文件
+
+3.5:所有的跳过会显式的弹出提示，添加了另存为功能，撤销、保存与跳过功能大幅修改，保证不会丢失当前的文档内容。修复加载空文档的问题，文件路径同步时会显示具体的路径

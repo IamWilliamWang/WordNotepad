@@ -115,10 +115,10 @@ namespace 日志书写器
         /// </summary>
         public bool BackupTimerBusy
         {
-            get { return this.Backup.IsBusy; }
+            get { return this.AutoBackup.IsBusy; }
             set
             {
-                if (value != this.Backup.IsBusy)
+                if (value != this.AutoBackup.IsBusy)
                     this.停用备份ToolStripMenuItem_Click(this.停用备份ToolStripMenuItem, null);
             }
         }
@@ -126,7 +126,7 @@ namespace 日志书写器
         /// <summary>
         /// 自动备份Timer
         /// </summary>
-        private BackupCreater Backup { get; set; } 
+        private BackupCreater AutoBackup { get; set; } 
 
         /// <summary>
         /// 自动保存Timer
@@ -136,7 +136,7 @@ namespace 日志书写器
         /// <summary>
         /// 保存Undo、Redo功能要显示的内容
         /// </summary>
-        private FormerSaver former = new FormerSaver();
+        private FormerSaver<String> former = new FormerSaver<String>();
 
         /// <summary>
         /// 获得FormEdit单例
@@ -147,6 +147,8 @@ namespace 日志书写器
         /// 已保存的FormEdit实例
         /// </summary>
         private static FormEdit instance;
+
+        private enum Result { Done, Failed, Skipped, Canceled };
         #endregion
 
         #region 启动与关闭
@@ -205,7 +207,7 @@ namespace 日志书写器
         /// </summary>
         private void CreateBackupCreater()
         {
-            Backup = new BackupCreater(GetDefaultDocumentFileName(), (backupFileName) => this.SaveBackup(backupFileName), AutoSavePerSecond * 1000, ".autosave");
+            AutoBackup = new BackupCreater(GetDefaultDocumentFileName(), (backupFileName) => this.SaveBackup(backupFileName), AutoSavePerSecond * 1000, ".autosave");
         }
 
         /// <summary>
@@ -213,7 +215,7 @@ namespace 日志书写器
         /// </summary>
         private void CreateAutoSaver()
         {
-            AutoSaver = new BackupCreater(GetDefaultDocumentFileName(), (docxFile) => this.SaveDocument(), AutoSavePerSecond * 1000); // 直接传入SaveDocument，文件名不受BackupCreater控制避免意外。
+            AutoSaver = new BackupCreater(GetDefaultDocumentFileName(), (docxFile) => this.SaveDocument(), AutoSavePerSecond * 1000); // 直接传入SaveDocument，架空内部命名逻辑，只使用其中的计时器，避免意外。
         }
 
         /// <summary>
@@ -223,10 +225,10 @@ namespace 日志书写器
         {
             try
             {
-                Word wordRead = new Word(Backup.Backup文件名, AuthorName);
+                Word wordRead = new Word(AutoBackup.Backup文件名, AuthorName);
                 this.textBoxMain.Lines = wordRead.ReadWordLines();
-                if (File.Exists(Backup.Original文件名))
-                    this.savedCharLength = new Word(Backup.Original文件名, AuthorName).Length;
+                if (File.Exists(AutoBackup.Original文件名))
+                    this.savedCharLength = new Word(AutoBackup.Original文件名, AuthorName).Length;
             }
             catch (IOException)
             {
@@ -275,15 +277,15 @@ namespace 日志书写器
                 }
             }
             // 有自动保存文件则恢复内容
-            if (File.Exists(Backup.Backup文件名))
+            if (File.Exists(AutoBackup.Backup文件名))
             {
                 if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                    Backup.RestoreFile(RestoreAutosave, true);
+                    AutoBackup.RestoreFile(RestoreAutosave, true);
             }
             // 有保存的文档则直接加载内容
-            else if (File.Exists(Backup.Original文件名))
+            else if (File.Exists(AutoBackup.Original文件名))
             {
-                LoadDocx(Backup.Original文件名);
+                LoadDocx(AutoBackup.Original文件名);
             }
             // 如果没有dll文件就解压文件
             if (!File.Exists(dllNames[1]))
@@ -312,17 +314,17 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(自动保存ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(停用备份ToolStripMenuItem);
             // 显示工作路径
-            this.textBoxPath.Text = Backup.WorkingDirectory;
+            this.textBoxPath.Text = AutoBackup.WorkingDirectory;
             // 启动自动保存计时器
             if (!IsReadOnly())
-                Backup.Start();
+                AutoBackup.Start();
         }
         
         /// <summary>
         /// 加载指定的docx文档到文本框
         /// </summary>
         /// <param name="docxFileName"></param>
-        private void LoadDocx(string docxFileName)
+        private Result LoadDocx(string docxFileName)
         {
             try
             {
@@ -337,12 +339,14 @@ namespace 日志书写器
                 this.DocumentFont = wordRead.Font;
                 // 储存字数
                 this.savedCharLength = wordRead.Length;
+                return Result.Done;
             }
             catch (IOException)
             {
                 MessageBox.Show("读取失败，日志文件被占用，请关闭Microsoft Word软件后再打开本软件！", "警告！", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.checkBoxMailbox.Checked = false;
                 Application.Exit();
+                return Result.Failed;
             }
         }
         
@@ -350,7 +354,7 @@ namespace 日志书写器
         /// 加载txt文件，但不改变操作目标文件
         /// </summary>
         /// <param name="txtFileName"></param>
-        private void LoadTxt(string txtFileName)
+        private Result LoadTxt(string txtFileName)
         {
             try
             {
@@ -358,6 +362,7 @@ namespace 日志书写器
                 this.savedCharLength = 0;
                 foreach (var str in this.textBoxMain.Lines)
                     this.savedCharLength += str.Length;
+                return Result.Done;
             }
             catch(IOException)
             {
@@ -419,12 +424,12 @@ namespace 日志书写器
         /// </summary>
         private void CheckPathChanged()
         {
-            if (this.textBoxPath.Text.Replace("\\","") != Backup.WorkingDirectory.Replace("\\", ""))
+            if (this.textBoxPath.Text.Replace("\\","") != AutoBackup.WorkingDirectory.Replace("\\", ""))
             {
-                if (DialogResult.Yes == MessageBox.Show("检测到新文件路径未被更新。如果想立即应用更新请点“是”，如果想撤销文件路径的更新请点“否”", "更新文件路径", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                if (DialogResult.Yes == MessageBox.Show("检测到文件路径未被更新。如果想改变文件路径为 " + this.textBoxPath.Text + " 请点“是”，如果想保持文件路径为 " + AutoBackup.WorkingDirectory + " 请点“否”", "文件路径不一致检测", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
                     this.textBoxPath_KeyDown(null, new KeyEventArgs(Keys.Enter));
                 else
-                    this.textBoxPath.Text = Backup.WorkingDirectory;
+                    this.textBoxPath.Text = AutoBackup.WorkingDirectory;
             }
         }
 
@@ -485,27 +490,27 @@ namespace 日志书写器
         /// <summary>
         /// 执行保存docx文档
         /// </summary>
-        private bool SaveDocument()
+        private Result SaveDocument()
         {
-            return SaveDocx(Backup.Original文件名);
+            return SaveDocx(AutoBackup.Original文件名);
         }
 
         /// <summary>
         /// 执行保存备份
         /// </summary>
         /// <param name="backupFileName"></param>
-        private void SaveBackup(string backupFileName)
+        private Result SaveBackup(string backupFileName)
         {
-            SaveDocx(backupFileName, false);
+            return SaveDocx(backupFileName, false);
         }
 
         /// <summary>
-        /// 执行保存文档的内部实现（兼容性接口）
+        /// 执行保存文档的兼容性接口
         /// </summary>
         /// <param name="docxName">要保存的文件名</param>
-        /// <param name="changeSavedCharLength">是否修改SavedCharLength</param>
+        /// <param name="changeSavedCharLength">是否修改SavedCharLength，取决于调用时是对docx操作还是对autosave操作</param>
         /// <returns></returns>
-        private bool SaveDocx(string docxName, bool changeSavedCharLength = true)
+        private Result SaveDocx(string docxName, bool changeSavedCharLength = true)
         {
             /* 原先此函数未考虑备份保存时判断跳过，所以没有使用SavedBackupCharLength。此接口为兼容接口，继续使用changeSavedCharLength来判断保存的是文档还是备份 */
             if (changeSavedCharLength) // 保存的是文档
@@ -515,17 +520,21 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 执行保存文档的内部实现（旧式方法）
+        /// 执行保存文档的内部实现
         /// </summary>
-        private bool SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
+        /// <param name="docxName">要保存的文件名</param>
+        /// <param name="changedCharLength">要被修改的charLength</param>
+        /// <param name="changeCharLength">是否需要修改changedCharLength</param>
+        /// <returns></returns>
+        private Result SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
         {
             CheckPathChanged();
             if (this.textBoxMain.Text != "" && changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length) 
-                return true; // 如果不需要保存就返回，假装保存好了
+                return Result.Skipped; // 如果不需要保存就返回，假装保存好了
             if (new FileInfo(docxName).Attributes == FileAttributes.ReadOnly) // 不要写入只读文件
             {
                 MessageBox.Show("请勿写入只读文件！", "保存失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                return Result.Failed;
             }
             Word word = new Word(docxName, AuthorName);
             if (this.comboBoxFont.Text != this.DocumentFont)
@@ -545,7 +554,7 @@ namespace 日志书写器
             {
                 MessageBox.Show("保存目录不存在，请重新填写正确的保存目录！", "保存警告", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.textBoxPath.Text = "";
-                return false;
+                return Result.Failed;
             }
             catch (UnauthorizedAccessException)
             {
@@ -557,13 +566,13 @@ namespace 日志书写器
                 else
                 {
                     this.textBoxPath.Text = Directory.GetCurrentDirectory();
-                    this.Backup.WorkingDirectory = Directory.GetCurrentDirectory();
+                    this.AutoBackup.WorkingDirectory = Directory.GetCurrentDirectory();
                 }
-                return false;
+                return Result.Failed;
             }
             if (changeCharLength)
                 changedCharLength = this.textBoxMain.Text.Replace("\r","").Replace("\n","").Length;
-            return true;
+            return Result.Done;
         }
 
         /// <summary>
@@ -573,10 +582,48 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void button保存_Click(object sender, EventArgs e)
         {
-            bool saveSuccess = this.SaveDocument(); // 调用下一层的保存文档函数
-            DeleteBackup();
-            if(saveSuccess)
+            Result saveResult = this.SaveDocument(); // 调用保存文档函数
+            if (saveResult == Result.Done)
+            {
+                DeleteBackup();
                 MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else if (saveResult == Result.Skipped)
+                MessageBox.Show("无需保存，已跳过保存文档", "已跳过", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 另存为ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "docx文档|*.docx";
+            saveFileDialog.Title = "另存为Word文档";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                savedCharLength = -1;
+                Result saveResult = SaveDocx(saveFileDialog.FileName);
+                if (saveResult == Result.Done)
+                {
+                    DeleteBackup();
+                    MessageBox.Show("已将文档另存为" + saveFileDialog.FileName + "！", "另存为成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (saveResult == Result.Skipped)
+                    MessageBox.Show("发生了未知错误，另存为操作被跳过", "已跳过", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // 重复拖入文档执行的操作，但是简化了判断只读和清除记录
+                Title.SpecifiedDocumentFullName = saveFileDialog.FileName;
+                // 停止计时器，修改源文件，开启计时器
+                AutoBackup.Stop();
+                AutoBackup.Original文件名 = saveFileDialog.FileName;
+                // 更新文件路径框
+                this.textBoxPath.Text = AutoBackup.WorkingDirectory;
+                // 重新打开计时器
+                AutoBackup.Start();
+            }
+        }
+
+        private void 强制保存ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            savedCharLength = -1;
+            button保存_Click(sender, e);
         }
 
         /// <summary>
@@ -588,12 +635,6 @@ namespace 日志书写器
         {
             this.button保存_Click(sender, e);
             this.textBoxMain.Enabled = false;
-        }
-
-        private void 强制保存ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            savedCharLength = -1;
-            button保存_Click(sender, e);
         }
         #endregion
 
@@ -643,7 +684,7 @@ namespace 日志书写器
                     this.textBoxPath.Text = file.Substring(0, file.LastIndexOf("\\"));
                 else
                     this.textBoxPath.Text = file;
-                Backup.WorkingDirectory = this.textBoxPath.Text;
+                AutoBackup.WorkingDirectory = this.textBoxPath.Text;
             }
         }
 
@@ -664,7 +705,7 @@ namespace 日志书写器
         /// <returns></returns>
         public bool IsReadOnly()
         {
-            return IsReadOnly(this.Backup.Original文件名);
+            return IsReadOnly(this.AutoBackup.Original文件名);
         }
 
         /// <summary>
@@ -682,10 +723,29 @@ namespace 日志书写器
         /// 执行加载特定的docx文件到文本框，并修改操作目标文件
         /// </summary>
         /// <param name="docFileName"></param>
-        private void LoadSpecificDocument(string docFileName)
+        private Result LoadSpecificDocument(string docFileName)
         {
+            // 检查切换文件时是否需要先行保存
+            if (NeedSave())
+            {
+                var selection = MessageBox.Show("当前文档检测到已被修改，是否保存后再打开新文档？", "修改提醒", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+                if (selection == DialogResult.Yes)
+                {
+                    if (SaveDocx(this.AutoBackup.Original文件名) != Result.Done)
+                    {
+                        MessageBox.Show("保存失败，已经取消加载文档。");
+                        return Result.Failed;
+                    }
+                }
+                else if (selection == DialogResult.Cancel)
+                    return Result.Canceled;
+            }
+            // 加载前先清空保存的记录
+            this.former.Clear();
             // 加载文档内容
             this.LoadDocx(docFileName);
+            // 加载完保存一下内容
+            this.former.SaveText(this.textBoxMain.Text);
             // 修改标题为新的docx文件名
             Title.SpecifiedDocumentFullName = docFileName;
             // 判断是否为只读文件
@@ -694,15 +754,16 @@ namespace 日志书写器
             else
                 Title.ReadOnly = false;
             // 停止计时器，修改源文件，开启计时器
-            Backup.Stop();
-            Backup.Original文件名 = docFileName;
+            AutoBackup.Stop();
+            AutoBackup.Original文件名 = docFileName;
             // 更新文件路径框
-            this.textBoxPath.Text = Backup.WorkingDirectory;
+            this.textBoxPath.Text = AutoBackup.WorkingDirectory;
             if (!IsReadOnly(docFileName))
-                Backup.Start();
+                AutoBackup.Start();
+            return Result.Done;
         }
 
-        private void LoadTextFromSpecificTxtFile(string file)
+        private Result LoadTextFromSpecificTxtFile(string file)
         {
             try
             {
@@ -710,15 +771,16 @@ namespace 日志书写器
                 if (fileInfo.Length > 20 * 1024 * 1024)
                 {
                     MessageBox.Show("文件过大，请不要加载大于20M的文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    return Result.Failed;
                 }
                 LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
                 if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
                 {
                     MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     this.textBoxMain.Text = "";
-                    return;
+                    return Result.Failed;
                 }
+                return Result.Done;
             }
             catch (IOException)
             {
@@ -743,7 +805,8 @@ namespace 日志书写器
                     {
                         // 同步路径
                         textBoxPath_DragDrop(sender, e);
-                        this.LoadSpecificDocument(file);
+                        if (Result.Done == this.LoadSpecificDocument(file))
+                            this.AutoBackup.Original文件名 = file;
                     }
                     else
                     {
@@ -800,8 +863,8 @@ namespace 日志书写器
                     this.textBoxPath.Text = "";
                     return;
                 }
-                this.Backup.WorkingDirectory = this.textBoxPath.Text;
-                MessageBox.Show("文件路径已被成功修改为 " + this.Backup.WorkingDirectory);
+                this.AutoBackup.WorkingDirectory = this.textBoxPath.Text;
+                MessageBox.Show("文件路径已被成功修改为 " + this.AutoBackup.WorkingDirectory);
             }
         }
         #endregion
@@ -854,11 +917,22 @@ namespace 日志书写器
         /// </summary>
         private void UndoText()
         {
-            var oldText = this.former.Undo();
-            while (oldText == this.textBoxMain.Text)
-                oldText = this.former.Redo();
-            if (oldText != null)
-                this.textBoxMain.Text = oldText;
+            try
+            {
+                var peek = this.former.GetPeek();
+                var oldContentText = this.former.Undo();
+                if (peek == oldContentText && peek != this.textBoxMain.Text) // 如果按下Undo会永久丢失当前状态
+                {
+                    // 先重做
+                    this.former.Redo();
+                    // 保存进度后Undo，假装什么都没发生
+                    this.former.SaveText(this.textBoxMain.Text);
+                    this.former.Undo();
+                }
+                if (oldContentText != null)
+                    this.textBoxMain.Text = oldContentText;
+            }
+            catch (ArgumentOutOfRangeException) { }
         }
 
         /// <summary>
@@ -866,11 +940,9 @@ namespace 日志书写器
         /// </summary>
         private void RedoText()
         {
-            var newText = this.former.Redo();
-            while (newText == this.textBoxMain.Text)
-                newText = this.former.Redo();
-            if (newText != null)
-                this.textBoxMain.Text = newText;
+            var newContentText = this.former.Redo();
+            if (newContentText != null)
+                this.textBoxMain.Text = newContentText;
         }
 
         /// <summary>
@@ -908,7 +980,7 @@ namespace 日志书写器
                     OpenFileDialog openFileDialog = new OpenFileDialog();
                     openFileDialog.Filter = "docx文档|*.docx|所有文件|*.*";
                     openFileDialog.Multiselect = false;
-                    openFileDialog.Title = "打开docx文档";
+                    openFileDialog.Title = "打开Docx文档";
                     if (openFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         if (openFileDialog.FileName.Contains(".docx"))
@@ -1487,6 +1559,7 @@ namespace 日志书写器
                 newText = newText.Insert(startAt + length + 1, "](" + inputString + ")");
                 this.textBoxMain.Text = newText;
             }
+            catch (ArgumentOutOfRangeException) { }
             finally
             {
                 this.TopMost = savedSetting;
@@ -1584,7 +1657,7 @@ namespace 日志书写器
         {
             if (((ToolStripMenuItem)sender).Text == "停用备份")
             {
-                this.Backup.Stop();
+                this.AutoBackup.Stop();
                 ((ToolStripMenuItem)sender).Text = "启用备份";
             }
             else if (((ToolStripMenuItem)sender).Text == "启用备份")
@@ -1594,7 +1667,7 @@ namespace 日志书写器
                     MessageBox.Show("只读文件无需启用备份。");
                     return;
                 }
-                this.Backup.Start();
+                this.AutoBackup.Start();
                 ((ToolStripMenuItem)sender).Text = "停用备份";
             }
         }
@@ -1703,6 +1776,11 @@ namespace 日志书写器
         /// </summary>
         private class Util
         {
+            /// <summary>
+            /// 获得当前的行号（从0开始）
+            /// </summary>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetNowLineIndex(TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1710,6 +1788,11 @@ namespace 日志书写器
                 return textBox.GetLineFromCharIndex(textBox.SelectionStart);
             }
 
+            /// <summary>
+            /// 获得当前的列号（从0开始）
+            /// </summary>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetColumnIndex(TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1717,6 +1800,11 @@ namespace 日志书写器
                 return textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
             }
 
+            /// <summary>
+            /// 获得当前行的内容
+            /// </summary>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static String GetNowLine(TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1724,6 +1812,12 @@ namespace 日志书写器
                 return GetLine(GetNowLineIndex(textBox), textBox);
             }
 
+            /// <summary>
+            /// 获得指定行的内容
+            /// </summary>
+            /// <param name="lineNumber"></param>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static String GetLine(int lineNumber, TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1731,6 +1825,11 @@ namespace 日志书写器
                 return textBox.Lines[lineNumber];
             }
 
+            /// <summary>
+            /// 获得当前行的长度
+            /// </summary>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetNowLineLength(TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1738,6 +1837,12 @@ namespace 日志书写器
                 return GetLineLength(GetNowLineIndex(textBox));
             }
 
+            /// <summary>
+            /// 获得指定行的长度
+            /// </summary>
+            /// <param name="lineNumber"></param>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetLineLength(int lineNumber, TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1745,6 +1850,11 @@ namespace 日志书写器
                 return GetLine(lineNumber, textBox).Length;
             }
 
+            /// <summary>
+            /// 获得当前行的第一个字符在TextBox中的索引
+            /// </summary>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetFirstCharIndexOfCurrentLine(TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1752,6 +1862,12 @@ namespace 日志书写器
                 return GetFirstCharIndexOfLine(GetNowLineIndex(textBox), textBox);
             }
 
+            /// <summary>
+            /// 获得指定行的第一个字符在TextBox中的索引
+            /// </summary>
+            /// <param name="lineNumber"></param>
+            /// <param name="textBox"></param>
+            /// <returns></returns>
             public static int GetFirstCharIndexOfLine(int lineNumber, TextBox textBox = null)
             {
                 if (textBox == null)
@@ -1763,52 +1879,91 @@ namespace 日志书写器
         /// <summary>
         /// Undo和Redo的实现类
         /// </summary>
-        class FormerSaver
+        class FormerSaver<T>
         {
             /* 由于要使用Redo，就不能使用Stack类进行操作 */
-            private List<String> formerText = new List<string>(20); // 储存每个状态下的Text的记录顺序表
+            private List<T> formerText = new List<T>(20); // 储存每个状态下的Text的记录顺序表
             private int formerText_NowPlace = -1; // 最新元素的储存位置
+
             /// <summary>
             /// 撤销，如果越界会返回null
             /// </summary>
             /// <returns></returns>
-            public String Undo()
+            public T Undo()
             {
                 if (this.formerText_NowPlace < 0)
-                    return null;
+                    return default(T);
                 return formerText[formerText_NowPlace--];
             }
+
             /// <summary>
             /// 重做，如果越界会返回null
             /// </summary>
             /// <returns></returns>
-            public String Redo()
+            public T Redo()
             {
                 if (this.formerText_NowPlace > this.formerText.Count - 2)
-                    return null;
+                    return default(T);
                 return formerText[++formerText_NowPlace];
             }
+
             /// <summary>
-            /// 保存Text
+            /// 保存Text到FormerSaver类中
             /// </summary>
             /// <param name="text"></param>
-            public void SaveText(String text)
+            public void SaveText(T text)
             {
                 if (this.formerText.Count - 1 > this.formerText_NowPlace)
                     this.formerText.RemoveRange(this.formerText_NowPlace + 1, this.formerText.Count - 1 - this.formerText_NowPlace);
-                if (formerText.Count > 0 && formerText[formerText.Count - 1] == text)
+                if (formerText.Count > 0 && formerText[formerText.Count - 1].Equals(text))
                     return;
                 
                 formerText.Add(text);
                 this.formerText_NowPlace++;
             }
+
             /// <summary>
-            /// 获得最新的Text
+            /// 获得当前指针指向的Text
             /// </summary>
             /// <returns></returns>
-            public string GetNewest()
+            public T GetNewest()
             {
                 return formerText[formerText_NowPlace];
+            }
+
+            /// <summary>
+            /// 获得FormerSaver类中保存的最后一个字符串
+            /// </summary>
+            /// <returns></returns>
+            public T GetPeek()
+            {
+                if (formerText.Count != 0) 
+                    return formerText[formerText.Count - 1];
+                return default(T);
+            }
+
+            /// <summary>
+            /// 重置改类所有变量
+            /// </summary>
+            public void Clear()
+            {
+                this.formerText.Clear();
+                this.formerText_NowPlace = -1;
+            }
+
+            /// <summary>
+            /// 输出类的内容
+            /// </summary>
+            /// <returns></returns>
+            public override string ToString()
+            {
+                String result = "[";
+                for (int i = 0; i < this.formerText.Count - 1; i++)
+                {
+                    result += this.formerText[i] + ",";
+                }
+                result += this.formerText[this.formerText.Count - 1] + "], nowPlace=" + this.formerText_NowPlace;
+                return result;
             }
         }
         
@@ -1878,9 +2033,9 @@ namespace 日志书写器
             }
             if (BackupTimerBusy)
             {
-                Backup.Stop();
+                AutoBackup.Stop();
                 CreateBackupCreater();
-                Backup.Start();
+                AutoBackup.Start();
             }
         }
 
@@ -1889,7 +2044,7 @@ namespace 日志书写器
         /// </summary>
         public void DeleteBackup()
         {
-            Backup.DeleteBackup();
+            AutoBackup.DeleteBackup();
         }
         #endregion
         

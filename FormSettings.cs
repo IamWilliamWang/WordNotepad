@@ -28,6 +28,7 @@ namespace 日志书写器
                 this.textBox计时器时长.Enabled = false;
                 this.button计时器时长变更.Enabled = false;
                 this.button清除备份文件.Enabled = false;
+                this.Text += " (不可用)";
                 return;
             }
 

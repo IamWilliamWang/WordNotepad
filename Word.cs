@@ -18,10 +18,11 @@ namespace 日志书写器
         public int Length { get { return this.ReadWord().Replace("\r", "").Replace("\n", "").Length; } }
         public Word(string docxFileName = "document.docx", string authorName = "")
         {
-            docWrite.GetProperties().CoreProperties.Creator = authorName;
+            if (authorName != "") 
+                docWrite.GetProperties().CoreProperties.Creator = authorName;
             this.filename = docxFileName;
         }
-
+        
         public void WriteDocx(string content)
         {
             string[] contentLines = content.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); //提取每一行的内容
@@ -58,24 +59,41 @@ namespace 日志书写器
                 textReaded.AppendLine(line);
             return textReaded.ToString();
         }
-
+        
         public String[] ReadWordLines()
         {
             List<String> lines = new List<string>();
-            using (FileStream docxStream = File.OpenRead(this.filename))
+            try
             {
-                XWPFDocument docRead = new XWPFDocument(docxStream);
-                if (docRead.Paragraphs.Count == 0)
-                    return lines.ToArray();
-                foreach (XWPFParagraph paragraph in docRead.Paragraphs)
+                using (FileStream docxStream = File.OpenRead(this.filename))
                 {
-                    string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
-                    lines.Add(paragraphText);
+                    XWPFDocument docRead = new XWPFDocument(docxStream);
+                    if (docRead.Paragraphs.Count == 0)
+                        return lines.ToArray();
+                    foreach (XWPFParagraph paragraph in docRead.Paragraphs)
+                    {
+                        string paragraphText = paragraph.ParagraphText; //获得该段的文本，因为不需要管文字格式所以不用获取XWPFRun
+                        lines.Add(paragraphText);
+                    }
+                    this.FontSize = docRead.Paragraphs[0].Runs[0].FontSize;
+                    this.Font = docRead.Paragraphs[0].Runs[0].FontFamily;
                 }
-                this.FontSize = docRead.Paragraphs[0].Runs[0].FontSize;
-                this.Font = docRead.Paragraphs[0].Runs[0].FontFamily;
+                return lines.ToArray();
             }
-            return lines.ToArray();
+            catch(ICSharpCode.SharpZipLib.Zip.ZipException)
+            {
+                return new String[] { };
+            }
+        }
+
+        public static String[] ReadDocxLines(string docxFileName = "document.docx")
+        {
+            return new Word(docxFileName).ReadWordLines();
+        }
+
+        public static String[] ReadDocLines(string docFileName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

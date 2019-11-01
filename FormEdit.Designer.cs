@@ -50,6 +50,7 @@
             this.button保存 = new System.Windows.Forms.Button();
             this.contextMenuStripSave = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.强制保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
             this.comboBoxFont = new System.Windows.Forms.ComboBox();
             this.button高级设置 = new System.Windows.Forms.Button();
@@ -64,7 +65,7 @@
             this.toolStripStatusLabelLockScrollBar = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelLockFullScreen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
-            this.强制保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.另存为ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
@@ -237,17 +238,25 @@
             // contextMenuStripSave
             // 
             this.contextMenuStripSave.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.保存并置为终稿ToolStripMenuItem,
-            this.强制保存ToolStripMenuItem});
+            this.另存为ToolStripMenuItem,
+            this.强制保存ToolStripMenuItem,
+            this.保存并置为终稿ToolStripMenuItem});
             this.contextMenuStripSave.Name = "contextMenuStripSave";
-            this.contextMenuStripSave.Size = new System.Drawing.Size(181, 70);
+            this.contextMenuStripSave.Size = new System.Drawing.Size(181, 92);
             // 
             // 保存并置为终稿ToolStripMenuItem
             // 
             this.保存并置为终稿ToolStripMenuItem.Name = "保存并置为终稿ToolStripMenuItem";
             this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.保存并置为终稿ToolStripMenuItem.Text = "保存并置为终稿";
+            this.保存并置为终稿ToolStripMenuItem.Text = "保存为终稿";
             this.保存并置为终稿ToolStripMenuItem.Click += new System.EventHandler(this.保存并置为终稿ToolStripMenuItem_Click);
+            // 
+            // 强制保存ToolStripMenuItem
+            // 
+            this.强制保存ToolStripMenuItem.Name = "强制保存ToolStripMenuItem";
+            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.强制保存ToolStripMenuItem.Text = "强制保存";
+            this.强制保存ToolStripMenuItem.Click += new System.EventHandler(this.强制保存ToolStripMenuItem_Click);
             // 
             // groupBoxSetting
             // 
@@ -419,12 +428,12 @@
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // 强制保存ToolStripMenuItem
+            // 另存为ToolStripMenuItem
             // 
-            this.强制保存ToolStripMenuItem.Name = "强制保存ToolStripMenuItem";
-            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.强制保存ToolStripMenuItem.Text = "强制保存";
-            this.强制保存ToolStripMenuItem.Click += new System.EventHandler(this.强制保存ToolStripMenuItem_Click);
+            this.另存为ToolStripMenuItem.Name = "另存为ToolStripMenuItem";
+            this.另存为ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.另存为ToolStripMenuItem.Text = "另存为";
+            this.另存为ToolStripMenuItem.Click += new System.EventHandler(this.另存为ToolStripMenuItem_Click);
             // 
             // FormEdit
             // 
@@ -493,6 +502,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelLockScrollBar;
         private System.Windows.Forms.ComboBox comboBoxFont;
         private System.Windows.Forms.ToolStripMenuItem 强制保存ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 另存为ToolStripMenuItem;
     }
 }
 
