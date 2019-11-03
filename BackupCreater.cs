@@ -128,18 +128,26 @@ namespace 日志书写器
         /// <param name="算法">备份算法</param>
         public BackupCreater(string 备份源文件名, WriteProcedure writeFileProcedure = null, int interval = 1000, string 备份后缀名 = ".backup", bool hideBackup = false, 加密算法 算法 = 加密算法.无)
         {
-            this.Original文件名 = 备份源文件名;
-            if (writeFileProcedure != null)
+            this.Original文件名 = 备份源文件名; // 设置源文件名
+            if (writeFileProcedure != null) // 注册备份函数
                 this.WriteBackupEvent += writeFileProcedure;
             else
                 this.WriteBackupEvent += DefaultBackupFunction;
-            if (备份后缀名.StartsWith(".") == false)
+            if (备份后缀名.StartsWith(".") == false) // 后缀名加.
                 this.Backup后缀名 = "." + 备份后缀名;
             else
                 this.Backup后缀名 = 备份后缀名;
-            this.Encrypt算法 = 算法;
-            this.HiddenBackupFile = hideBackup;
-
+            this.Encrypt算法 = 算法; // 设置加密算法
+            this.HiddenBackupFile = hideBackup; // 设置隐藏备份
+            if (备份源文件名.Contains(":"))
+            {
+                // 如果含有:号说明是绝对路径，由于在Original文件名第二次设置开始才会同步workingDirectory。
+                // 在这里调用是为了同步workingDirectory
+                int directoryEndIndex = original文件名.LastIndexOf('\\');
+                if (directoryEndIndex != -1)
+                    this.workingDirectory = original文件名.Substring(0, directoryEndIndex);
+            }
+            /* 内部操作设置 */
             BackupFileTimer = new Timer();
             this.Interval = interval;
             BackupFileTimer.Tick += WriteBackupInvoke;

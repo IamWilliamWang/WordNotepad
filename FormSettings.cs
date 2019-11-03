@@ -32,20 +32,20 @@ namespace 日志书写器
                 return;
             }
 
-            if (Main.AutoSaverTimerBusy)
+            if (Main.AutoSaverRunning)
                 this.checkBox自动保存.Checked = true;
-            if (Main.BackupTimerBusy)
+            if (Main.AutoBackupRunning)
                 this.checkBox自动备份.Checked = true;
         }
         
         private void checkBox自动保存_CheckedChanged(object sender, EventArgs e)
         {
-            Main.AutoSaverTimerBusy = this.checkBox自动保存.Checked;
+            Main.AutoSaverRunning = this.checkBox自动保存.Checked;
         }
 
         private void checkBox自动备份_CheckedChanged(object sender, EventArgs e)
         {
-            Main.BackupTimerBusy = this.checkBox自动备份.Checked;
+            Main.AutoBackupRunning = this.checkBox自动备份.Checked;
         }
 
         private void button计时器时长变更_Click(object sender, EventArgs e)

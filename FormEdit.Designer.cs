@@ -49,8 +49,9 @@
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
             this.contextMenuStripSave = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.另存为ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.强制保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
             this.comboBoxFont = new System.Windows.Forms.ComboBox();
             this.button高级设置 = new System.Windows.Forms.Button();
@@ -65,7 +66,6 @@
             this.toolStripStatusLabelLockScrollBar = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelLockFullScreen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
-            this.另存为ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
@@ -198,7 +198,7 @@
             this.停用备份ToolStripMenuItem.Name = "停用备份ToolStripMenuItem";
             this.停用备份ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.停用备份ToolStripMenuItem.Text = "停用备份";
-            this.停用备份ToolStripMenuItem.Click += new System.EventHandler(this.停用备份ToolStripMenuItem_Click);
+            this.停用备份ToolStripMenuItem.Click += new System.EventHandler(this.开启或停用备份ToolStripMenuItem_Click);
             // 
             // labelPath
             // 
@@ -242,21 +242,28 @@
             this.强制保存ToolStripMenuItem,
             this.保存并置为终稿ToolStripMenuItem});
             this.contextMenuStripSave.Name = "contextMenuStripSave";
-            this.contextMenuStripSave.Size = new System.Drawing.Size(181, 92);
+            this.contextMenuStripSave.Size = new System.Drawing.Size(137, 70);
             // 
-            // 保存并置为终稿ToolStripMenuItem
+            // 另存为ToolStripMenuItem
             // 
-            this.保存并置为终稿ToolStripMenuItem.Name = "保存并置为终稿ToolStripMenuItem";
-            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.保存并置为终稿ToolStripMenuItem.Text = "保存为终稿";
-            this.保存并置为终稿ToolStripMenuItem.Click += new System.EventHandler(this.保存并置为终稿ToolStripMenuItem_Click);
+            this.另存为ToolStripMenuItem.Name = "另存为ToolStripMenuItem";
+            this.另存为ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.另存为ToolStripMenuItem.Text = "另存为";
+            this.另存为ToolStripMenuItem.Click += new System.EventHandler(this.另存为ToolStripMenuItem_Click);
             // 
             // 强制保存ToolStripMenuItem
             // 
             this.强制保存ToolStripMenuItem.Name = "强制保存ToolStripMenuItem";
-            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.强制保存ToolStripMenuItem.Text = "强制保存";
             this.强制保存ToolStripMenuItem.Click += new System.EventHandler(this.强制保存ToolStripMenuItem_Click);
+            // 
+            // 保存并置为终稿ToolStripMenuItem
+            // 
+            this.保存并置为终稿ToolStripMenuItem.Name = "保存并置为终稿ToolStripMenuItem";
+            this.保存并置为终稿ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.保存并置为终稿ToolStripMenuItem.Text = "保存为终稿";
+            this.保存并置为终稿ToolStripMenuItem.Click += new System.EventHandler(this.保存并置为终稿ToolStripMenuItem_Click);
             // 
             // groupBoxSetting
             // 
@@ -427,13 +434,6 @@
             this.toolStripStatusLabelTextLength.Size = new System.Drawing.Size(27, 17);
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // 另存为ToolStripMenuItem
-            // 
-            this.另存为ToolStripMenuItem.Name = "另存为ToolStripMenuItem";
-            this.另存为ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.另存为ToolStripMenuItem.Text = "另存为";
-            this.另存为ToolStripMenuItem.Click += new System.EventHandler(this.另存为ToolStripMenuItem_Click);
             // 
             // FormEdit
             // 
