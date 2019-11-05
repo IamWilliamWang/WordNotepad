@@ -54,8 +54,23 @@ namespace 日志书写器
 
         private void button计时器时长变更_Click(object sender, EventArgs e)
         {
-            Main.ChangeTimerPerSecond(int.Parse(this.textBox计时器时长.Text));
-            MessageBox.Show("变更成功！");
+            int inputNumber;
+            try
+            {
+                inputNumber = int.Parse(this.textBox计时器时长.Text);
+                if (inputNumber <= 0)
+                    throw new Exception();
+
+                if (inputNumber < 10 && DialogResult.OK == MessageBox.Show("如果设置低于10秒可能会产生严重卡顿，影响程序使用。是否仍旧设置为" + inputNumber + "秒？", "警告", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning))
+                {
+                    Main.ChangeTimerPerSecond(inputNumber);
+                    MessageBox.Show("已改为" + inputNumber + "秒", "变更成功！");
+                }
+            }
+            catch
+            {
+                MessageBox.Show("输入数字不合法，请输入大于0的整数");
+            }
         }
 
         private void button清除备份文件_Click(object sender, EventArgs e)
