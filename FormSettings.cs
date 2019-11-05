@@ -32,6 +32,10 @@ namespace 日志书写器
                 return;
             }
 
+            var interval = Main.GetTimerInterval(0);
+            if (interval != -1)
+                this.textBox计时器时长.Text = (interval / 1000).ToString();
+
             if (Main.AutoSaverRunning)
                 this.checkBox自动保存.Checked = true;
             if (Main.AutoBackupRunning)

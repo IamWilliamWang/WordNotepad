@@ -3,6 +3,7 @@
 # 生成文件
 obj/
 Debug/
+Release/
 *.pdb
 # 动态库
 *.dll

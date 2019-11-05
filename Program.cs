@@ -23,7 +23,7 @@ namespace 日志书写器
         }
         #endregion
 
-        public static bool LogWriter { get; set; } = true; // true:日志书写器 or false:Word文本编辑器
+        public static bool LogWriter { get; set; } = false; // true:日志书写器 or false:Word文本编辑器
 
         /// <summary>
         /// 应用程序的主入口点。

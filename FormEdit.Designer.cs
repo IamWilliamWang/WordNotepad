@@ -44,7 +44,7 @@
             this.暗黑主题ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.自动聚焦ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.自动保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.停用备份ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.自动备份ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.labelPath = new System.Windows.Forms.Label();
             this.textBoxPath = new System.Windows.Forms.TextBox();
             this.button保存 = new System.Windows.Forms.Button();
@@ -105,7 +105,7 @@
             this.暗黑主题ToolStripMenuItem,
             this.自动聚焦ToolStripMenuItem,
             this.自动保存ToolStripMenuItem,
-            this.停用备份ToolStripMenuItem});
+            this.自动备份ToolStripMenuItem});
             this.contextMenuStripMain.Name = "contextMenuStripMain";
             this.contextMenuStripMain.Size = new System.Drawing.Size(125, 290);
             // 
@@ -193,12 +193,12 @@
             this.自动保存ToolStripMenuItem.Text = "自动保存";
             this.自动保存ToolStripMenuItem.Click += new System.EventHandler(this.自动保存ToolStripMenuItem_Click);
             // 
-            // 停用备份ToolStripMenuItem
+            // 自动备份ToolStripMenuItem
             // 
-            this.停用备份ToolStripMenuItem.Name = "停用备份ToolStripMenuItem";
-            this.停用备份ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.停用备份ToolStripMenuItem.Text = "停用备份";
-            this.停用备份ToolStripMenuItem.Click += new System.EventHandler(this.开启或停用备份ToolStripMenuItem_Click);
+            this.自动备份ToolStripMenuItem.Name = "自动备份ToolStripMenuItem";
+            this.自动备份ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.自动备份ToolStripMenuItem.Text = "停用备份";
+            this.自动备份ToolStripMenuItem.Click += new System.EventHandler(this.自动备份ToolStripMenuItem_Click);
             // 
             // labelPath
             // 
@@ -446,7 +446,7 @@
             this.Controls.Add(this.textBoxMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormEdit";
-            this.Text = "日志书写器";
+            this.Text = "WordNotepad";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.FormEdit_Load);
@@ -487,7 +487,7 @@
         private System.Windows.Forms.ToolStripMenuItem 查找内容ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 删除ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自动聚焦ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 停用备份ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 自动备份ToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripSave;
         private System.Windows.Forms.ToolStripMenuItem 保存并置为终稿ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自动保存ToolStripMenuItem;
