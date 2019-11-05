@@ -2,7 +2,13 @@
 
 基于.NET的记事本风格的Word文档编辑器
 
-<font size=5>**免安装稳定版本下载**</font>（需要预装.NET framework 4.6及以上版本）：
+<font size=5>**免安装稳定版本下载**</font>，请根据需要的功能选择以下两个之一（需要预装.NET framework 4.6及以上版本）：
+
+[Word 记事本](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.6/WordNotepad.exe)
+
+[日志书写器](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.6/TextWriter.exe)
+
+历史稳定版本下载（日志书写器）：
 
 [Ultimate旗舰版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.4/TextWriter.exe)
 

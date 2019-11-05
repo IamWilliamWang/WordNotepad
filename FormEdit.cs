@@ -685,6 +685,11 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void 另存为ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (Title.Untitled)
+            {
+                this.SaveTo();
+                return;
+            }
             // 另存为
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "docx文档|*.docx";
