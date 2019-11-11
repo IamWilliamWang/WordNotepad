@@ -339,6 +339,7 @@ namespace 日志书写器
                 DarkMode = true;
             // 加右键菜单项
             this.contextMenuStripMain.Items.Clear();
+            this.contextMenuStripMain.Items.Add(新建文档ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(插入链接ToolStripMenuItem);
@@ -1133,8 +1134,15 @@ namespace 日志书写器
                 // Ctrl+S 保存文档
                 if (e.KeyCode == Keys.S)
                 {
-                    this.SaveDocument();
-                    DeleteBackup();
+                    if (Title.Untitled)
+                    {
+                        this.button保存_Click(sender, e);
+                    }
+                    else
+                    {
+                        this.SaveDocument();
+                        DeleteBackup();
+                    }
                 }
                 // Ctrl+A 全选文档
                 else if (e.KeyCode == Keys.A)
@@ -1199,6 +1207,10 @@ namespace 日志书写器
                         }
                     }
                     this.textBoxMain.Select(firstCharIndex, 0);
+                }
+                else if (e.KeyCode == Keys.V)
+                {
+                    this.former.SaveText(this.textBoxMain.Text);
                 }
             }
             // Alt + 某按键
@@ -1731,6 +1743,11 @@ namespace 日志书写器
             {
                 this.TopMost = savedSetting;
             }
+        }
+
+        private void 新建文档ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Restart();
         }
 
         /// <summary>
