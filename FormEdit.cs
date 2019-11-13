@@ -441,7 +441,12 @@ namespace 日志书写器
             {
                 var dialogResult = MessageBox.Show("有内容未被保存。是否保存后关闭程序？", "保存内容", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
                 if (dialogResult == DialogResult.Yes)
-                    this.SaveDocument();
+                {
+                    if (Title.Untitled)
+                        this.button保存_Click(sender, e);
+                    else
+                        this.SaveDocument();
+                }
                 else if (dialogResult == DialogResult.Cancel)
                     e.Cancel = true;
             }
