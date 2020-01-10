@@ -343,6 +343,7 @@ namespace 日志书写器
             this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(插入链接ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(替换文本ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add("-");
             this.contextMenuStripMain.Items.Add(剪切ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(复制ToolStripMenuItem);
@@ -1752,7 +1753,13 @@ namespace 日志书写器
 
         private void 新建文档ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            this.checkBoxMailbox.Checked = false;
             Application.Restart();
+        }
+
+        private void 替换文本ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new Replacer(this.textBoxMain, this.former).Show();
         }
 
         /// <summary>
@@ -2114,7 +2121,7 @@ namespace 日志书写器
         /// <summary>
         /// Undo和Redo的实现类
         /// </summary>
-        class FormerSaver<T>
+        public class FormerSaver<T>
         {
             /* 由于要使用Redo，就不能使用Stack类进行操作 */
             private List<T> formerText = new List<T>(20); // 储存每个状态下的Text的记录顺序表
