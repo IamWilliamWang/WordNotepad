@@ -154,16 +154,23 @@ namespace 日志书写器
         /// 准确表达执行结果的枚举
         /// </summary>
         public enum Result { Done, Failed, Skipped, Canceled };
+
+        /// <summary>
+        /// 程序运行前拖入的文件名
+        /// </summary>
+        private String 传入的文件名;
         #endregion
 
         #region 启动与关闭
         /// <summary>
         /// 构造函数
         /// </summary>
-        public FormEdit()
+        public FormEdit(String[] args = null)
         {
             InitializeComponent();
             instance = this; // 保存实例
+            if (args != null && args.Length == 1)
+                传入的文件名 = args[0].Replace("\"", "");
         }
 
         /// <summary>
@@ -378,6 +385,8 @@ namespace 日志书写器
                 Title.TitleName = "Word 记事本";
                 Title.Untitled = true;
             }
+            if (this.传入的文件名 != null)
+                this.LoadNewDocx(this.传入的文件名);
         }
 
         /// <summary>
@@ -435,7 +444,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private void FormEdit_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 如果要保存，询问是否保存
             if (NeedSave())
@@ -458,7 +467,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        private void FormEdit_FormClosed(object sender, FormClosedEventArgs e)
         {
             // 删除缓存，打开邮箱
             DeleteBackup();
@@ -939,6 +948,19 @@ namespace 日志书写器
             }
         }
 
+        private Result LoadNewDocx(string file)
+        {
+            string type = FileOrDirectory(file);
+            if (type == "File")
+            {
+                if (file.EndsWith(".docx"))
+                    return this.LoadSpecificDocument(file);
+                else
+                    return this.LoadTextFromSpecificTxtFile(file);
+            }
+            return Result.Failed;
+        }
+
         /// <summary>
         /// 拖拽放置到窗体任意（未注册事件的）区域事件
         /// </summary>
@@ -949,18 +971,7 @@ namespace 日志书写器
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
-                string type = FileOrDirectory(file);
-                if (type == "File")
-                {
-                    if (file.EndsWith(".docx"))
-                    {
-                        this.LoadSpecificDocument(file);
-                    }
-                    else
-                    {
-                        this.LoadTextFromSpecificTxtFile(file);
-                    }
-                }
+                LoadNewDocx(file);
             }
         }
         #endregion
@@ -1029,7 +1040,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Form_DoubleClick(object sender, EventArgs e)
+        private void FormEdit_DoubleClick(object sender, EventArgs e)
         {
             FullScreenModeSwitch();
         }
@@ -1107,6 +1118,35 @@ namespace 日志书写器
             if (newContentText != null)
                 this.textBoxMain.Text = newContentText;
         }
+        /// <summary>
+        /// 删除屏幕中当前行内容
+        /// </summary>
+        private string RemoveCurrentRow()
+        {
+            StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
+            int firstCharIndex = 0;
+            string removedText = "";
+            using (SafeEdit)
+            {
+                firstCharIndex = TextBoxUtil.GetFirstCharIndexOfCurrentLine();
+                try
+                {
+                    stringBuilder.Remove(firstCharIndex, TextBoxUtil.GetNowLineLength() + ConstVariables.CRLF.Length);
+                    removedText = this.textBoxMain.Text.Substring(firstCharIndex, TextBoxUtil.GetNowLineLength() + ConstVariables.CRLF.Length);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    stringBuilder.Remove(firstCharIndex, TextBoxUtil.GetNowLineLength());
+                    removedText = this.textBoxMain.Text.Substring(firstCharIndex, TextBoxUtil.GetNowLineLength()) + ConstVariables.CRLF;
+                }
+                finally
+                {
+                    this.textBoxMain.Text = stringBuilder.ToString();
+                }
+            }
+            this.textBoxMain.Select(firstCharIndex, 0);
+            return removedText;
+        }
 
         /// <summary>
         /// 主编辑框输入事件
@@ -1134,6 +1174,8 @@ namespace 日志书写器
                 this.ShowInTaskbar = !this.ShowInTaskbar;
                 return;
             }
+            if (e.Shift && e.KeyCode == Keys.Delete)
+                Clipboard.SetText(this.RemoveCurrentRow());
             // Ctrl + 某按键
             if (e.Control)
             {
@@ -1193,27 +1235,8 @@ namespace 日志书写器
                     this.插入链接ToolStripMenuItem_Click(sender, e);
                 // Ctrl+D 删除本行
                 else if (e.KeyCode == Keys.D)
-                {
-                    StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
-                    int firstCharIndex = 0;
-                    using (SafeEdit)
-                    {
-                        firstCharIndex = TextBoxUtil.GetFirstCharIndexOfCurrentLine();
-                        try
-                        {
-                            stringBuilder.Remove(firstCharIndex, TextBoxUtil.GetNowLineLength() + ConstVariables.CRLF.Length);
-                        }
-                        catch (ArgumentOutOfRangeException)
-                        {
-                            stringBuilder.Remove(firstCharIndex, TextBoxUtil.GetNowLineLength());
-                        }
-                        finally
-                        {
-                            this.textBoxMain.Text = stringBuilder.ToString();
-                        }
-                    }
-                    this.textBoxMain.Select(firstCharIndex, 0);
-                }
+                    this.RemoveCurrentRow();
+                // Ctrl+V 粘贴文本
                 else if (e.KeyCode == Keys.V)
                 {
                     this.former.SaveText(this.textBoxMain.Text);

@@ -88,7 +88,7 @@
             this.textBoxMain.TabIndex = 0;
             this.textBoxMain.Click += new System.EventHandler(this.textBoxMain_Click);
             this.textBoxMain.TextChanged += new System.EventHandler(this.textBoxMain_TextChanged);
-            this.textBoxMain.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
+            this.textBoxMain.DoubleClick += new System.EventHandler(this.FormEdit_DoubleClick);
             this.textBoxMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxMain_KeyDown);
             this.textBoxMain.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBoxMain_KeyUp);
             // 
@@ -465,12 +465,12 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormEdit";
             this.Text = "WordNotepad";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormEdit_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormEdit_FormClosed);
             this.Load += new System.EventHandler(this.FormEdit_Load);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormEdit_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormEdit_DragEnter);
-            this.DoubleClick += new System.EventHandler(this.Form_DoubleClick);
+            this.DoubleClick += new System.EventHandler(this.FormEdit_DoubleClick);
             this.Resize += new System.EventHandler(this.FormEdit_Resize);
             this.contextMenuStripMain.ResumeLayout(false);
             this.contextMenuStripSave.ResumeLayout(false);
