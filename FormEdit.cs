@@ -326,16 +326,19 @@ namespace 日志书写器
                     break;
                 }
             }
-            // 有autosave文件则恢复内容
-            if (File.Exists(AutoBackup.Backup文件名))
+            if (Program.LogWriter) // 只有日志书写器要执行的预处理模块
             {
-                if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                    AutoBackup.RestoreFile(RestoreAutosave, true);
-            }
-            // 有保存的文档则直接加载内容
-            else if (File.Exists(AutoBackup.Original文件名))
-            {
-                LoadDocx(AutoBackup.Original文件名);
+                // 有autosave文件则恢复内容
+                if (File.Exists(AutoBackup.Backup文件名))
+                {
+                    if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                        AutoBackup.RestoreFile(RestoreAutosave, true);
+                }
+                // 有保存的文档则直接加载内容
+                else if (File.Exists(AutoBackup.Original文件名))
+                {
+                    LoadDocx(AutoBackup.Original文件名);
+                }
             }
             // 解压dll文件
             WriteDllFiles();
@@ -972,6 +975,11 @@ namespace 日志书写器
             {
                 string file = ((String[])e.Data.GetData(DataFormats.FileDrop))[0];
                 LoadNewDocx(file);
+                if (File.Exists(AutoBackup.Backup文件名))
+                {
+                    if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                        AutoBackup.RestoreFile(RestoreAutosave, true);
+                }
             }
         }
         #endregion
@@ -1175,7 +1183,15 @@ namespace 日志书写器
                 return;
             }
             if (e.Shift && e.KeyCode == Keys.Delete)
+            {
                 Clipboard.SetText(this.RemoveCurrentRow());
+                return;
+            }
+            if (e.Control && e.Shift && e.Alt && e.KeyCode == Keys.D)
+            {
+                Title.DebugInfo = "已进入调试模式";
+                return;
+            }
             // Ctrl + 某按键
             if (e.Control)
             {
@@ -2185,6 +2201,9 @@ namespace 日志书写器
 
                 formerText.Add(text);
                 this.formerText_NowPlace++;
+                // 只为使用时debug用，不是正式功能
+                if (Title.DebugInfo != null)
+                    Title.DebugInfo = this.formerText_NowPlace.ToString();
             }
 
             /// <summary>
@@ -2242,6 +2261,7 @@ namespace 日志书写器
             private static string specifiedDocumentFullName = null;
             private static bool isReadOnly = false;
             private static bool isUntitled = false;
+            private static string debugInfo = null;
 
             public static string TitleName
             {
@@ -2256,8 +2276,8 @@ namespace 日志书写器
             {
                 set
                 {
-                    Title.version = value;
-                    Title.UpdateTitle();
+                    version = value;
+                    UpdateTitle();
                 }
             }
 
@@ -2265,8 +2285,8 @@ namespace 日志书写器
             {
                 set
                 {
-                    Title.specifiedDocumentFullName = value;
-                    Title.UpdateTitle();
+                    specifiedDocumentFullName = value;
+                    UpdateTitle();
                 }
             }
 
@@ -2274,8 +2294,8 @@ namespace 日志书写器
             {
                 set
                 {
-                    Title.isReadOnly = value;
-                    Title.UpdateTitle();
+                    isReadOnly = value;
+                    UpdateTitle();
                 }
             }
 
@@ -2283,8 +2303,8 @@ namespace 日志书写器
             {
                 set
                 {
-                    Title.isUntitled = value;
-                    Title.UpdateTitle();
+                    isUntitled = value;
+                    UpdateTitle();
                 }
                 get
                 {
@@ -2292,25 +2312,33 @@ namespace 日志书写器
                 }
             }
 
-            public static void UpdateTitle()
+            public static string DebugInfo
+            {
+                set
+                {
+                    debugInfo = value;
+                    UpdateTitle();
+                }
+                get
+                {
+                    return Title.debugInfo;
+                }
+            }
+
+            private static void UpdateTitle()
             {
                 StringBuilder finalTitle = new StringBuilder();
                 finalTitle.Append(titleName);
                 if (version != null)
-                {
-                    finalTitle.Append(" v");
-                    finalTitle.Append(version);
-                }
+                    finalTitle.Append(" v" + version);
                 if (specifiedDocumentFullName != null)
-                {
-                    finalTitle.Append(" (");
-                    finalTitle.Append(specifiedDocumentFullName);
-                    finalTitle.Append(")");
-                }
+                    finalTitle.Append(" (" + specifiedDocumentFullName + ")");
                 if (isReadOnly)
                     finalTitle.Append(" [只读]");
                 if (isUntitled)
                     finalTitle.Append(" (未命名)");
+                if (debugInfo != null)
+                    finalTitle.Append(" {" + debugInfo + "}");
                 FormEdit.Instance.Text = finalTitle.ToString();
             }
         }
