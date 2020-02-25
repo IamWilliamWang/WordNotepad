@@ -1,6 +1,6 @@
 ﻿namespace 日志书写器
 {
-    partial class Replacer
+    partial class FormReplacer
     {
         /// <summary>
         /// Required designer variable.

@@ -300,10 +300,11 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void FormEdit_Load(object sender, EventArgs e)
         {
-            // 检测后台是否运行同一程序
-            if (ExistProcess(Assembly.GetExecutingAssembly().GetName().Name) || ExistProcess("TextWriter") || ExistProcess("日志书写器"))
-                if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
-                    Environment.Exit(0);
+            // 只有日志书写器要检测后台是否运行同一程序
+            if (Program.LogWriter)
+                if (ExistProcess(Assembly.GetExecutingAssembly().GetName().Name) || ExistProcess("TextWriter") || ExistProcess("日志书写器"))
+                    if (DialogResult.No == MessageBox.Show("检测到后台已经启动本程序，强烈建议只开启一个本程序，否则可能会导致意外后果。\n请问是否继续启动？", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning))
+                        Environment.Exit(0);
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
@@ -977,6 +978,7 @@ namespace 日志书写器
                 LoadNewDocx(file);
                 if (File.Exists(AutoBackup.Backup文件名))
                 {
+                    using (PauseAutoBackup) 
                     if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
                         AutoBackup.RestoreFile(RestoreAutosave, true);
                 }
@@ -1798,7 +1800,7 @@ namespace 日志书写器
 
         private void 替换文本ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            new Replacer(this.textBoxMain, this.former).Show();
+            FormReplacer.ShowReplacer(this.textBoxMain, this.former);
         }
 
         /// <summary>
@@ -2254,7 +2256,7 @@ namespace 日志书写器
         /// <summary>
         /// 主程序的标题管理类
         /// </summary>
-        static class Title
+        public static class Title
         {
             private static string titleName = "日志书写器";
             private static string version = null;
@@ -2375,7 +2377,7 @@ namespace 日志书写器
             /// <param name="后缀名"></param>
             /// <param name="hideBackup"></param>
             /// <returns></returns>
-            public static BackupCreater Create(string 源文件名, BackupCreater.WriteProcedure writeFileProcedure, int interval, string 后缀名, bool hideBackup)
+            private static BackupCreater Create(string 源文件名, BackupCreater.WriteProcedure writeFileProcedure, int interval, string 后缀名, bool hideBackup)
             {
                 return new BackupCreater(源文件名, writeFileProcedure, interval, 后缀名, hideBackup);
             }
@@ -2564,7 +2566,7 @@ namespace 日志书写器
         /// </summary>
         private IDisposable PauseAutoBackup { get { return new Disposable.CloseAndOpenAutoBackup(); } }
         /// <summary>
-        /// 安全编辑，保存当前Text，保护接下来的修改不会出现意外情况
+        /// 安全编辑，用于需要使用行号进行内容修改的操作。保存当前Text并避免修改时行号异常的问题
         /// </summary>
         private IDisposable SafeEdit { get { former.SaveText(this.textBoxMain.Text); return new Disposable.MakeTextFontSmallAndThenRestore(); } }
         #endregion

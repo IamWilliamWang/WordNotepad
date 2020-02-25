@@ -10,17 +10,34 @@ using System.Windows.Forms;
 
 namespace 日志书写器
 {
-    public partial class Replacer : Form
+    public partial class FormReplacer : Form
     {
+        private static FormReplacer instance;
         private TextBox mainTextBox;
         FormEdit.FormerSaver<String> former;
-
-        //private int executedReplacement = 0;
-        public Replacer(TextBox mainTextBox, FormEdit.FormerSaver<String> former)
+        
+        private FormReplacer(TextBox mainTextBox, FormEdit.FormerSaver<String> former)
         {
             InitializeComponent();
             this.mainTextBox = mainTextBox;
             this.former = former;
+        }
+
+        public static void ShowReplacer(TextBox mainTextBox, FormEdit.FormerSaver<String> former)
+        {
+            if (instance == null)
+            {
+                instance = new FormReplacer(mainTextBox, former);
+                instance.textBox替换内容.Text = Clipboard.GetText();
+                instance.Show();
+                instance.textBox替换为.Focus();
+            }
+            else
+            {
+                instance.textBox替换内容.Text = Clipboard.GetText();
+                instance.Focus();
+                instance.textBox替换为.Focus();
+            }
         }
 
         private void 插入第一行ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -59,6 +76,7 @@ namespace 日志书写器
         private void Replacer_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.former.SaveText(this.mainTextBox.Text);
+            instance = null;
         }
 
         private void 重做替换ToolStripMenuItem_Click(object sender, EventArgs e)
