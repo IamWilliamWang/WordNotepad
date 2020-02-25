@@ -275,8 +275,8 @@ namespace 日志书写器
         private void CreateAutoSaver(BackupCreaterFactory.Data data = null)
         {
             /* 没指定就提取创建记录，有指定就使用data进行创建 */
-            if (data == null && BackupCreaterFactory.GetData(BackupCreaterFactory.ID_SAVE) == null)
-                AutoSaver = BackupCreaterFactory.CreateAutoSaver(GetDefaultDocumentFileName(), (docxFile) => this.SaveDocument(), TimerIntervalSecond * 1000); // 直接传入SaveDocument，架空内部命名逻辑，只使用其中的计时器，避免意外。
+            if (data == null && BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_SAVE) == null)
+                AutoSaver = BackupCreaterFactory.CreateAutoSaver(GetDefaultDocumentFileName(), (docxFile) => SaveDocument(), TimerIntervalSecond * 1000); // 直接传入SaveDocument，架空内部命名逻辑，只使用其中的计时器，避免意外。
             else
                 AutoSaver = BackupCreaterFactory.CreateAutoSaver(data);
         }
@@ -287,8 +287,8 @@ namespace 日志书写器
         private void CreateAutoBackup(BackupCreaterFactory.Data data = null)
         {
             /* 没指定就提取创建记录，有指定就使用data进行创建 */
-            if (data == null && BackupCreaterFactory.GetData(BackupCreaterFactory.ID_BACKUP) == null)
-                AutoBackup = BackupCreaterFactory.CreateAutoBackup(GetDefaultDocumentFileName(), (backupFileName) => this.SaveBackup(backupFileName), TimerIntervalSecond * 1000, ".autosave");
+            if (data == null && BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_BACKUP) == null)
+                AutoBackup = BackupCreaterFactory.CreateAutoBackup(GetDefaultDocumentFileName(), (backupFileName) => { SaveBackup(backupFileName); former.SaveText(textBoxMain.Text); }, TimerIntervalSecond * 1000, ".autosave");
             else
                 AutoBackup = BackupCreaterFactory.CreateAutoBackup(data);
         }
@@ -308,6 +308,13 @@ namespace 日志书写器
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
+            // 不是日志管理器就隐藏打开邮箱按钮
+            if (!Program.LogWriter)
+            {
+                this.checkBoxMailbox.Checked = false;
+                this.checkBoxMailbox.Visible = false;
+                this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
+            }
             // 初始化自动备份
             CreateAutoBackup();
             // 初始化自动保存
@@ -351,6 +358,7 @@ namespace 日志书写器
             // 加右键菜单项
             this.contextMenuStripMain.Items.Clear();
             this.contextMenuStripMain.Items.Add(新建文档ToolStripMenuItem);
+            this.contextMenuStripMain.Items.Add(打开文档ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(中文空格ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(查找内容ToolStripMenuItem);
             this.contextMenuStripMain.Items.Add(插入链接ToolStripMenuItem);
@@ -421,6 +429,30 @@ namespace 日志书写器
                 Application.Exit();
                 return Result.Failed;
             }
+        }
+
+        /// <summary>
+        /// Determines a text file's encoding by analyzing its byte order mark (BOM).
+        /// Defaults to ASCII when detection of the text file's endianness fails.
+        /// </summary>
+        /// <param name="filename">The text file to analyze.</param>
+        /// <returns>The detected encoding.</returns>
+        public static Encoding GetEncoding(string filename)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                file.Read(bom, 0, 4);
+            }
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+            return Encoding.Default;
         }
 
         /// <summary>
@@ -643,10 +675,17 @@ namespace 日志书写器
         {
             // 保存
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "docx文档|*.docx";
+            saveFileDialog.Filter = "Word文档|*.docx|文本文档|*.txt";
             saveFileDialog.Title = "保存到";
             if (saveFileDialog.ShowDialog() != DialogResult.OK)
                 return Result.Canceled;
+            // 保存txt文件时只需要写入文件
+            if (saveFileDialog.FileName.EndsWith(".txt"))
+            {
+                File.WriteAllText(saveFileDialog.FileName, this.textBoxMain.Text);
+                MessageBox.Show("已将文档保存到 " + saveFileDialog.FileName + " ！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return Result.Done;
+            }
 
             Result saveResult = SaveDocx(saveFileDialog.FileName);
             if (saveResult == Result.Done)
@@ -712,33 +751,41 @@ namespace 日志书写器
             }
             // 另存为
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "docx文档|*.docx";
-            saveFileDialog.Title = "另存为Word文档";
-            var fullFileName = AutoBackup.Original文件名;
-            saveFileDialog.FileName = fullFileName.Substring(fullFileName.LastIndexOf("\\") + 1);
+            saveFileDialog.Filter = "Word文档|*.docx|文本文档|*.txt";
+            saveFileDialog.Title = "另存为文档";
+            saveFileDialog.InitialDirectory = AutoBackup.WorkingDirectory;
+            saveFileDialog.FileName = AutoBackup.Original文件名.Substring(AutoBackup.Original文件名.LastIndexOf("\\") + 1);
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                savedCharLength = -1;
-                Result saveResult = SaveDocx(saveFileDialog.FileName);
-                if (saveResult == Result.Done)
+                if (saveFileDialog.FileName.EndsWith(".txt"))
                 {
-                    DeleteBackup();
+                    File.WriteAllText(saveFileDialog.FileName, this.textBoxMain.Text);
                     MessageBox.Show("已将文档另存为 " + saveFileDialog.FileName + " ！", "另存为成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show("发生了未知错误，另存为失败", "另存为失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                // 重复拖入文档执行的操作，但是简化了判断只读和清除记录
-                Title.SpecifiedDocumentFullName = saveFileDialog.FileName;
-                // 停止计时器，修改源文件，开启计时器
-                using (PauseAutoBackup)
-                {
-                    AutoBackup.Original文件名 = saveFileDialog.FileName;
-                    // 更新文件路径框
-                    this.textBoxPath.Text = AutoBackup.WorkingDirectory;
-                    // 重新打开计时器
+                    savedCharLength = -1;
+                    Result saveResult = SaveDocx(saveFileDialog.FileName);
+                    if (saveResult == Result.Done)
+                    {
+                        DeleteBackup();
+                        MessageBox.Show("已将文档另存为 " + saveFileDialog.FileName + " ！", "另存为成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("发生了未知错误，另存为失败", "另存为失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    // 以下的操作是拖入文档执行的操作，只是简化了判断只读和清除记录
+                    Title.SpecifiedDocumentFullName = saveFileDialog.FileName;
+                    // 停止计时器，修改源文件，开启计时器
+                    using (PauseAutoBackup)
+                    {
+                        AutoBackup.Original文件名 = saveFileDialog.FileName;
+                        // 更新文件路径框
+                        this.textBoxPath.Text = AutoBackup.WorkingDirectory;
+                        // 重新打开计时器
+                    }
                 }
             }
         }
@@ -1081,7 +1128,7 @@ namespace 日志书写器
         /// 转换文本框中的所有LF为CRLF
         /// </summary>
         /// <returns></returns>
-        private Result ConvertLF2CRLF()
+        private Result ConvertLF2CRLFInTextBox()
         {
             var strBuilder = new StringBuilder(this.textBoxMain.Text);
             strBuilder.Replace(ConstVariables.CRLF, ConstVariables.LF); // 先把CRLF统一成LF
@@ -1171,7 +1218,7 @@ namespace 日志书写器
             // 只有全屏模式才执行的快捷键
             if (this.FullScreen)
             {
-                // Ctrl+Alt+L 切换全屏锁状态
+                // Ctrl + Alt + L 切换全屏锁状态
                 if (e.Control && e.Alt && e.KeyCode == Keys.L)
                 {
                     this.SwitchFullScreenLockStatus();
@@ -1184,20 +1231,31 @@ namespace 日志书写器
                 this.ShowInTaskbar = !this.ShowInTaskbar;
                 return;
             }
+            // Shift + Delete 删除本行并保存到剪切板
             if (e.Shift && e.KeyCode == Keys.Delete)
             {
                 Clipboard.SetText(this.RemoveCurrentRow());
                 return;
             }
+            // Ctrl + Alt + F 继续搜索
+            if (e.Control && e.Alt && e.KeyCode == Keys.F)
+            {
+                if (LastSearch != "")
+                {
+                    this.textBoxMain.SelectionStart += 1;
+                    SearchString(LastSearch);
+                }
+            }
+            // Ctrl + Shift + Alt + D 进入调试模式
             if (e.Control && e.Shift && e.Alt && e.KeyCode == Keys.D)
             {
                 Title.DebugInfo = "已进入调试模式";
                 return;
             }
-            // Ctrl + 某按键
+            // Ctrl + 某按键（一个按键）
             if (e.Control)
             {
-                // Ctrl+S 保存文档
+                // Ctrl + S 保存文档
                 if (e.KeyCode == Keys.S)
                 {
                     if (Title.Untitled)
@@ -1210,62 +1268,41 @@ namespace 日志书写器
                         DeleteBackup();
                     }
                 }
-                // Ctrl+A 全选文档
+                // Ctrl + A 全选文档
                 else if (e.KeyCode == Keys.A)
                     this.textBoxMain.SelectAll();
-                // Ctrl+O 打开文档
+                // Ctrl + O 打开文档
                 else if (e.KeyCode == Keys.O)
-                {
-                    OpenFileDialog openFileDialog = new OpenFileDialog();
-                    openFileDialog.Filter = "docx文档|*.docx|所有文件|*.*";
-                    openFileDialog.Multiselect = false;
-                    openFileDialog.Title = "打开Docx文档";
-                    if (openFileDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        if (openFileDialog.FileName.Contains(".docx"))
-                            this.LoadSpecificDocument(openFileDialog.FileName);
-                        else
-                            this.LoadTextFromSpecificTxtFile(openFileDialog.FileName);
-                    }
-                }
-                // Ctrl+F 查找内容
+                    this.打开文档ToolStripMenuItem_Click(sender, e);
+                // Ctrl + F 查找内容
                 else if (e.KeyCode == Keys.F)
-                {
-                    if (LastSearch == "")
-                        SearchString();
-                    else
-                    {
-                        this.textBoxMain.SelectionStart += LastSearch.Length;
-                        SearchString(LastSearch);
-                    }
-                }
-                // Ctrl+Z 撤回
+                    this.SearchString();
+                // Ctrl + Z 撤回
                 else if (e.KeyCode == Keys.Z)
-                    UndoText();
-                // Ctrl+Y 重做
+                    this.UndoText();
+                // Ctrl + Y 重做
                 else if (e.KeyCode == Keys.Y)
-                    RedoText();
-                // Ctrl+T 插入两个中文空格
+                    this.RedoText();
+                // Ctrl + T 插入两个中文空格
                 else if (e.KeyCode == Keys.T)
                     this.插入中文空格ToolStripMenuItem_Click(sender, e);
-                // Ctrl+I 插入超链接
+                // Ctrl + I 插入超链接
                 else if (e.KeyCode == Keys.I)
                     this.插入链接ToolStripMenuItem_Click(sender, e);
-                // Ctrl+D 删除本行
+                // Ctrl + D 删除本行
                 else if (e.KeyCode == Keys.D)
                     this.RemoveCurrentRow();
-                // Ctrl+V 粘贴文本
+                // Ctrl + V 粘贴文本
                 else if (e.KeyCode == Keys.V)
-                {
                     this.former.SaveText(this.textBoxMain.Text);
-                }
             }
-            // Alt + 某按键
+            // Alt + 某按键（一个按键）
             else if (e.Alt)
             {
+                // Alt + ↑ 代码上移
                 if (e.KeyCode == Keys.Up)
                 {
-                    if (this.ConvertLF2CRLF() != Result.Done)
+                    if (this.ConvertLF2CRLFInTextBox() != Result.Done)
                     {
                         // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
                         using (SafeEdit)
@@ -1296,9 +1333,10 @@ namespace 日志书写器
                         }// 恢复字号
                     }
                 }
+                // Alt + ↓ 代码上移
                 else if (e.KeyCode == Keys.Down)
                 {
-                    if (this.ConvertLF2CRLF() != Result.Done)
+                    if (this.ConvertLF2CRLFInTextBox() != Result.Done)
                     {
                         // 为了解决多行出现严重错误的问题，变换前先把字号改成及其小后保证每行为一段
                         using (SafeEdit)
@@ -1704,6 +1742,37 @@ namespace 日志书写器
 
         #region 右键菜单
         /// <summary>
+        /// 新建文档按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 新建文档ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.checkBoxMailbox.Checked = false;
+            Application.Restart();
+        }
+
+        /// <summary>
+        /// 打开文档按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 打开文档ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "docx文档|*.docx|文本文档|*.txt|所有文件|*.*";
+            openFileDialog.Multiselect = false;
+            openFileDialog.Title = "打开Docx文档";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                if (openFileDialog.FileName.Contains(".docx"))
+                    this.LoadSpecificDocument(openFileDialog.FileName);
+                else
+                    this.LoadTextFromSpecificTxtFile(openFileDialog.FileName);
+            }
+        }
+
+        /// <summary>
         /// 插入中文空格按下事件
         /// </summary>
         /// <param name="sender"></param>
@@ -1713,7 +1782,7 @@ namespace 日志书写器
             int nowStart = textBoxMain.SelectionStart;
             this.textBoxMain.Text = textBoxMain.Text.Insert(textBoxMain.SelectionStart, "　　");
             this.textBoxMain.Select(nowStart + 2, 0);
-            this.ConvertLF2CRLF();
+            this.ConvertLF2CRLFInTextBox();
             this.former.SaveText(this.textBoxMain.Text);
         }
 
@@ -1765,7 +1834,7 @@ namespace 日志书写器
         private void 插入链接ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.former.SaveText(this.textBoxMain.Text);
-            if (ConvertLF2CRLF() == Result.Done)
+            if (ConvertLF2CRLFInTextBox() == Result.Done)
                 return;
 
             bool savedSetting = this.TopMost;
@@ -1792,16 +1861,13 @@ namespace 日志书写器
             }
         }
 
-        private void 新建文档ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.checkBoxMailbox.Checked = false;
-            Application.Restart();
-        }
-
-        private void 替换文本ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            FormReplacer.ShowReplacer(this.textBoxMain, this.former);
-        }
+        /// <summary>
+        /// 替换文本按下事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 替换文本ToolStripMenuItem_Click(object sender, EventArgs e) =>
+            FormReplacer.ShowReplacer(this.textBoxMain, this.former, this.TopMost);
 
         /// <summary>
         /// 剪切按下事件
@@ -1833,7 +1899,7 @@ namespace 日志书写器
         {
             SendKeys.Send("^{v}");
             former.SaveText(this.textBoxMain.Text);
-            this.ConvertLF2CRLF();
+            this.ConvertLF2CRLFInTextBox();
         }
 
         /// <summary>
@@ -1943,7 +2009,10 @@ namespace 日志书写器
             // 更新状态栏里的行、列、字数信息
             this.toolStripStatusLabelRow.Text = "第" + (TextBoxUtil.GetNowLineIndex() + 1) + "行";
             this.toolStripStatusLabelColumn.Text = "第" + (TextBoxUtil.GetColumnIndex() + 1) + "列";
-            this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
+            if (this.textBoxMain.SelectionLength == 0)
+                this.toolStripStatusLabelTextLength.Text = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length + "字";
+            else
+                this.toolStripStatusLabelTextLength.Text = this.textBoxMain.SelectedText.Length + "字";
         }
 
         /// <summary>
@@ -2078,7 +2147,7 @@ namespace 日志书写器
             {
                 if (textBox == null)
                     textBox = FormEdit.Instance.textBoxMain;
-                return textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
+                return textBox.SelectionStart - GetFirstCharIndexOfCurrentLine(textBox);
             }
 
             /// <summary>
@@ -2117,7 +2186,7 @@ namespace 日志书写器
             {
                 if (textBox == null)
                     textBox = FormEdit.Instance.textBoxMain;
-                return GetLineLength(GetNowLineIndex(textBox));
+                return GetLineLength(GetNowLineIndex(textBox), textBox);
             }
 
             /// <summary>
@@ -2459,7 +2528,7 @@ namespace 日志书写器
             /// </summary>
             /// <param name="id"></param>
             /// <returns></returns>
-            public static Data GetData(int id)
+            public static Data GetDataById(int id)
             {
                 if (savedData.ContainsKey(id))
                     return savedData[id];
@@ -2585,12 +2654,12 @@ namespace 日志书写器
                 // 在这里保存最新的数据
                 BackupCreaterFactory.UpdateData(BackupCreaterFactory.ID_SAVE);
                 // 再很方便的提取出来
-                var data = BackupCreaterFactory.GetData(BackupCreaterFactory.ID_SAVE);
+                var data = BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_SAVE);
                 // 从未创建过AutoSaver就创建一个默认的并获取默认的data
                 if (data == null)
                 {
                     CreateAutoSaver();
-                    data = BackupCreaterFactory.GetData(BackupCreaterFactory.ID_SAVE);
+                    data = BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_SAVE);
                 }
                 // 修改interval并再次创建实例
                 data.interval = this.TimerIntervalSecond * 1000;
@@ -2603,12 +2672,12 @@ namespace 日志书写器
                 // 在这里保存最新的数据
                 BackupCreaterFactory.UpdateData(BackupCreaterFactory.ID_BACKUP);
                 // 再很方便的提取出来
-                var data = BackupCreaterFactory.GetData(BackupCreaterFactory.ID_BACKUP);
+                var data = BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_BACKUP);
                 // 从未创建过AutoBackup就创建一个默认的并获取默认的data
                 if (data == null)
                 {
                     CreateAutoBackup();
-                    data = BackupCreaterFactory.GetData(BackupCreaterFactory.ID_BACKUP);
+                    data = BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_BACKUP);
                 }
                 // 修改interval并再次创建实例
                 data.interval = this.TimerIntervalSecond * 1000;
@@ -2721,5 +2790,6 @@ namespace 日志书写器
             }
         }
         #endregion
+        
     }
 }

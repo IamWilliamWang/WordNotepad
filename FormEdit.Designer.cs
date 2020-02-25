@@ -36,6 +36,7 @@
             this.查找内容ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.插入链接ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.新建文档ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.替换文本ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.剪切ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.复制ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.粘贴ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,7 +68,7 @@
             this.toolStripStatusLabelLockScrollBar = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelLockFullScreen = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelTextLength = new System.Windows.Forms.ToolStripStatusLabel();
-            this.替换文本ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.打开文档ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripMain.SuspendLayout();
             this.contextMenuStripSave.SuspendLayout();
             this.groupBoxSetting.SuspendLayout();
@@ -95,10 +96,11 @@
             // contextMenuStripMain
             // 
             this.contextMenuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.新建文档ToolStripMenuItem,
+            this.打开文档ToolStripMenuItem,
             this.中文空格ToolStripMenuItem,
             this.查找内容ToolStripMenuItem,
             this.插入链接ToolStripMenuItem,
-            this.新建文档ToolStripMenuItem,
             this.替换文本ToolStripMenuItem,
             this.剪切ToolStripMenuItem,
             this.复制ToolStripMenuItem,
@@ -111,7 +113,7 @@
             this.自动保存ToolStripMenuItem,
             this.自动备份ToolStripMenuItem});
             this.contextMenuStripMain.Name = "contextMenuStripMain";
-            this.contextMenuStripMain.Size = new System.Drawing.Size(181, 356);
+            this.contextMenuStripMain.Size = new System.Drawing.Size(181, 378);
             // 
             // 中文空格ToolStripMenuItem
             // 
@@ -140,6 +142,13 @@
             this.新建文档ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.新建文档ToolStripMenuItem.Text = "新建文档";
             this.新建文档ToolStripMenuItem.Click += new System.EventHandler(this.新建文档ToolStripMenuItem_Click);
+            // 
+            // 替换文本ToolStripMenuItem
+            // 
+            this.替换文本ToolStripMenuItem.Name = "替换文本ToolStripMenuItem";
+            this.替换文本ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.替换文本ToolStripMenuItem.Text = "替换文本";
+            this.替换文本ToolStripMenuItem.Click += new System.EventHandler(this.替换文本ToolStripMenuItem_Click);
             // 
             // 剪切ToolStripMenuItem
             // 
@@ -446,12 +455,12 @@
             this.toolStripStatusLabelTextLength.Text = "0字";
             this.toolStripStatusLabelTextLength.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // 替换文本ToolStripMenuItem
+            // 打开文档ToolStripMenuItem
             // 
-            this.替换文本ToolStripMenuItem.Name = "替换文本ToolStripMenuItem";
-            this.替换文本ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.替换文本ToolStripMenuItem.Text = "替换文本";
-            this.替换文本ToolStripMenuItem.Click += new System.EventHandler(this.替换文本ToolStripMenuItem_Click);
+            this.打开文档ToolStripMenuItem.Name = "打开文档ToolStripMenuItem";
+            this.打开文档ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.打开文档ToolStripMenuItem.Text = "打开文档";
+            this.打开文档ToolStripMenuItem.Click += new System.EventHandler(this.打开文档ToolStripMenuItem_Click);
             // 
             // FormEdit
             // 
@@ -523,6 +532,7 @@
         private System.Windows.Forms.ToolStripMenuItem 另存为ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 新建文档ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 替换文本ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 打开文档ToolStripMenuItem;
     }
 }
 

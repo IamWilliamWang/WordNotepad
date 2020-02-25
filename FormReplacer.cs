@@ -23,18 +23,25 @@ namespace 日志书写器
             this.former = former;
         }
 
-        public static void ShowReplacer(TextBox mainTextBox, FormEdit.FormerSaver<String> former)
+        /// <summary>
+        /// 显示替换文本窗体
+        /// </summary>
+        /// <param name="mainTextBox"></param>
+        /// <param name="former"></param>
+        public static void ShowReplacer(TextBox mainTextBox, FormEdit.FormerSaver<String> former, bool topMost = false)
         {
             if (instance == null)
             {
                 instance = new FormReplacer(mainTextBox, former);
                 instance.textBox替换内容.Text = Clipboard.GetText();
+                instance.TopMost = topMost;
                 instance.Show();
                 instance.textBox替换为.Focus();
             }
             else
             {
                 instance.textBox替换内容.Text = Clipboard.GetText();
+                instance.TopMost = topMost;
                 instance.Focus();
                 instance.textBox替换为.Focus();
             }
