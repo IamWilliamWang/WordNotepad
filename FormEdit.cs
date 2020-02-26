@@ -437,7 +437,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="filename">The text file to analyze.</param>
         /// <returns>The detected encoding.</returns>
-        public static Encoding GetEncoding(string filename)
+        public static Encoding GetEncodingUsingBOM(string filename)
         {
             // Read the BOM
             var bom = new byte[4];
@@ -456,6 +456,30 @@ namespace 日志书写器
         }
 
         /// <summary>
+        /// 检测filename文本的字符编码。支持UTF-8、UTF-8 with BOM、GBK、UTF-16LE、UTF-16BE、UTF7、UTF32
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static Encoding GetEncoding(string filename)
+        {
+            var encoding = GetEncodingUsingBOM(filename); 
+            if (encoding != Encoding.Default) // 由于上方法会将无BOM的UTF-8当作GBK，所以要另外处理
+                return encoding;
+            var content = "请观察以下文字，输入正常文字前面对应的数字。\r\n";
+            using (var binaryReader = new BinaryReader(new FileStream(filename, FileMode.Open, FileAccess.Read)))
+            {
+                var bytes = binaryReader.ReadBytes(20);
+                var utf8String = Encoding.UTF8.GetString(bytes);
+                var gbkString = Encoding.Default.GetString(bytes);
+                content += "1：" + utf8String.Substring(0, utf8String.Length - 1) + "\r\n";
+                content += "2：" + gbkString.Substring(0, gbkString.Length - 1);
+            }
+            if ("2" == Interaction.InputBox(title: "无法检测文本编码", content: content, charCountPerline: 10000).Trim()) // charCountPerline较大等同于禁用自动换行
+                return Encoding.Default;
+            return Encoding.UTF8;
+        }
+
+        /// <summary>
         /// 加载txt文件，改变存储字数（不修改任何Timer）
         /// </summary>
         /// <param name="txtFileName"></param>
@@ -463,7 +487,7 @@ namespace 日志书写器
         {
             try
             {
-                this.textBoxMain.Lines = File.ReadAllLines(txtFileName);
+                this.textBoxMain.Lines = File.ReadAllLines(txtFileName, GetEncoding(txtFileName));
                 this.savedCharLength = 0;
                 foreach (var str in this.textBoxMain.Lines)
                     this.savedCharLength += str.Length;
