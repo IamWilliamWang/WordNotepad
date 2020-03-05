@@ -308,13 +308,6 @@ namespace 日志书写器
             // 设置ControlStyle为双缓冲，可以避免界面频繁闪烁。Set the value of the double-buffering style bits to true. 
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
-            // 不是日志管理器就隐藏打开邮箱按钮
-            if (!Program.LogWriter)
-            {
-                this.checkBoxMailbox.Checked = false;
-                this.checkBoxMailbox.Visible = false;
-                this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
-            }
             // 初始化自动备份
             CreateAutoBackup();
             // 初始化自动保存
@@ -387,6 +380,8 @@ namespace 日志书写器
             }
             else
             {
+                Title.TitleName = "Word 记事本";
+                Title.Untitled = true;
                 // 停用并禁止掉所有的自动保存和自动备份（在SaveTo和LoadSpecificDocument函数中解封）
                 this.AutoBackupRunning = false;
                 this.AutoSaverRunning = false;
@@ -394,8 +389,11 @@ namespace 日志书写器
                 this.自动备份ToolStripMenuItem.Enabled = false;
                 this.自动保存ToolStripMenuItem.Text = "自动保存";
                 this.自动保存ToolStripMenuItem.Enabled = false;
-                Title.TitleName = "Word 记事本";
-                Title.Untitled = true;
+                // 不是日志管理器就隐藏打开邮箱按钮和高级选项
+                this.checkBoxMailbox.Checked = false;
+                this.checkBoxMailbox.Visible = false;
+                this.button高级设置.Visible = false;
+                this.textBoxPath.Size = new Size(488, textBoxPath.Size.Height);
             }
             if (this.传入的文件名 != null)
                 this.LoadNewDocx(this.传入的文件名);
@@ -732,6 +730,9 @@ namespace 日志书写器
             // 保存完后启用备份按钮
             this.自动备份ToolStripMenuItem.Enabled = true;
             this.自动保存ToolStripMenuItem.Enabled = true;
+            // 恢复高级设置按钮并重置文件路径栏的宽度
+            this.button高级设置.Visible = true;
+            this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
             return Result.Done;
         }
 
@@ -990,6 +991,9 @@ namespace 日志书写器
             }
             // 取消标题未命名状态
             Title.Untitled = false;
+            // 恢复高级设置按钮并重置文件路径栏的宽度
+            this.button高级设置.Visible = true;
+            this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
             return Result.Done;
         }
 

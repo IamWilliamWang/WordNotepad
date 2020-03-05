@@ -93,8 +93,9 @@ namespace 日志书写器
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "InputBoxFormInner";
-            this.StartPosition = FormStartPosition.CenterParent;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "InputBoxForm";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 
