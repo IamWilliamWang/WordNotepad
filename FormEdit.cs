@@ -699,6 +699,7 @@ namespace 日志书写器
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "Word文档|*.docx|文本文档|*.txt";
             saveFileDialog.Title = "保存到";
+            saveFileDialog.FileName = "新建 Microsoft Word 文档";
             if (saveFileDialog.ShowDialog() != DialogResult.OK)
                 return Result.Canceled;
             // 保存txt文件时只需要写入文件
@@ -1206,6 +1207,7 @@ namespace 日志书写器
         /// <summary>
         /// 删除屏幕中当前行内容
         /// </summary>
+        /// <returns>被删除的内容</returns>
         private string RemoveCurrentRow()
         {
             StringBuilder stringBuilder = new StringBuilder(this.textBoxMain.Text);
@@ -1227,6 +1229,7 @@ namespace 日志书写器
                 finally
                 {
                     this.textBoxMain.Text = stringBuilder.ToString();
+                    this.former.SaveText(this.textBoxMain.Text);
                 }
             }
             this.textBoxMain.Select(firstCharIndex, 0);
@@ -1262,7 +1265,8 @@ namespace 日志书写器
             // Shift + Delete 删除本行并保存到剪切板
             if (e.Shift && e.KeyCode == Keys.Delete)
             {
-                Clipboard.SetText(this.RemoveCurrentRow());
+                var removedStringWithCRLF = this.RemoveCurrentRow();
+                Clipboard.SetText(removedStringWithCRLF);
                 return;
             }
             // Ctrl + Alt + F 继续搜索
@@ -1408,6 +1412,9 @@ namespace 日志书写器
         private void textBoxMain_KeyUp(object sender, KeyEventArgs e)
         {
             UpdateStatusStripInfo();
+            // Shift + Delete 需要还原被系统delete删掉的那个字符
+            if (e.Shift && e.KeyCode == Keys.Delete)
+                this.textBoxMain.Text = this.former.GetPeek();
         }
         #endregion
 
