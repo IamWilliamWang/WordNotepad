@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace 日志书写器
@@ -159,6 +160,11 @@ namespace 日志书写器
         /// 程序运行前拖入的文件名
         /// </summary>
         private String 传入的文件名;
+
+        /// <summary>
+        /// 上一次加载的txt文件名
+        /// </summary>
+        private String lastLoadedTxtFile;
         #endregion
 
         #region 启动与关闭
@@ -454,26 +460,95 @@ namespace 日志书写器
         }
 
         /// <summary>
+        /// 将字符编码显示在状态栏中
+        /// </summary>
+        /// <param name="encoding">字符编码</param>
+        /// <param name="withBOM">如果是UTF8，是否包含BOM</param>
+        private static void ShowEncoding(Encoding encoding, bool withBOM = false)
+        {
+            var label = FormEdit.Instance.toolStripStatusLabelEncoding;
+            if (encoding == null)
+                label.Text = "";
+            if (encoding == Encoding.ASCII)
+                label.Text = "ASCII";
+            else if (encoding == Encoding.UTF8)
+                label.Text = (withBOM ? "带有BOM的" : "") + "UTF-8";
+            else if (encoding == Encoding.Default)
+                label.Text = "GBK";
+            else if (encoding == Encoding.UTF7)
+                label.Text = "UTF-7";
+            else if (encoding == Encoding.Unicode)
+                label.Text = "UTF-16LE";
+            else if (encoding == Encoding.BigEndianUnicode)
+                label.Text = "UTF-16BE";
+            else if (encoding == Encoding.UTF32)
+                label.Text = "UTF-32";
+        }
+        
+        /// <summary>
         /// 检测filename文本的字符编码。支持UTF-8、UTF-8 with BOM、GBK、UTF-16LE、UTF-16BE、UTF7、UTF32
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
         public static Encoding GetEncoding(string filename)
         {
-            var encoding = GetEncodingUsingBOM(filename); 
-            if (encoding != Encoding.Default) // 由于上方法会将无BOM的UTF-8当作GBK，所以要另外处理
-                return encoding;
-            var content = "请观察以下文字，输入正常文字前面对应的数字。\r\n";
+            var nonDefaultEncoding = GetEncodingUsingBOM(filename);
+            if (nonDefaultEncoding != Encoding.Default) // 由于上方法会将无BOM的UTF-8当作GBK，所以要另外处理
+            {
+                ShowEncoding(nonDefaultEncoding, true);
+                return nonDefaultEncoding;
+            }
+            // 判断是default(GBK)还是UTF8 without BOM
+            var dialogText = new StringBuilder("请输入以下文字中正常的一行前面对应的数字。\r\n");
+            var unicodeRegex = new Regex(@"[\u4E00-\u9FFF，。？！；：‘’“”【】（）—·]");
             using (var binaryReader = new BinaryReader(new FileStream(filename, FileMode.Open, FileAccess.Read)))
             {
-                var bytes = binaryReader.ReadBytes(20);
-                var utf8String = Encoding.UTF8.GetString(bytes);
-                var gbkString = Encoding.Default.GetString(bytes);
-                content += "1：" + utf8String.Substring(0, utf8String.Length - 1) + "\r\n";
-                content += "2：" + gbkString.Substring(0, gbkString.Length - 1);
+                var bytes = binaryReader.ReadBytes(10000); // 读取所有内容，防止最后一个字符是unicode
+                var utf8String = Encoding.UTF8.GetString(bytes); // 解析成UTF8
+                var gbkString = Encoding.Default.GetString(bytes); // 解析成GBK
+                dialogText.Append("1：");
+                var countUnicodeInUTF8 = 0;
+                var countUnicodeInGBK = 0;
+                for (int i = 0; i < utf8String.Length; i++)
+                {
+                    if (countUnicodeInUTF8 > 20)
+                        break;
+                    if (!unicodeRegex.IsMatch(utf8String[i] + "")) // 跳过所有非Unicode字符
+                        continue;
+                    dialogText.Append(utf8String[i]);
+                    countUnicodeInUTF8++;
+                }
+                dialogText.AppendLine();
+                dialogText.Append("2：");
+                for (int i = 0; i < gbkString.Length; i++)
+                {
+                    if (countUnicodeInGBK > 20)
+                        break;
+                    if (!unicodeRegex.IsMatch(gbkString[i] + "")) // 跳过所有非Unicode字符
+                        continue;
+                    dialogText.Append(gbkString[i]);
+                    countUnicodeInGBK++;
+                }
+                // 排除法能确定的话直接就确定了
+                if (countUnicodeInUTF8 == 0 || countUnicodeInGBK == 0)
+                {
+                    // 如果发现两者都没找到unicode字符，则返回ASCII
+                    if (countUnicodeInUTF8 == 0 && countUnicodeInGBK == 0)
+                    {
+                        ShowEncoding(Encoding.ASCII);
+                        return Encoding.ASCII;
+                    }
+                    ShowEncoding(countUnicodeInUTF8 == 0 ? Encoding.Default : Encoding.UTF8);
+                    return countUnicodeInUTF8 == 0 ? Encoding.Default : Encoding.UTF8;
+                }
+                dialogText.AppendLine();
             }
-            if ("2" == Interaction.InputBox(title: "无法检测文本编码", content: content, charCountPerline: 10000).Trim()) // charCountPerline较大等同于禁用自动换行
+            if ("2" == Interaction.InputBox(title: "无法检测文本编码", content: dialogText.ToString(), charCountPerline: 10000).Trim()) // charCountPerline较大等同于禁用自动换行
+            {
+                ShowEncoding(Encoding.Default);
                 return Encoding.Default;
+            }
+            ShowEncoding(Encoding.UTF8);
             return Encoding.UTF8;
         }
 
@@ -481,11 +556,13 @@ namespace 日志书写器
         /// 加载txt文件，改变存储字数（不修改任何Timer）
         /// </summary>
         /// <param name="txtFileName"></param>
-        private Result LoadTxt(string txtFileName)
+        private Result LoadTxt(string txtFileName, Encoding encoding = null)
         {
             try
             {
-                this.textBoxMain.Lines = File.ReadAllLines(txtFileName, GetEncoding(txtFileName));
+                if (encoding == null)
+                    encoding = GetEncoding(txtFileName);
+                this.textBoxMain.Lines = File.ReadAllLines(txtFileName, encoding);
                 this.savedCharLength = 0;
                 foreach (var str in this.textBoxMain.Lines)
                     this.savedCharLength += str.Length;
@@ -995,6 +1072,8 @@ namespace 日志书写器
             // 恢复高级设置按钮并重置文件路径栏的宽度
             this.button高级设置.Visible = true;
             this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
+            // 状态栏的字符编码被禁用
+            ShowEncoding(null);
             return Result.Done;
         }
 
@@ -1003,7 +1082,7 @@ namespace 日志书写器
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        private Result LoadTextFromSpecificTxtFile(string file)
+        private Result LoadTxtFileWithCheck(string file)
         {
             try
             {
@@ -1014,6 +1093,7 @@ namespace 日志书写器
                     return Result.Failed;
                 }
                 LoadTxt(file); //加载txt内容但不改变操作目标文件（即不支持txt保存）
+                this.lastLoadedTxtFile = file;
                 if (fileInfo.Length > this.textBoxMain.Text.Length * 4 + 2) // 最长是UTF16的情况
                 {
                     MessageBox.Show("只允许加载docx或文本文件！", "加载失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1036,7 +1116,7 @@ namespace 日志书写器
                 if (file.EndsWith(".docx"))
                     return this.LoadSpecificDocument(file);
                 else
-                    return this.LoadTextFromSpecificTxtFile(file);
+                    return this.LoadTxtFileWithCheck(file);
             }
             return Result.Failed;
         }
@@ -1803,7 +1883,7 @@ namespace 日志书写器
                 if (openFileDialog.FileName.Contains(".docx"))
                     this.LoadSpecificDocument(openFileDialog.FileName);
                 else
-                    this.LoadTextFromSpecificTxtFile(openFileDialog.FileName);
+                    this.LoadTxtFileWithCheck(openFileDialog.FileName);
             }
         }
 
@@ -2124,6 +2204,42 @@ namespace 日志书写器
         private void toolStripStatusLockScrollBar_Click(object sender, EventArgs e)
         {
             SwitchScrollBarLockStatus();
+        }
+
+        private void toolStripStatusLabelEncoding_Click(object sender, EventArgs e)
+        {
+            var encodingText = Interaction.InputBox("可供选择的字符编码：ASCII、GBK、UTF-8、UTF-7、UTF-16LE、UTF-16BE、UTF32", "请选择要切换的字符编码", defaultText: "UTF-8");
+            switch (encodingText.Replace("-", "").ToUpper())
+            {
+                case "GBK":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.Default);
+                    ShowEncoding(Encoding.Default);
+                    break;
+                case "UTF8":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF8);
+                    ShowEncoding(Encoding.UTF8);
+                    break;
+                case "ASCII":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.ASCII);
+                    ShowEncoding(Encoding.ASCII);
+                    break;
+                case "UTF7":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF7);
+                    ShowEncoding(Encoding.UTF7);
+                    break;
+                case "UTF16LE":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.Unicode);
+                    ShowEncoding(Encoding.Unicode);
+                    break;
+                case "UTF16BE":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.BigEndianUnicode);
+                    ShowEncoding(Encoding.BigEndianUnicode);
+                    break;
+                case "UTF32":
+                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF32);
+                    ShowEncoding(Encoding.UTF32);
+                    break;
+            }
         }
         #endregion
 
@@ -2825,6 +2941,5 @@ namespace 日志书写器
             }
         }
         #endregion
-        
     }
 }
