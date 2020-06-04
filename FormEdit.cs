@@ -472,7 +472,7 @@ namespace 日志书写器
             if (encoding == Encoding.ASCII)
                 label.Text = "ASCII";
             else if (encoding == Encoding.UTF8)
-                label.Text = (withBOM ? "带有BOM的" : "") + "UTF-8";
+                label.Text = (withBOM ? "带有 BOM 的 " : "") + "UTF-8";
             else if (encoding == Encoding.Default)
                 label.Text = "GBK";
             else if (encoding == Encoding.UTF7)
@@ -498,15 +498,16 @@ namespace 日志书写器
                 ShowEncoding(nonDefaultEncoding, true);
                 return nonDefaultEncoding;
             }
-            // 判断是default(GBK)还是UTF8 without BOM
-            var dialogText = new StringBuilder("请输入以下文字中正常的一行前面对应的数字。\r\n");
+            // 以下所有代码是判断的default(GBK)还是UTF8 without BOM
+            //var dialogText = new StringBuilder("请输入以下文字中正常的一行前面对应的数字。\r\n");
+            //本函数注释的遗留代码是弹窗选择编码。抛弃的原因是GBK和UTF8可以自动比较，即使编码错误也可以手动选择编码重新加载txt
             var unicodeRegex = new Regex(@"[\u4E00-\u9FFF，。？！；：‘’“”【】（）—·]");
             using (var binaryReader = new BinaryReader(new FileStream(filename, FileMode.Open, FileAccess.Read)))
             {
                 var bytes = binaryReader.ReadBytes(10000); // 读取所有内容，防止最后一个字符是unicode
                 var utf8String = Encoding.UTF8.GetString(bytes); // 解析成UTF8
                 var gbkString = Encoding.Default.GetString(bytes); // 解析成GBK
-                dialogText.Append("1：");
+                //dialogText.Append("1：");
                 var countUnicodeInUTF8 = 0;
                 var countUnicodeInGBK = 0;
                 for (int i = 0; i < utf8String.Length; i++)
@@ -515,18 +516,18 @@ namespace 日志书写器
                         break;
                     if (!unicodeRegex.IsMatch(utf8String[i] + "")) // 跳过所有非Unicode字符
                         continue;
-                    dialogText.Append(utf8String[i]);
+                    //dialogText.Append(utf8String[i]);
                     countUnicodeInUTF8++;
                 }
-                dialogText.AppendLine();
-                dialogText.Append("2：");
+                //dialogText.AppendLine();
+                //dialogText.Append("2：");
                 for (int i = 0; i < gbkString.Length; i++)
                 {
                     if (countUnicodeInGBK > 20)
                         break;
                     if (!unicodeRegex.IsMatch(gbkString[i] + "")) // 跳过所有非Unicode字符
                         continue;
-                    dialogText.Append(gbkString[i]);
+                    //dialogText.Append(gbkString[i]);
                     countUnicodeInGBK++;
                 }
                 // 排除法能确定的话直接就确定了
@@ -541,13 +542,13 @@ namespace 日志书写器
                     ShowEncoding(countUnicodeInUTF8 == 0 ? Encoding.Default : Encoding.UTF8);
                     return countUnicodeInUTF8 == 0 ? Encoding.Default : Encoding.UTF8;
                 }
-                dialogText.AppendLine();
+                //dialogText.AppendLine();
             }
-            if ("2" == Interaction.InputBox(title: "无法检测文本编码", content: dialogText.ToString(), charCountPerline: 10000).Trim()) // charCountPerline较大等同于禁用自动换行
-            {
-                ShowEncoding(Encoding.Default);
-                return Encoding.Default;
-            }
+            //if ("2" == Interaction.InputBox(title: "无法检测文本编码", content: dialogText.ToString(), charCountPerline: 10000).Trim()) // charCountPerline较大等同于禁用自动换行
+            //{
+            //    ShowEncoding(Encoding.Default);
+            //    return Encoding.Default;
+            //}
             ShowEncoding(Encoding.UTF8);
             return Encoding.UTF8;
         }
