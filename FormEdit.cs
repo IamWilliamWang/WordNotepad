@@ -84,7 +84,7 @@ namespace 日志书写器
         /// <summary>
         /// 作者姓名
         /// </summary>
-        public static String AuthorName { get; } = "王劲翔";
+        public static String AuthorName { get; } = Hex2ChiEngString("&#xe7;&#x8e;&#x8b;&#xe5;&#x8a;&#xb2;&#xe7;&#xbf;&#x94;");
 
         /// <summary>
         /// 上次保存的文档字符串长度（不包含换行）
@@ -165,6 +165,8 @@ namespace 日志书写器
         /// 上一次加载的txt文件名
         /// </summary>
         private String lastLoadedTxtFile;
+
+        private Encoding currentTxtEncoding = Encoding.UTF8;
         #endregion
 
         #region 启动与关闭
@@ -453,8 +455,8 @@ namespace 日志书写器
             // Analyze the BOM
             if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
             if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
-            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
-            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16 LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16 BE
             if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
             return Encoding.Default;
         }
@@ -466,6 +468,8 @@ namespace 日志书写器
         /// <param name="withBOM">如果是UTF8，是否包含BOM</param>
         private static void ShowEncoding(Encoding encoding, bool withBOM = false)
         {
+            FormEdit.Instance.currentTxtEncoding = encoding; // 记录当前encoding
+
             var label = FormEdit.Instance.toolStripStatusLabelEncoding;
             if (encoding == null)
                 label.Text = "";
@@ -478,15 +482,15 @@ namespace 日志书写器
             else if (encoding == Encoding.UTF7)
                 label.Text = "UTF-7";
             else if (encoding == Encoding.Unicode)
-                label.Text = "UTF-16LE";
+                label.Text = "UTF-16 LE";
             else if (encoding == Encoding.BigEndianUnicode)
-                label.Text = "UTF-16BE";
+                label.Text = "UTF-16 BE";
             else if (encoding == Encoding.UTF32)
                 label.Text = "UTF-32";
         }
-        
+
         /// <summary>
-        /// 检测filename文本的字符编码。支持UTF-8、UTF-8 with BOM、GBK、UTF-16LE、UTF-16BE、UTF7、UTF32
+        /// 检测filename文本的字符编码。支持UTF-8、UTF-8 with BOM、GBK、UTF-16 LE、UTF-16 BE、UTF-7、UTF-32
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
@@ -559,6 +563,10 @@ namespace 日志书写器
         /// <param name="txtFileName"></param>
         private Result LoadTxt(string txtFileName, Encoding encoding = null)
         {
+            // 当重命名状态下更改字符会发生这种情况
+            if (txtFileName == null)
+                return Result.Skipped;
+
             try
             {
                 if (encoding == null)
@@ -783,8 +791,7 @@ namespace 日志书写器
             // 保存txt文件时只需要写入文件
             if (saveFileDialog.FileName.EndsWith(".txt"))
             {
-                File.WriteAllText(saveFileDialog.FileName, this.textBoxMain.Text);
-                MessageBox.Show("已将文档保存到 " + saveFileDialog.FileName + " ！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("已将文档保存到 " + saveFileDialog.FileName + " ，字符编码为" + WriteTxtFile(saveFileDialog.FileName, this.textBoxMain.Text) + "。", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return Result.Done;
             }
 
@@ -813,6 +820,39 @@ namespace 日志书写器
             this.button高级设置.Visible = true;
             this.textBoxPath.Size = new Size(410, textBoxPath.Size.Height);
             return Result.Done;
+        }
+
+        /// <summary>
+        /// 使用encoding编码写入txt文本文件
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="content"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        private string WriteTxtFile(string filename, string content, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = currentTxtEncoding;
+            bool withBOM = this.toolStripStatusLabelEncoding.Text.Contains("BOM");
+            if (currentTxtEncoding == Encoding.UTF8 && !withBOM) 
+                File.WriteAllText(filename, content);
+            else
+                File.WriteAllText(filename, content, encoding);
+            if (encoding == Encoding.UTF8)
+                return (withBOM ? "带有 BOM 的 " : "") + "UTF-8";
+            else if (encoding == Encoding.Default)
+                return "GBK";
+            else if (encoding == Encoding.ASCII)
+                return "ASCII";
+            else if (encoding == Encoding.UTF7)
+                return "UTF-7";
+            else if (encoding == Encoding.Unicode)
+                return "UTF-16 LE";
+            else if (encoding == Encoding.BigEndianUnicode)
+                return "UTF-16 BE";
+            else if (encoding == Encoding.UTF32)
+                return "UTF-32";
+            throw new ArgumentException("Encoding illegal.");
         }
 
         /// <summary>
@@ -863,8 +903,7 @@ namespace 日志书写器
             {
                 if (saveFileDialog.FileName.EndsWith(".txt"))
                 {
-                    File.WriteAllText(saveFileDialog.FileName, this.textBoxMain.Text);
-                    MessageBox.Show("已将文档另存为 " + saveFileDialog.FileName + " ！", "另存为成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("已将文档另存为 " + saveFileDialog.FileName + " ，字符编码为" + WriteTxtFile(saveFileDialog.FileName, this.textBoxMain.Text) + "。", "另存为成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -1135,9 +1174,9 @@ namespace 日志书写器
                 LoadNewDocx(file);
                 if (File.Exists(AutoBackup.Backup文件名))
                 {
-                    using (PauseAutoBackup) 
-                    if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
-                        AutoBackup.RestoreFile(RestoreAutosave, true);
+                    using (PauseAutoBackup)
+                        if (DialogResult.Yes == MessageBox.Show("检测到上次程序运行发生崩溃，是否还原自动保存的内容？", "还原请求", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+                            AutoBackup.RestoreFile(RestoreAutosave, true);
                 }
             }
         }
@@ -2207,40 +2246,35 @@ namespace 日志书写器
             SwitchScrollBarLockStatus();
         }
 
+        private Encoding GetEncodingFromString(string text)
+        {
+            text = text.Replace("-", "").Replace(" ", "").ToUpper();
+            if(text.Contains("GBK")|| text.Contains("GB2312"))
+                return Encoding.Default;
+            else if (text.Contains("UTF8"))
+                return Encoding.UTF8;
+            else if (text.Contains("ASCII"))
+                return Encoding.ASCII;
+            else if (text.Contains("UTF7"))
+                return Encoding.UTF7;
+            else if (text.Contains("UTF16LE"))
+                return Encoding.Unicode;
+            else if (text.Contains("UTF16BE"))
+                return Encoding.BigEndianUnicode;
+            else if (text.Contains("UTF32"))
+                return Encoding.UTF32;
+            return Encoding.UTF8;
+        }
+
         private void toolStripStatusLabelEncoding_Click(object sender, EventArgs e)
         {
-            var encodingText = Interaction.InputBox("可供选择的字符编码：ASCII、GBK、UTF-8、UTF-7、UTF-16LE、UTF-16BE、UTF32", "请选择要切换的字符编码", defaultText: "UTF-8");
-            switch (encodingText.Replace("-", "").ToUpper())
-            {
-                case "GBK":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.Default);
-                    ShowEncoding(Encoding.Default);
-                    break;
-                case "UTF8":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF8);
-                    ShowEncoding(Encoding.UTF8);
-                    break;
-                case "ASCII":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.ASCII);
-                    ShowEncoding(Encoding.ASCII);
-                    break;
-                case "UTF7":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF7);
-                    ShowEncoding(Encoding.UTF7);
-                    break;
-                case "UTF16LE":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.Unicode);
-                    ShowEncoding(Encoding.Unicode);
-                    break;
-                case "UTF16BE":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.BigEndianUnicode);
-                    ShowEncoding(Encoding.BigEndianUnicode);
-                    break;
-                case "UTF32":
-                    LoadTxt(this.lastLoadedTxtFile, Encoding.UTF32);
-                    ShowEncoding(Encoding.UTF32);
-                    break;
-            }
+            var input = Interaction.InputBox("可供选择的字符编码：\nASCII、GBK(GB2312)、UTF-8、带有 BOM 的 UTF-8、UTF-7、UTF-16 LE、UTF-16 BE、UTF-32", "请选择要切换的字符编码", defaultText: "UTF-8", charCountPerline: 56);
+            var inputEncoding = GetEncodingFromString(input);
+            if (inputEncoding == null)
+                return;
+
+            LoadTxt(this.lastLoadedTxtFile, inputEncoding);
+            ShowEncoding(inputEncoding, input.ToUpper().Contains("BOM"));
         }
         #endregion
 
@@ -2790,6 +2824,168 @@ namespace 日志书写器
         /// 安全编辑，用于需要使用行号进行内容修改的操作。保存当前Text并避免修改时行号异常的问题
         /// </summary>
         private IDisposable SafeEdit { get { former.SaveText(this.textBoxMain.Text); return new Disposable.MakeTextFontSmallAndThenRestore(); } }
+
+        /// <summary>
+        /// 将普通英文与UTF8混合字串转换成正常字串
+        /// </summary>
+        /// <param name="混合字符串">英文与UTF8混合字串</param>
+        /// <returns></returns>
+        private static string Hex2ChiEngString(string 混合字符串)
+        {
+            int 处理结束所在Index = 0;
+            int 中文字开始Index, 中文字结束Index;
+            StringBuilder result = new StringBuilder(); // 真实字符串
+                                                        // 每次循环优先处理英文，然后在处理中文。以此类推
+            while (处理结束所在Index < 混合字符串.Length)
+            {
+                中文字开始Index = 混合字符串.IndexOf("&#x", 处理结束所在Index);
+                if (中文字开始Index == -1) // 如果接下来没有UTF8字符了
+                    中文字开始Index = 混合字符串.Length; // 使开始Index出界
+                if (中文字开始Index != 处理结束所在Index) // 有不用处理的英文字母直接放入原文
+                {
+                    result.Append(混合字符串.Substring(处理结束所在Index, 中文字开始Index - 处理结束所在Index));
+                    处理结束所在Index = 中文字开始Index;
+                }
+                if (处理结束所在Index < 混合字符串.Length) // 还没处理完所有的字符串
+                {
+                    中文字结束Index = 混合字符串.IndexOf(";", 中文字开始Index) + 1; // 字符格式是&#x…;
+                                                                     // 循环查找连续的中文字符
+                    while (true)
+                    {
+                        // 如果不再是中文字符，就跳出循环
+                        if (混合字符串.IndexOf("&#x", 中文字结束Index) != 中文字结束Index)
+                            break;
+                        // 下个字还是中文就接着查找
+                        中文字结束Index = 混合字符串.IndexOf(";", 中文字结束Index) + 1;
+                    }
+                    if (中文字结束Index == 0)
+                        throw new Exception("中文Hex格式错误");
+                    // 得到所有中文字符的utf8编码
+                    string chinCharacterUtf8编码 = 混合字符串.Substring(中文字开始Index, 中文字结束Index - 中文字开始Index).Replace("&#x", "").Replace(";", "");
+                    // 转化为汉字添加进去
+                    result.Append(UnicodeSaverUtil.GetChsFromHex(chinCharacterUtf8编码));
+                    处理结束所在Index = 中文字结束Index;
+                }
+            }
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// 汉字与固定Unicode格式之间互换的帮助类
+        /// </summary>
+        /// 这个类诞生的原因：由于不能解决将排序规则由默认的SQL_Latin1_General_CP1_CI_AS
+        /// 修改为Chinese_PRC_CI_AS的问题，所以数据库文件只存ASCII文本，所以需要一个类将
+        /// 字符转换成对应的ASCII字段储存进数据库
+        static class UnicodeSaverUtil
+        {
+            private readonly static string codingType = "utf-8";
+            /// <summary>
+            /// 判断ch是否是中文
+            /// </summary>
+            /// <param name="ch"></param>
+            /// <returns></returns>
+            public static bool IsChineseChar(char ch)
+            {
+                return ch > 127;
+            }
+
+            public static bool IsChineseString(string content)
+            {
+                bool result = false;
+                if (content.IndexOf("&#x") != -1)
+                    return true;
+                foreach (char ch in content.ToCharArray())
+                {
+                    if (IsChineseChar(ch))
+                        result = true;
+                }
+                return result;
+            }
+
+            /// <summary>
+            /// 从汉字串转换到16进制，字符类型不建议使用该方法
+            /// </summary>
+            /// <param name="s"></param>
+            /// <returns></returns>
+            public static string GetHexFromChs(string s)
+            {
+                if ((s.Length % 2) != 0)
+                {
+                    s += " ";//空格
+                             //throw new ArgumentException("s is not valid chinese string!");
+                }
+
+                System.Text.Encoding chs = System.Text.Encoding.GetEncoding(codingType);
+
+                byte[] bytes = chs.GetBytes(s);
+
+                string str = "";
+
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    str += string.Format("&#x{0:x};", bytes[i]);
+                }
+
+                return str;
+            }
+
+            /// <summary>
+            /// 将汉字字符转为utf8编码
+            /// </summary>
+            /// <param name="ch"></param>
+            /// <returns></returns>
+            public static string GetHexFromChs(char ch)
+            {
+                string result = GetHexFromChs(ch + "");
+                if (result.Substring(result.Length - 6) == "&#x20;")
+                    result = result.Substring(0, result.Length - 6);
+                return result;
+            }
+
+            /// <summary>
+            /// 从16进制转换成汉字，请勿按字节调用
+            /// </summary>
+            /// <param name="hex"></param>
+            /// <returns></returns>
+            public static string GetChsFromHex(string hex)
+            {
+                if (hex == null)
+                    throw new ArgumentNullException("hex not found");
+                if (hex.Length <= 6)
+                    throw new ArgumentException("请勿按字节调用该函数，请至少传入两个hex");
+                if (hex.Length % 2 != 0)
+                {
+                    hex += "20";//空格
+                                //throw new ArgumentException("hex is not a valid number!", "hex");
+                }
+
+                hex = hex.Replace("&#x", "").Replace(";", "");
+
+                // 需要将 hex 转换成 byte 数组。
+                byte[] bytes = new byte[hex.Length / 2];
+
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    try
+                    {
+                        // 每两个字符是一个 byte。
+                        bytes[i] = byte.Parse(hex.Substring(i * 2, 2),
+                            System.Globalization.NumberStyles.HexNumber);
+                    }
+                    catch
+                    {
+                        // Rethrow an exception with custom message.
+                        throw new ArgumentException("hex is not a valid hex number!", "hex");
+                    }
+                }
+
+                // 获得 UTF-8，Chinese Simplified。
+                System.Text.Encoding chs = System.Text.Encoding.GetEncoding(codingType);
+
+
+                return chs.GetString(bytes);
+            }
+        }
         #endregion
 
         #region 外部调用接口

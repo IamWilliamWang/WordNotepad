@@ -1,16 +1,14 @@
-﻿# Word 记事本 v3.7
+﻿# Word 记事本 v3.8
 基于.NET的记事本风格的Word文档编辑器
+
 ## 基本介绍
 记事本风格的Word文本编辑器，支持docx、txt编辑功能。支持修改字体字号，窗口置顶，自动保存、备份，暗黑模式，查找与替换，插入链接等高级功能。
-## 免安装旗舰版本下载
-请根据需要的功能选择以下两个之一（需要预装.NET framework 4.6及以上版本）：
 
-[Word 记事本](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.7/WordNotepad.exe)
-
-[日志书写器](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.7/TextWriter.exe)
+## 免安装旗舰版下载
+[Ultimate旗舰版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.8/WordNotepad.exe)
+（需要预装.NET framework 4.6及以上版本）
 
 ## 稳定历史版本下载：
-
 [Professional专业版](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.4/TextWriter.exe)(v3.4)
 
 新增内容：精简文件大小。普通模式下添加状态栏，栏内显示行、列号、字数，还能控制是否锁定全屏模式、锁定滚动条开启状态。支持插入链接、字体下拉选择，Alt+上下挪动本行文字，Ctrl+Z撤销，Ctrl+Y重做。完善意外保护
@@ -27,8 +25,9 @@
 提示：加粗的版本号为稳定版本
 |版本号|新功能|调整与修改|修复问题|
 |:-:|:-|:-|:-|
-|[**3.7**](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.7/WordNotepad.exe)|新增新建文档功能。增加未命名情况下关闭窗口处理。增加文本替换功能。增加Shift+Del删除并复制本行。支持拖拽至exe快速打开。Word记事本下支持恢复崩溃文档。替换文本框会猜测需要替换的文本。菜单内增加打开文档。全面支持加载与保存各种编码的txt文档(UTF-8、UTF-8带BOM、GBK、UTF-16LE、UTF-16BE、UTF7、UTF32)。支持选中文本统计字数。增加调试模式|Word记事本下：删除打开邮箱功能，不预加载日志书写器写的文件，高级设置不在未命名状态下显示，不检测后台运行。Ctrl+V会默记一次当前内容，新建文档时不会弹出邮箱。不允许弹出多个替换文本框。Ctrl+F继续搜索改为Ctrl+Alt+F。完善注释|修复Word记事本模式下：另存为docx后扔停在未命名状态问题，修复Ctrl+S引起保存功能崩溃问题。修复Shift+Del后删一字符的问题。修复查找内容、文本替换框被主窗口遮挡问题，修复列数为负的问题
-|[3.6](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.6/WordNotepad.exe)|增加Ctrl+D删除本行、Ctrl+Alt+H隐藏任务栏显示|巨大的代码重构。日志书写器改版为Word记事本，模式可切换。恢复了自动暗黑模式|修复了计时器时长修改时产生了诸多问题。修复了加载新文档时旧文档保存到新路径的问题，修复了文件路径同步不选择一直弹出的问题
+|[**3.8**](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.8/WordNotepad.exe)|增加了8种编码的自动检测，并能显示和修改读写文本文件的编码|对话框交互改良，编码的输入格式更宽泛|修复了修改编码可能产生的读取文件错误|
+|3.7|新增新建文档功能。增加未命名情况下关闭窗口处理。增加文本替换功能。增加Shift+Del删除并复制本行。支持拖拽至exe快速打开。Word记事本下支持恢复崩溃文档。替换文本框会猜测需要替换的文本。菜单内增加打开文档。全面支持加载与保存各种编码的txt文档(UTF-8、UTF-8带BOM、GBK、UTF-16LE、UTF-16BE、UTF7、UTF32)。支持选中文本统计字数。增加调试模式|Word记事本下：删除打开邮箱功能，不预加载日志书写器写的文件，高级设置不在未命名状态下显示，不检测后台运行。Ctrl+V会默记一次当前内容，新建文档时不会弹出邮箱。不允许弹出多个替换文本框。Ctrl+F继续搜索改为Ctrl+Alt+F。完善注释|修复Word记事本模式下：另存为docx后扔停在未命名状态问题，修复Ctrl+S引起保存功能崩溃问题。修复Shift+Del后删一字符的问题。修复查找内容、文本替换框被主窗口遮挡问题，修复列数为负的问题
+|3.6|增加Ctrl+D删除本行、Ctrl+Alt+H隐藏任务栏显示|巨大的代码重构。日志书写器改版为Word记事本，模式可切换。恢复了自动暗黑模式|修复了计时器时长修改时产生了诸多问题。修复了加载新文档时旧文档保存到新路径的问题，修复了文件路径同步不选择一直弹出的问题
 |3.5|添加了另存为功能，全屏模式下Ctrl+Alt+L可以锁定全屏模式|撤销、保存与跳过功能大幅修改，保证不会丢失当前的文档内容。跳过保存会显式的弹出提示。文件路径同步时会显示具体的路径|修复加载空文档未响应问题
 |[**3.4**](https://github.com/IamWilliamWang/WordNotepad/releases/download/v3.4/TextWriter.exe)|添加强制保存功能。Ctrl+O可以载入非docx文件|不默认勾选退出后打开邮箱|修复了标题产生多余空格问题。修复了插入链接后界面混乱的问题
 |3.3|增加了LF检测和LF转为CRLF功能。增加了Ctrl+Z撤销和Ctrl+Y重做功能|单击事件更新行列号。在回车、Ctrl+Up、Ctrl+Down、Ctrl+T、Ctrl+I、Ctrl+X、Ctrl+V时会保存为撤销点

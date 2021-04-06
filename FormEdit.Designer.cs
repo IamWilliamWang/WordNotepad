@@ -427,15 +427,15 @@
             // toolStripStatusLabelEmpty
             // 
             this.toolStripStatusLabelEmpty.Name = "toolStripStatusLabelEmpty";
-            this.toolStripStatusLabelEmpty.Size = new System.Drawing.Size(430, 17);
+            this.toolStripStatusLabelEmpty.Size = new System.Drawing.Size(420, 17);
             this.toolStripStatusLabelEmpty.Spring = true;
             // 
             // toolStripStatusLabelEncoding
             // 
             this.toolStripStatusLabelEncoding.Margin = new System.Windows.Forms.Padding(0, 3, 16, 2);
             this.toolStripStatusLabelEncoding.Name = "toolStripStatusLabelEncoding";
-            this.toolStripStatusLabelEncoding.Size = new System.Drawing.Size(32, 17);
-            this.toolStripStatusLabelEncoding.Text = "编码";
+            this.toolStripStatusLabelEncoding.Size = new System.Drawing.Size(42, 17);
+            this.toolStripStatusLabelEncoding.Text = "UTF-8";
             this.toolStripStatusLabelEncoding.Click += new System.EventHandler(this.toolStripStatusLabelEncoding_Click);
             // 
             // toolStripStatusLabelLockScrollBar
