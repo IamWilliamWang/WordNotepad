@@ -832,9 +832,10 @@ namespace 日志书写器
         private string WriteTxtFile(string filename, string content, Encoding encoding = null)
         {
             if (encoding == null)
-                encoding = currentTxtEncoding;
+                encoding = currentTxtEncoding != null ? currentTxtEncoding : Encoding.UTF8;
+
             bool withBOM = this.toolStripStatusLabelEncoding.Text.Contains("BOM");
-            if (currentTxtEncoding == Encoding.UTF8 && !withBOM) 
+            if (encoding == Encoding.UTF8 && !withBOM) 
                 File.WriteAllText(filename, content);
             else
                 File.WriteAllText(filename, content, encoding);
