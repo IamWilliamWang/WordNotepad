@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "日志书写器", "日志书写器.csproj", "{C246C629-6B2C-47D2-A709-BFE1C5A9E0AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Word 记事本", "Word 记事本.csproj", "{C246C629-6B2C-47D2-A709-BFE1C5A9E0AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

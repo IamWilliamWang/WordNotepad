@@ -2,7 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     class BackupCreater
     {

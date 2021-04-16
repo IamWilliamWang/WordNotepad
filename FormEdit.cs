@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     public partial class FormEdit : Form
     {
@@ -84,7 +84,7 @@ namespace 日志书写器
         /// <summary>
         /// 作者姓名
         /// </summary>
-        public static String AuthorName { get; } = Hex2ChiEngString("&#xe7;&#x8e;&#x8b;&#xe5;&#x8a;&#xb2;&#xe7;&#xbf;&#x94;");
+        public static String AuthorName { get; } = UnicodeSaverUtil.Hex2ChiEngString("&#xe7;&#x8e;&#x8b;&#xe5;&#x8a;&#xb2;&#xe7;&#xbf;&#x94;");
 
         /// <summary>
         /// 上次保存的文档字符串长度（不包含换行）
@@ -284,7 +284,7 @@ namespace 日志书写器
         {
             /* 没指定就提取创建记录，有指定就使用data进行创建 */
             if (data == null && BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_SAVE) == null)
-                AutoSaver = BackupCreaterFactory.CreateAutoSaver(GetDefaultDocumentFileName(), (docxFile) => SaveDocument(), TimerIntervalSecond * 1000); // 直接传入SaveDocument，架空内部命名逻辑，只使用其中的计时器，避免意外。
+                AutoSaver = BackupCreaterFactory.CreateAutoSaver(GetDefaultDocumentFileName(), (docxFile) => WriteDocx(AutoBackup.Original文件名), TimerIntervalSecond * 1000); // 直接传入SaveDocument，架空内部命名逻辑，只使用其中的计时器，避免意外。
             else
                 AutoSaver = BackupCreaterFactory.CreateAutoSaver(data);
         }
@@ -296,7 +296,7 @@ namespace 日志书写器
         {
             /* 没指定就提取创建记录，有指定就使用data进行创建 */
             if (data == null && BackupCreaterFactory.GetDataById(BackupCreaterFactory.ID_BACKUP) == null)
-                AutoBackup = BackupCreaterFactory.CreateAutoBackup(GetDefaultDocumentFileName(), (backupFileName) => { SaveBackup(backupFileName); former.SaveText(textBoxMain.Text); }, TimerIntervalSecond * 1000, ".autosave");
+                AutoBackup = BackupCreaterFactory.CreateAutoBackup(GetDefaultDocumentFileName(), (backupFileName) => { WriteDocx(backupFileName, changeWhichSavedCharLength: false); former.SaveText(textBoxMain.Text); }, TimerIntervalSecond * 1000, ".autosave");
             else
                 AutoBackup = BackupCreaterFactory.CreateAutoBackup(data);
         }
@@ -403,6 +403,9 @@ namespace 日志书写器
                 this.button高级设置.Visible = false;
                 this.textBoxPath.Size = new Size(488, textBoxPath.Size.Height);
             }
+            // 默认开启精简模式
+            this.FullScreen = true;
+            // 如果传入文件名则打开 
             if (this.传入的文件名 != null)
                 this.LoadNewDocx(this.传入的文件名);
         }
@@ -599,7 +602,7 @@ namespace 日志书写器
                     if (Title.Untitled)
                         this.button保存_Click(sender, e);
                     else
-                        this.SaveDocument();
+                        WriteDocx(AutoBackup.Original文件名, forceSave: true);
                 }
                 else if (dialogResult == DialogResult.Cancel)
                     e.Cancel = true;
@@ -681,50 +684,21 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 执行保存docx文档（委托调用）
+        /// 执行保存文档的具体实现。执行写入docx文件并根据需要更新存储字数
         /// </summary>
-        private Result SaveDocument()
-        {
-            return SaveDocx(AutoBackup.Original文件名);
-        }
-
-        /// <summary>
-        /// 执行保存备份（委托调用）
-        /// </summary>
-        /// <param name="backupFileName"></param>
-        private Result SaveBackup(string backupFileName)
-        {
-            return SaveDocx(backupFileName, false);
-        }
-
-        /// <summary>
-        /// 执行保存文档的兼容接口
-        /// </summary>
-        /// <param name="docxName">要保存的文件名</param>
-        /// <param name="changeSavedCharLength">是否修改SavedCharLength，取决于调用时是对docx操作还是对autosave操作</param>
+        /// <param name="docxName">要写入的docx文件名</param>
+        /// <param name="forceSave">强制保存，不允许跳过</param>
+        /// <param name="changeSavedCharLength">是否需要修改CharLength</param>
+        /// <param name="changeWhichSavedCharLength">修改哪一个CharLength，取决于调用时是对docx操作(true)还是对autosave操作(false)</param>
         /// <returns></returns>
-        private Result SaveDocx(string docxName, bool changeSavedCharLength = true)
-        {
-            /* 原先此函数未考虑备份保存时判断跳过，所以没有使用SavedBackupCharLength。此接口为兼容接口，继续使用changeSavedCharLength来判断保存的是文档还是备份 */
-            if (changeSavedCharLength) // 保存的是文档
-                return SaveDocx(docxName, ref this.savedCharLength);
-            else // 保存的是备份
-                return SaveDocx(docxName, ref this.savedBackupCharLength);
-        }
-
-        /// <summary>
-        /// 执行保存文档的内部实现。执行写入docx文件并根据需要更新存储字数
-        /// </summary>
-        /// <param name="docxName">要保存的文件名</param>
-        /// <param name="changedCharLength">要被修改的charLength</param>
-        /// <param name="changeCharLength">是否需要修改changedCharLength</param>
-        /// <returns></returns>
-        private Result SaveDocx(string docxName, ref int changedCharLength, bool changeCharLength = true)
+        private Result WriteDocx(string docxName, bool forceSave = false, bool changeSavedCharLength = true, bool changeWhichSavedCharLength = true)
         {
             // 检查文件路径是否一致
             WorkingDirectorySynchronize();
+            // 读取将操作的length
+            int changedCharLength = changeWhichSavedCharLength ? this.savedCharLength : this.savedBackupCharLength;
             // 如果不需要保存就返回Skipped
-            if (this.textBoxMain.Text != "" && changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length)
+            if (!forceSave && this.textBoxMain.Text != "" && changedCharLength == this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length)
                 return Result.Skipped;
             // 不要写入只读文件
             if (new FileInfo(docxName).Attributes == FileAttributes.ReadOnly)
@@ -770,8 +744,13 @@ namespace 日志书写器
                 return Result.Failed;
             }
             // 如果需要修改存储长度就修改它
-            if (changeCharLength)
-                changedCharLength = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length;
+            if (changeSavedCharLength)
+            {
+                if (changeWhichSavedCharLength)
+                    this.savedCharLength = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length;
+                else
+                    this.savedBackupCharLength = this.textBoxMain.Text.Replace("\r", "").Replace("\n", "").Length;
+            }
             return Result.Done;
         }
 
@@ -795,9 +774,14 @@ namespace 日志书写器
                 return Result.Done;
             }
 
-            Result saveResult = SaveDocx(saveFileDialog.FileName);
+            Result saveResult = WriteDocx(saveFileDialog.FileName, forceSave: true);
             if (saveResult == Result.Done)
                 MessageBox.Show("已将文档保存到 " + saveFileDialog.FileName + " ！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else if (saveResult == Result.Skipped) 
+            {
+                MessageBox.Show("无需保存，已跳过保存文档。", "已跳过", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return Result.Skipped;
+            }
             else
             {
                 MessageBox.Show("发生了未知错误，保存失败", "保存失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -806,7 +790,7 @@ namespace 日志书写器
             // 重复拖入文档执行的操作，但是简化了判断只读和清除记录
             Title.SpecifiedDocumentFullName = saveFileDialog.FileName;
             // 生成新的计时器
-            AutoBackup = BackupCreaterFactory.CreateAutoBackup(saveFileDialog.FileName, (docxFile) => SaveBackup(docxFile), TimerIntervalSecond * 1000, ".autosave");
+            AutoBackup = BackupCreaterFactory.CreateAutoBackup(saveFileDialog.FileName, (docxFile) => WriteDocx(docxFile, changeWhichSavedCharLength: false), TimerIntervalSecond * 1000, ".autosave");
             // 更新文件路径框
             UpdatePath(AutoBackup.WorkingDirectory);
             // 重新打开计时器
@@ -823,7 +807,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 使用encoding编码写入txt文本文件
+        /// 使用给定的encoding编码写入到txt文本文件
         /// </summary>
         /// <param name="filename"></param>
         /// <param name="content"></param>
@@ -865,20 +849,18 @@ namespace 日志书写器
         {
             // Word记事本的未命名状态
             if (Title.Untitled)
-            {
                 this.SaveTo();
-            }
             // Word记事本的已命名状态或者日志管理器状态。此时AutoSaver和AutoBackup一切正常
             else
             {
-                Result saveResult = this.SaveDocument(); // 调用保存文档函数
+                Result saveResult = WriteDocx(AutoBackup.Original文件名); // 调用保存文档函数
                 if (saveResult == Result.Done)
                 {
                     DeleteBackup();
                     MessageBox.Show("保存Word文档成功！", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else if (saveResult == Result.Skipped)
-                    MessageBox.Show("无需保存，已跳过保存文档。如果仍然想保存，请点击强制保存", "已跳过", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("无需保存，已跳过保存文档。", "已跳过", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -909,7 +891,7 @@ namespace 日志书写器
                 else
                 {
                     savedCharLength = -1;
-                    Result saveResult = SaveDocx(saveFileDialog.FileName);
+                    Result saveResult = WriteDocx(saveFileDialog.FileName, forceSave: true);
                     if (saveResult == Result.Done)
                     {
                         DeleteBackup();
@@ -933,18 +915,7 @@ namespace 日志书写器
                 }
             }
         }
-
-        /// <summary>
-        /// 强制保存被按下
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void 强制保存ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            savedCharLength = -1;
-            button保存_Click(sender, e);
-        }
-
+        
         /// <summary>
         /// 保存为终稿按下事件
         /// </summary>
@@ -1067,7 +1038,7 @@ namespace 日志书写器
                 var selection = MessageBox.Show("当前文档检测到已被修改，是否保存后再打开新文档？", "修改提醒", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
                 if (selection == DialogResult.Yes)
                 {
-                    if (SaveDocx(this.AutoBackup.Original文件名) != Result.Done)
+                    if (WriteDocx(this.AutoBackup.Original文件名, forceSave: true) != Result.Done)
                     {
                         MessageBox.Show("保存失败，已经取消加载文档。");
                         return Result.Failed;
@@ -1249,7 +1220,7 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void FormEdit_DoubleClick(object sender, EventArgs e)
         {
-            FullScreenModeSwitch();
+            FullScreen = !FullScreen;
         }
 
         /// <summary>
@@ -1285,7 +1256,7 @@ namespace 日志书写器
             strBuilder.Replace(ConstVariables.LF, ConstVariables.CRLF); // 再把LF变成CRLF达到转换的目的
             if (this.textBoxMain.Text.Length != strBuilder.Length)
             {
-                if (MessageBox.Show("检测到存在LF，已将其转换为CRLF！如果想撤回转换，请点击取消，但是会导致文本布局混乱。", "换行符不统一", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
+                if (MessageBox.Show("检测到存在LF，即将转换为CRLF！如果想保持现有的LF，请点击取消，但是会导致重新加载后的文本混乱。", "换行符不统一", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
                     return Result.Canceled;
                 this.textBoxMain.Text = strBuilder.ToString();
                 return Result.Done;
@@ -1417,7 +1388,7 @@ namespace 日志书写器
                     }
                     else
                     {
-                        this.SaveDocument();
+                        WriteDocx(AutoBackup.Original文件名);
                         DeleteBackup();
                     }
                 }
@@ -1447,7 +1418,10 @@ namespace 日志书写器
                     this.RemoveCurrentRow();
                 // Ctrl + V 粘贴文本
                 else if (e.KeyCode == Keys.V)
+                {
                     this.former.SaveText(this.textBoxMain.Text);
+                    this.ConvertLF2CRLFInTextBox();
+                }
             }
             // Alt + 某按键（一个按键）
             else if (e.Alt)
@@ -1593,15 +1567,7 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 切换暗黑模式状态
-        /// </summary>
-        private void DarkModeSwitch()
-        {
-            DarkMode = DarkMode ? false : true;
-        }
-
-        /// <summary>
-        /// （弃用）打开全屏模式。请使用FullScreen = true代替本函数
+        /// 打开精简模式。可使用FullScreen = true代替本函数
         /// </summary>
         private void FullScreenModeOn()
         {
@@ -1612,16 +1578,15 @@ namespace 日志书写器
             if (height == 0 || width == 0)
                 return;
             this.groupBoxSetting.Visible = false;
-            this.textBoxMain.Location = new System.Drawing.Point(13, 7);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height + 65);
-            this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            this.精简模式ToolStripMenuItem.Text = "普通模式";
+            this.textBoxMain.Location = new System.Drawing.Point(12, 7);
+            this.textBoxMain.Size = new System.Drawing.Size(width, height + 52);
+            this.精简模式ToolStripMenuItem.Text = "完整模式";
 
-            this.statusStrip.Visible = false;
+            //this.statusStrip.Visible = false;
         }
 
         /// <summary>
-        /// （弃用）关闭全屏模式。请使用FullScreen = false代替本函数
+        /// 关闭精简模式。可使用FullScreen = false代替本函数
         /// </summary>
         private void FullScreenModeOff()
         {
@@ -1633,19 +1598,10 @@ namespace 日志书写器
                 return;
             this.groupBoxSetting.Visible = true;
             this.textBoxMain.Location = new System.Drawing.Point(12, 59);
-            this.textBoxMain.Size = new System.Drawing.Size(width, height - 65);
-            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.textBoxMain.Size = new System.Drawing.Size(width, height - 52);
             this.精简模式ToolStripMenuItem.Text = "精简模式";
 
-            this.statusStrip.Visible = true;
-        }
-
-        /// <summary>
-        /// 切换全屏模式状态
-        /// </summary>
-        private void FullScreenModeSwitch()
-        {
-            FullScreen = FullScreen ? false : true;
+            //this.statusStrip.Visible = true;
         }
 
         /// <summary>
@@ -2088,13 +2044,13 @@ namespace 日志书写器
         }
 
         /// <summary>
-        /// 精简模式/普通模式按下事件
+        /// 精简模式/完整模式按下事件
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void 精简模式ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FullScreenModeSwitch();
+            FullScreen = !FullScreen;
         }
 
         /// <summary>
@@ -2104,7 +2060,7 @@ namespace 日志书写器
         /// <param name="e"></param>
         private void 暗黑主题ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DarkModeSwitch();
+            DarkMode = !DarkMode;
         }
 
         /// <summary>
@@ -2182,7 +2138,7 @@ namespace 日志书写器
             {
                 cropRect = new Rectangle(0, 0, 200, 200);
                 LockFullScreenMode = false;
-                this.toolStripStatusLabelLockFullScreen.ToolTipText = "普通/精简模式未被锁定";
+                this.toolStripStatusLabelLockFullScreen.ToolTipText = "完整/精简模式未被锁定";
             }
             else // 不锁定变锁定
             {
@@ -2191,7 +2147,7 @@ namespace 日志书写器
                 if (this.FullScreen)
                     this.toolStripStatusLabelLockFullScreen.ToolTipText = "已锁定为精简模式";
                 else
-                    this.toolStripStatusLabelLockFullScreen.ToolTipText = "已锁定为普通模式";
+                    this.toolStripStatusLabelLockFullScreen.ToolTipText = "已锁定为完整模式";
             }
             Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
 
@@ -2283,17 +2239,17 @@ namespace 日志书写器
         /// <summary>
         /// 保存所有静态常量
         /// </summary>
-        class ConstVariables
+        public static class ConstVariables
         {
             /// <summary>
             /// （只读）快捷插入功能支持的符号（左）
             /// </summary>
-            public const string FAST_LEFTS = "(（[【{<《“‘\"";
+            public static readonly string FAST_LEFTS = "(（[【{<《“‘\"";
 
             /// <summary>
             /// （只读）快捷插入功能支持的符号（右）
             /// </summary>
-            public const string FAST_RIGHTS = ")）]】}>》”’\"";
+            public static readonly string FAST_RIGHTS = ")）]】}>》”’\"";
             /// <summary>
             /// （只读）字号中文列表
             /// </summary>
@@ -2305,8 +2261,8 @@ namespace 日志书写器
             public static readonly float[] FONT_SIZES = new float[] { 7.5f, 9f, 10.5f, 12f, 14f, 15f, 16f, 18f, 22f, 24f, 26f };
 
             // LF、CRLF
-            public const string LF = "\n";
-            public const string CRLF = "\r\n";
+            public static readonly string LF = "\n";
+            public static readonly string CRLF = "\r\n";
         }
         /// <summary>
         /// 文本定位帮助类
@@ -2765,15 +2721,15 @@ namespace 日志书写器
             /// </summary>
             public class CloseAndOpenAutoSaver : IDisposable
             {
-                private bool running;
+                private bool runningWhenEnter;
                 public CloseAndOpenAutoSaver()
                 {
-                    running = FormEdit.Instance.AutoSaverRunning;
+                    runningWhenEnter = FormEdit.Instance.AutoSaverRunning;
                     FormEdit.Instance.AutoSaverRunning = false;
                 }
                 public void Dispose()
                 {
-                    if (running)
+                    if (runningWhenEnter)
                         FormEdit.Instance.AutoSaverRunning = true;
                 }
             }
@@ -2782,15 +2738,15 @@ namespace 日志书写器
             /// </summary>
             public class CloseAndOpenAutoBackup : IDisposable
             {
-                private bool running;
+                private bool runningWhenEnter;
                 public CloseAndOpenAutoBackup()
                 {
-                    running = FormEdit.Instance.AutoBackupRunning;
+                    runningWhenEnter = FormEdit.Instance.AutoBackupRunning;
                     FormEdit.Instance.AutoBackupRunning = false;
                 }
                 public void Dispose()
                 {
-                    if (running)
+                    if (runningWhenEnter)
                         FormEdit.Instance.AutoBackupRunning = true;
                 }
             }
@@ -2825,52 +2781,7 @@ namespace 日志书写器
         /// 安全编辑，用于需要使用行号进行内容修改的操作。保存当前Text并避免修改时行号异常的问题
         /// </summary>
         private IDisposable SafeEdit { get { former.SaveText(this.textBoxMain.Text); return new Disposable.MakeTextFontSmallAndThenRestore(); } }
-
-        /// <summary>
-        /// 将普通英文与UTF8混合字串转换成正常字串
-        /// </summary>
-        /// <param name="混合字符串">英文与UTF8混合字串</param>
-        /// <returns></returns>
-        private static string Hex2ChiEngString(string 混合字符串)
-        {
-            int 处理结束所在Index = 0;
-            int 中文字开始Index, 中文字结束Index;
-            StringBuilder result = new StringBuilder(); // 真实字符串
-                                                        // 每次循环优先处理英文，然后在处理中文。以此类推
-            while (处理结束所在Index < 混合字符串.Length)
-            {
-                中文字开始Index = 混合字符串.IndexOf("&#x", 处理结束所在Index);
-                if (中文字开始Index == -1) // 如果接下来没有UTF8字符了
-                    中文字开始Index = 混合字符串.Length; // 使开始Index出界
-                if (中文字开始Index != 处理结束所在Index) // 有不用处理的英文字母直接放入原文
-                {
-                    result.Append(混合字符串.Substring(处理结束所在Index, 中文字开始Index - 处理结束所在Index));
-                    处理结束所在Index = 中文字开始Index;
-                }
-                if (处理结束所在Index < 混合字符串.Length) // 还没处理完所有的字符串
-                {
-                    中文字结束Index = 混合字符串.IndexOf(";", 中文字开始Index) + 1; // 字符格式是&#x…;
-                                                                     // 循环查找连续的中文字符
-                    while (true)
-                    {
-                        // 如果不再是中文字符，就跳出循环
-                        if (混合字符串.IndexOf("&#x", 中文字结束Index) != 中文字结束Index)
-                            break;
-                        // 下个字还是中文就接着查找
-                        中文字结束Index = 混合字符串.IndexOf(";", 中文字结束Index) + 1;
-                    }
-                    if (中文字结束Index == 0)
-                        throw new Exception("中文Hex格式错误");
-                    // 得到所有中文字符的utf8编码
-                    string chinCharacterUtf8编码 = 混合字符串.Substring(中文字开始Index, 中文字结束Index - 中文字开始Index).Replace("&#x", "").Replace(";", "");
-                    // 转化为汉字添加进去
-                    result.Append(UnicodeSaverUtil.GetChsFromHex(chinCharacterUtf8编码));
-                    处理结束所在Index = 中文字结束Index;
-                }
-            }
-            return result.ToString();
-        }
-
+        
         /// <summary>
         /// 汉字与固定Unicode格式之间互换的帮助类
         /// </summary>
@@ -2880,69 +2791,7 @@ namespace 日志书写器
         static class UnicodeSaverUtil
         {
             private readonly static string codingType = "utf-8";
-            /// <summary>
-            /// 判断ch是否是中文
-            /// </summary>
-            /// <param name="ch"></param>
-            /// <returns></returns>
-            public static bool IsChineseChar(char ch)
-            {
-                return ch > 127;
-            }
-
-            public static bool IsChineseString(string content)
-            {
-                bool result = false;
-                if (content.IndexOf("&#x") != -1)
-                    return true;
-                foreach (char ch in content.ToCharArray())
-                {
-                    if (IsChineseChar(ch))
-                        result = true;
-                }
-                return result;
-            }
-
-            /// <summary>
-            /// 从汉字串转换到16进制，字符类型不建议使用该方法
-            /// </summary>
-            /// <param name="s"></param>
-            /// <returns></returns>
-            public static string GetHexFromChs(string s)
-            {
-                if ((s.Length % 2) != 0)
-                {
-                    s += " ";//空格
-                             //throw new ArgumentException("s is not valid chinese string!");
-                }
-
-                System.Text.Encoding chs = System.Text.Encoding.GetEncoding(codingType);
-
-                byte[] bytes = chs.GetBytes(s);
-
-                string str = "";
-
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    str += string.Format("&#x{0:x};", bytes[i]);
-                }
-
-                return str;
-            }
-
-            /// <summary>
-            /// 将汉字字符转为utf8编码
-            /// </summary>
-            /// <param name="ch"></param>
-            /// <returns></returns>
-            public static string GetHexFromChs(char ch)
-            {
-                string result = GetHexFromChs(ch + "");
-                if (result.Substring(result.Length - 6) == "&#x20;")
-                    result = result.Substring(0, result.Length - 6);
-                return result;
-            }
-
+            
             /// <summary>
             /// 从16进制转换成汉字，请勿按字节调用
             /// </summary>
@@ -2985,6 +2834,51 @@ namespace 日志书写器
 
 
                 return chs.GetString(bytes);
+            }
+
+            /// <summary>
+            /// 将普通英文与UTF8混合字串转换成正常字串
+            /// </summary>
+            /// <param name="混合字符串">英文与UTF8混合字串</param>
+            /// <returns></returns>
+            public static string Hex2ChiEngString(string 混合字符串)
+            {
+                int 处理结束所在Index = 0;
+                int 中文字开始Index, 中文字结束Index;
+                StringBuilder result = new StringBuilder(); // 真实字符串
+                                                            // 每次循环优先处理英文，然后在处理中文。以此类推
+                while (处理结束所在Index < 混合字符串.Length)
+                {
+                    中文字开始Index = 混合字符串.IndexOf("&#x", 处理结束所在Index);
+                    if (中文字开始Index == -1) // 如果接下来没有UTF8字符了
+                        中文字开始Index = 混合字符串.Length; // 使开始Index出界
+                    if (中文字开始Index != 处理结束所在Index) // 有不用处理的英文字母直接放入原文
+                    {
+                        result.Append(混合字符串.Substring(处理结束所在Index, 中文字开始Index - 处理结束所在Index));
+                        处理结束所在Index = 中文字开始Index;
+                    }
+                    if (处理结束所在Index < 混合字符串.Length) // 还没处理完所有的字符串
+                    {
+                        中文字结束Index = 混合字符串.IndexOf(";", 中文字开始Index) + 1; // 字符格式是&#x…;
+                                                                         // 循环查找连续的中文字符
+                        while (true)
+                        {
+                            // 如果不再是中文字符，就跳出循环
+                            if (混合字符串.IndexOf("&#x", 中文字结束Index) != 中文字结束Index)
+                                break;
+                            // 下个字还是中文就接着查找
+                            中文字结束Index = 混合字符串.IndexOf(";", 中文字结束Index) + 1;
+                        }
+                        if (中文字结束Index == 0)
+                            throw new Exception("中文Hex格式错误");
+                        // 得到所有中文字符的utf8编码
+                        string chinCharacterUtf8编码 = 混合字符串.Substring(中文字开始Index, 中文字结束Index - 中文字开始Index).Replace("&#x", "").Replace(";", "");
+                        // 转化为汉字添加进去
+                        result.Append(GetChsFromHex(chinCharacterUtf8编码));
+                        处理结束所在Index = 中文字结束Index;
+                    }
+                }
+                return result.ToString();
             }
         }
         #endregion

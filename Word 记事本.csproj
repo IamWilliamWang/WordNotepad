@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C246C629-6B2C-47D2-A709-BFE1C5A9E0AB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>日志书写器</RootNamespace>
+    <RootNamespace>Word记事本</RootNamespace>
     <AssemblyName>WordNotepad</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -154,12 +154,6 @@
   <ItemGroup>
     <None Include="Resources\NPOI.OpenXml4Net.dll.gz" />
     <None Include="Resources\NPOI.OpenXmlFormats.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\lock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\unlock.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\lock-and-unlock-icon.jpg" />

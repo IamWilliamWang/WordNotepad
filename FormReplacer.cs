@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     public partial class FormReplacer : Form
     {

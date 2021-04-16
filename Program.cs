@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     static class Program
     {

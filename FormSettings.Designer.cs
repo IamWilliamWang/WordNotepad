@@ -1,4 +1,4 @@
-﻿namespace 日志书写器
+﻿namespace Word记事本
 {
     partial class FormSettings
     {

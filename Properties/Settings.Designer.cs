@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace 日志书写器.Properties {
+namespace Word记事本.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

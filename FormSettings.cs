@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     public partial class FormSettings : Form
     {
@@ -60,12 +60,10 @@ namespace 日志书写器
                 inputNumber = int.Parse(this.textBox计时器时长.Text);
                 if (inputNumber <= 0)
                     throw new Exception();
-
-                if (inputNumber < 10 && DialogResult.OK == MessageBox.Show("如果设置低于10秒可能会产生严重卡顿，影响程序使用。是否仍旧设置为" + inputNumber + "秒？", "警告", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning))
-                {
-                    Main.ChangeTimerPerSecond(inputNumber);
-                    MessageBox.Show("已改为" + inputNumber + "秒", "变更成功！");
-                }
+                if (inputNumber < 10 && DialogResult.Cancel == MessageBox.Show("如果设置低于10秒可能会产生严重卡顿，影响程序使用。是否仍旧设置为" + inputNumber + "秒？", "警告", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning))
+                    return;
+                Main.ChangeTimerPerSecond(inputNumber);
+                MessageBox.Show("已改为" + inputNumber + "秒", "变更成功！");
             }
             catch
             {

@@ -1,4 +1,4 @@
-﻿namespace 日志书写器
+﻿namespace Word记事本
 {
     partial class FormEdit
     {
@@ -53,7 +53,6 @@
             this.button保存 = new System.Windows.Forms.Button();
             this.contextMenuStripSave = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.另存为ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.强制保存ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.保存并置为终稿ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
             this.comboBoxFont = new System.Windows.Forms.ComboBox();
@@ -267,10 +266,9 @@
             // 
             this.contextMenuStripSave.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.另存为ToolStripMenuItem,
-            this.强制保存ToolStripMenuItem,
             this.保存并置为终稿ToolStripMenuItem});
             this.contextMenuStripSave.Name = "contextMenuStripSave";
-            this.contextMenuStripSave.Size = new System.Drawing.Size(137, 70);
+            this.contextMenuStripSave.Size = new System.Drawing.Size(137, 48);
             // 
             // 另存为ToolStripMenuItem
             // 
@@ -278,13 +276,6 @@
             this.另存为ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.另存为ToolStripMenuItem.Text = "另存为";
             this.另存为ToolStripMenuItem.Click += new System.EventHandler(this.另存为ToolStripMenuItem_Click);
-            // 
-            // 强制保存ToolStripMenuItem
-            // 
-            this.强制保存ToolStripMenuItem.Name = "强制保存ToolStripMenuItem";
-            this.强制保存ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
-            this.强制保存ToolStripMenuItem.Text = "强制保存";
-            this.强制保存ToolStripMenuItem.Click += new System.EventHandler(this.强制保存ToolStripMenuItem_Click);
             // 
             // 保存并置为终稿ToolStripMenuItem
             // 
@@ -441,7 +432,7 @@
             // toolStripStatusLabelLockScrollBar
             // 
             this.toolStripStatusLabelLockScrollBar.AutoToolTip = true;
-            this.toolStripStatusLabelLockScrollBar.BackgroundImage = global::日志书写器.Properties.Resources.lock_and_unlock_icon;
+            this.toolStripStatusLabelLockScrollBar.BackgroundImage = global::Word记事本.Properties.Resources.lock_and_unlock_icon;
             this.toolStripStatusLabelLockScrollBar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.toolStripStatusLabelLockScrollBar.Margin = new System.Windows.Forms.Padding(0, 3, 29, 2);
             this.toolStripStatusLabelLockScrollBar.Name = "toolStripStatusLabelLockScrollBar";
@@ -454,7 +445,7 @@
             // toolStripStatusLabelLockFullScreen
             // 
             this.toolStripStatusLabelLockFullScreen.AutoToolTip = true;
-            this.toolStripStatusLabelLockFullScreen.BackgroundImage = global::日志书写器.Properties.Resources.lock_and_unlock_icon;
+            this.toolStripStatusLabelLockFullScreen.BackgroundImage = global::Word记事本.Properties.Resources.lock_and_unlock_icon;
             this.toolStripStatusLabelLockFullScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.toolStripStatusLabelLockFullScreen.Margin = new System.Windows.Forms.Padding(0, 3, 29, 2);
             this.toolStripStatusLabelLockFullScreen.Name = "toolStripStatusLabelLockFullScreen";
@@ -538,7 +529,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelEmpty;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelLockScrollBar;
         private System.Windows.Forms.ComboBox comboBoxFont;
-        private System.Windows.Forms.ToolStripMenuItem 强制保存ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 另存为ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 新建文档ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 替换文本ToolStripMenuItem;

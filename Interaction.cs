@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace 日志书写器
+namespace Word记事本
 {
     public class InputBoxFormInner : Form
     {
@@ -93,9 +94,7 @@ namespace 日志书写器
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "InputBoxFormInner";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "InputBoxForm";
-            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -156,10 +155,13 @@ namespace 日志书写器
             else if (e.KeyChar == 27)
                 this.button取消_Click(sender, e);
             // 确保在hint状态下输入时删除掉提示
-            if (this.needClearDefaultText == true && this.BoxText == this.defaultText)
+            if (this.needClearDefaultText == true)
+            {
                 this.BoxText = String.Empty;
+                this.needClearDefaultText = false;
+            }
         }
-
+        
         public void SetDefaultText(string text)
         {
             BoxText = text;
@@ -177,8 +179,9 @@ namespace 日志书写器
         private void TextBoxInput_Click(object sender, EventArgs e)
         {
             // 在hint状态下清空文本框
-            if (this.needClearDefaultText == true)
+            if (this.needClearDefaultText == true) 
                 BoxText = String.Empty;
+            this.needClearDefaultText = false;
         }
 
         public bool InputSuccess()
@@ -187,7 +190,7 @@ namespace 日志书写器
         }
         #endregion
     }
-
+    
     class Interaction
     {
         /// <summary>
@@ -200,7 +203,7 @@ namespace 日志书写器
         /// <param name="hint">输入框的提示(会覆盖defaultText属性)</param>
         /// <param name="defaultReturn">点击取消所返回的字符串</param>
         /// <returns></returns>
-        public static string InputBox(string content, string title = "请输入", int? charCountPerline = null,
+        public static string InputBox(string content, string title = "请输入", int? charCountPerline = null, 
                                             string defaultText = null, string hint = null, string defaultReturn = "")
         {
             InputBoxFormInner inputBox;
@@ -208,12 +211,12 @@ namespace 日志书写器
                 inputBox = new InputBoxFormInner(title, content, charCountPerline);
             else
                 inputBox = new InputBoxFormInner(title, content);
-            if (defaultText != null)
+            if (defaultText != null) 
                 inputBox.SetDefaultText(defaultText);
             if (hint != null)
                 inputBox.SetHint(hint);
             inputBox.ShowDialog();
-            if (inputBox.InputSuccess() == false)
+            if (inputBox.InputSuccess() == false) 
                 return defaultReturn;
             return inputBox.BoxText;
         }

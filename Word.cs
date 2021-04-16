@@ -7,10 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 日志书写器
+namespace Word记事本
 {
     class Word
     {
+        public static readonly String APPLICATION_NAME = "Word 记事本";
+        public static readonly String COMPANY_NAME = "©2016-2021 William. All Rights Reserved.";
+        public static readonly String VERSION = Program.Version();
+
         private string filename;
         private XWPFDocument docWrite = new XWPFDocument();
         public string Font { get; set; } = "黑体";
@@ -18,19 +22,41 @@ namespace 日志书写器
         public int Length { get { return this.ReadWord().Replace("\r", "").Replace("\n", "").Length; } }
         public Word(string docxFileName = "document.docx", string authorName = "")
         {
-            if (authorName != "") 
-                docWrite.GetProperties().CoreProperties.Creator = authorName;
+            String AUTHOR_NAME = authorName;
+            String LAST_MODIFIER = authorName;
+            // Core Properties
+            if (authorName != "")
+                docWrite.GetProperties().CoreProperties.GetUnderlyingProperties().SetCreatorProperty(AUTHOR_NAME); // 代替掉NPOI的CREATOR_AUTHOR
+            docWrite.GetProperties().CoreProperties.GetUnderlyingProperties().SetLastModifiedByProperty(LAST_MODIFIER);
+            docWrite.GetProperties().CoreProperties.GetUnderlyingProperties().SetVersionProperty(VERSION);
+            // Extended properties
+            docWrite.GetProperties().ExtendedProperties.GetUnderlyingProperties().Company = COMPANY_NAME;
+            docWrite.GetProperties().ExtendedProperties.GetUnderlyingProperties().Application = APPLICATION_NAME;
+            docWrite.GetProperties().ExtendedProperties.GetUnderlyingProperties().AppVersion = VERSION;
+            // 类内变量
             this.filename = docxFileName;
         }
-        
+
+        private void EditDocxProperties(string[] contentLines)
+        {
+            // Core properties
+            if (contentLines.Length > 0) 
+                docWrite.GetProperties().CoreProperties.GetUnderlyingProperties().SetTitleProperty(contentLines[0].Substring(0, Math.Min(contentLines[0].Length, 20)));
+            // Extended properties
+            //docWrite.GetProperties().ExtendedProperties.GetUnderlyingProperties().CharactersWithSpaces = String.Join("", contentLines).Length;
+            //docWrite.GetProperties().ExtendedProperties.GetUnderlyingProperties().Characters = String.Join("", contentLines).Replace(" ", "").Length;
+        }
+
         public void WriteDocx(string content)
         {
-            string[] contentLines = content.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); //提取每一行的内容
+            string[] contentLines = content.Split(FormEdit.ConstVariables.CRLF.ToCharArray(), StringSplitOptions.RemoveEmptyEntries); //提取每一行的内容
             WriteDocx(contentLines);
         }
 
         public void WriteDocx(string[] contentLines)
         {
+            EditDocxProperties(contentLines);
+
             foreach (string line in contentLines)
             {
                 XWPFParagraph paragraph = docWrite.CreateParagraph(); //每一行对应word中的一段

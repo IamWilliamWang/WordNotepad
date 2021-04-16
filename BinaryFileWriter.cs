@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 日志书写器
+namespace Word记事本
 {
     public class BinaryFileWriter
     {
